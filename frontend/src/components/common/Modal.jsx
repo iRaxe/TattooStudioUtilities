@@ -36,7 +36,7 @@ const Modal = ({
         style={{
           backgroundColor: '#1f2937',
           border: '1px solid #374151',
-          borderRadius: '12px',
+          borderRadius: '4px',
           padding: '2rem',
           maxWidth,
           width: '90%',

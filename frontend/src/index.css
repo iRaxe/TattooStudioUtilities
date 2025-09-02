@@ -2,7 +2,25 @@
 
 @font-face {
   font-family: 'Cinzel';
-  src: local('Cinzel');
+  src: local('Cinzel'), local('Cinzel-Regular');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OldLondon';
+  src: url('/fonts/OldLondon.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'CloisterBlack';
+  src: url('/CloisterBlack.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -26,7 +44,7 @@ body {
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 1rem;
+  border-radius: 4px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
@@ -53,7 +71,7 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
+  border-radius: 2px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;

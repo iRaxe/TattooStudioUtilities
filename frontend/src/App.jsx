@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
+import { slide as Menu } from 'react-burger-menu'
 import './App.css'
 import { useState, useEffect, useRef } from 'react'
 import QRCode from 'qrcode'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import { FaPaintBrush, FaGem, FaTachometerAlt, FaPlus, FaGift, FaUsers, FaSignOutAlt, FaSearch, FaPen } from 'react-icons/fa'
 
 
 // Import new components
@@ -11,6 +13,7 @@ import Dashboard from './components/Dashboard'
 import CreateGiftCard from './components/CreateGiftCard'
 import GiftCardList from './components/GiftCardList'
 import CustomerList from './components/CustomerList'
+import GiftCardLanding from './components/GiftCardLanding'
 import Input from './components/common/Input'
 import Textarea from './components/common/Textarea'
 import Modal from './components/common/Modal'
@@ -284,27 +287,115 @@ const generateConsentPDF = async (consentId, customerName) => {
 };
 
 // Reusable Components
-function Header({ children, pageTitle }) {
+function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, activeAdminTab, onLogout }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <nav className="header-container">
-      <div className="header-card">
-        <div className="flex-col flex-start gap-sm">
-          <div className="flex-between w-full">
-            {children}
+    <>
+      <Menu 
+        right
+        isOpen={isMobileMenuOpen}
+        onStateChange={(state) => setIsMobileMenuOpen(state.isOpen)}
+        customBurgerIcon={false}
+        customCrossIcon={false}
+        disableAutoFocus
+      >
+        {isAdminPanel ? (
+          <div>
+            <button 
+              className={`bm-item menu-item ${activeAdminTab === 'dashboard' ? 'menu-item-admin' : ''}`}
+              onClick={() => {
+                onAdminTabChange?.('dashboard')
+                setIsMobileMenuOpen(false)
+              }}
+            >
+              <FaTachometerAlt style={{ marginRight: '0.5rem' }} /> Dashboard
+            </button>
+            <button 
+              className={`bm-item menu-item ${activeAdminTab === 'create' ? 'menu-item-admin' : ''}`}
+              onClick={() => {
+                onAdminTabChange?.('create')
+                setIsMobileMenuOpen(false)
+              }}
+            >
+              <FaPlus style={{ marginRight: '0.5rem' }} /> Crea Gift Card
+            </button>
+            <button 
+              className={`bm-item menu-item ${activeAdminTab === 'giftcards' ? 'menu-item-admin' : ''}`}
+              onClick={() => {
+                onAdminTabChange?.('giftcards')
+                setIsMobileMenuOpen(false)
+              }}
+            >
+              <FaGift style={{ marginRight: '0.5rem' }} /> Elenco Gift Card
+            </button>
+            <button 
+              className={`bm-item menu-item ${activeAdminTab === 'customers' ? 'menu-item-admin' : ''}`}
+              onClick={() => {
+                onAdminTabChange?.('customers')
+                setIsMobileMenuOpen(false)
+              }}
+            >
+              <FaUsers style={{ marginRight: '0.5rem' }} /> Elenco Clienti
+            </button>
+            <button 
+              className="bm-item menu-item menu-item-admin"
+              onClick={() => {
+                onLogout?.()
+                setIsMobileMenuOpen(false)
+              }}
+            >
+              <FaSignOutAlt style={{ marginRight: '0.5rem' }} /> Logout
+            </button>
           </div>
-          {pageTitle && (
-            <div style={{
-              fontSize: '0.9rem',
-              color: '#9ca3af',
-              fontWeight: '500',
-              marginLeft: '0.25rem'
-            }}>
-              {pageTitle}
+        ) : (
+          <div>
+            <Link to="/verify" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
+              <FaSearch style={{ marginRight: '0.5rem' }} /> Verifica Gift Card
+            </Link>
+            <Link to="/consenso" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
+              <FaPen style={{ marginRight: '0.5rem' }} /> Consenso Online
+            </Link>
+            <Link to="/admin" className="bm-item menu-item menu-item-admin" onClick={() => setIsMobileMenuOpen(false)}>
+              <FaTachometerAlt style={{ marginRight: '0.5rem' }} /> Admin Panel
+            </Link>
+          </div>
+        )}
+      </Menu>
+      
+      <nav className="header-container">
+        <div className="header-card">
+          <div className="flex-col flex-start gap-sm">
+            <div className="flex-between w-full">
+              <div className="header-mobile-layout">
+                {children}
+                <div className="header-mobile-right">
+                  <button 
+                    className="burger-menu"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    aria-label="Toggle menu"
+                  >
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
+            {pageTitle && (
+              <div className="breadcrumb" style={{
+                fontSize: '0.9rem',
+                color: '#9ca3af',
+                fontWeight: '500',
+                marginLeft: '0.25rem'
+              }}>
+                {pageTitle}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   )
 }
 
@@ -544,7 +635,7 @@ function AdminLogin({ onLoggedIn, onAuthChange }) {
   )
 }
 
-function AdminPanel({ onAuthChange }) {
+function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: externalOnTabChange, onLogout: externalOnLogout }) {
   const [isAuth, setIsAuth] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [amount, setAmount] = useState('')
@@ -581,6 +672,13 @@ function AdminPanel({ onAuthChange }) {
     city: ''
   })
 
+
+  // Sincronizza il tab attivo con le props esterne
+  useEffect(() => {
+    if (externalActiveTab) {
+      setActiveTab(externalActiveTab)
+    }
+  }, [externalActiveTab])
 
   useEffect(() => {
     const token = getCookie('adminToken')
@@ -870,9 +968,19 @@ function AdminPanel({ onAuthChange }) {
   }
 
   const handleLogout = () => {
-    deleteCookie('adminToken')
-    setIsAuth(false)
-    onAuthChange?.(false)
+    if (externalOnLogout) {
+      externalOnLogout()
+    } else {
+      deleteCookie('adminToken')
+      setIsAuth(false)
+      onAuthChange?.(false)
+    }
+  }
+
+  // Funzione per cambiare tab che notifica anche il componente esterno
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    externalOnTabChange?.(tab)
   }
 
   if (!isAuth) {
@@ -902,11 +1010,11 @@ function AdminPanel({ onAuthChange }) {
         width: '100%'
       }}>
         {/* Sidebar Navigation */}
-        <div style={{
+        <div className="admin-sidebar" style={{
           width: '250px',
           flexShrink: 0,
           background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '12px',
+          borderRadius: '4px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '1.5rem',
           backdropFilter: 'blur(10px)'
@@ -918,36 +1026,36 @@ function AdminPanel({ onAuthChange }) {
           }}>
             <Button
               variant={activeTab === 'dashboard' ? 'primary' : 'ghost'}
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => handleTabChange('dashboard')}
               style={{
                 width: '100%',
                 textAlign: 'left',
                 fontSize: '0.9rem',
                 fontWeight: '500',
                 padding: '0.75rem 1rem',
-                borderRadius: '8px'
+                borderRadius: '4px'
               }}
             >
-              📊 Dashboard
+              <FaTachometerAlt style={{ marginRight: '0.5rem' }} /> Dashboard
             </Button>
             <Button
               variant={activeTab === 'create' ? 'primary' : 'ghost'}
-              onClick={() => setActiveTab('create')}
+              onClick={() => handleTabChange('create')}
               style={{
                 width: '100%',
                 textAlign: 'left',
                 fontSize: '0.9rem',
                 fontWeight: '500',
                 padding: '0.75rem 1rem',
-                borderRadius: '8px'
+                borderRadius: '4px'
               }}
             >
-              ➕ Crea Gift Card
+              <FaPlus style={{ marginRight: '0.5rem' }} /> Crea Gift Card
             </Button>
             <Button
-              variant={activeTab === 'list' ? 'primary' : 'ghost'}
+              variant={activeTab === 'giftcards' ? 'primary' : 'ghost'}
               onClick={() => {
-                setActiveTab('list')
+                handleTabChange('giftcards')
                 fetchAllGiftCards()
               }}
               style={{
@@ -956,15 +1064,15 @@ function AdminPanel({ onAuthChange }) {
                 fontSize: '0.9rem',
                 fontWeight: '500',
                 padding: '0.75rem 1rem',
-                borderRadius: '8px'
+                borderRadius: '4px'
               }}
             >
-              📋 Elenco Gift Card
+              <FaGift style={{ marginRight: '0.5rem' }} /> Elenco Gift Card
             </Button>
             <Button
               variant={activeTab === 'customers' ? 'primary' : 'ghost'}
               onClick={() => {
-                setActiveTab('customers')
+                handleTabChange('customers')
                 fetchCustomers()
               }}
               style={{
@@ -973,10 +1081,10 @@ function AdminPanel({ onAuthChange }) {
                 fontSize: '0.9rem',
                 fontWeight: '500',
                 padding: '0.75rem 1rem',
-                borderRadius: '8px'
+                borderRadius: '4px'
               }}
             >
-              👥 Elenco Clienti
+              <FaUsers style={{ marginRight: '0.5rem' }} /> Elenco Clienti
             </Button>
           </div>
         </div>
@@ -985,7 +1093,7 @@ function AdminPanel({ onAuthChange }) {
         <div style={{
           flex: 1,
           background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '12px',
+          borderRadius: '4px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '2rem',
           backdropFilter: 'blur(10px)'
@@ -1012,7 +1120,7 @@ function AdminPanel({ onAuthChange }) {
 
 
         {/* Gift Cards List Tab */}
-        {activeTab === 'list' && (
+        {activeTab === 'giftcards' && (
           <GiftCardList
             allGiftCards={allGiftCards}
             searchTerm={searchTerm}
@@ -1113,7 +1221,7 @@ function AdminPanel({ onAuthChange }) {
                       padding: '0.75rem',
                       backgroundColor: '#374151',
                       border: '1px solid #4b5563',
-                      borderRadius: '6px',
+                      borderRadius: '4px',
                       color: '#f9fafb',
                       fontSize: '0.9rem'
                     }}
@@ -1130,7 +1238,7 @@ function AdminPanel({ onAuthChange }) {
                       padding: '0.75rem',
                       backgroundColor: '#374151',
                       border: '1px solid #4b5563',
-                      borderRadius: '6px',
+                      borderRadius: '4px',
                       color: '#f9fafb',
                       fontSize: '0.9rem'
                     }}
@@ -1148,7 +1256,7 @@ function AdminPanel({ onAuthChange }) {
                     padding: '0.75rem',
                     backgroundColor: '#374151',
                     border: '1px solid #4b5563',
-                    borderRadius: '6px',
+                    borderRadius: '4px',
                     color: '#f9fafb',
                     fontSize: '0.9rem'
                   }}
@@ -1165,7 +1273,7 @@ function AdminPanel({ onAuthChange }) {
                     padding: '0.75rem',
                     backgroundColor: '#374151',
                     border: '1px solid #4b5563',
-                    borderRadius: '6px',
+                    borderRadius: '4px',
                     color: '#f9fafb',
                     fontSize: '0.9rem'
                   }}
@@ -1182,7 +1290,7 @@ function AdminPanel({ onAuthChange }) {
                     padding: '0.75rem',
                     backgroundColor: '#374151',
                     border: '1px solid #4b5563',
-                    borderRadius: '6px',
+                    borderRadius: '4px',
                     color: '#f9fafb',
                     fontSize: '0.9rem'
                   }}
@@ -1199,7 +1307,7 @@ function AdminPanel({ onAuthChange }) {
                     padding: '0.75rem',
                     backgroundColor: '#374151',
                     border: '1px solid #4b5563',
-                    borderRadius: '6px',
+                    borderRadius: '4px',
                     color: '#f9fafb',
                     fontSize: '0.9rem'
                   }}
@@ -1216,7 +1324,7 @@ function AdminPanel({ onAuthChange }) {
                     padding: '0.75rem',
                     backgroundColor: '#374151',
                     border: '1px solid #4b5563',
-                    borderRadius: '6px',
+                    borderRadius: '4px',
                     color: '#f9fafb',
                     fontSize: '0.9rem'
                   }}
@@ -1233,7 +1341,7 @@ function AdminPanel({ onAuthChange }) {
                     padding: '0.75rem',
                     backgroundColor: '#374151',
                     border: '1px solid #4b5563',
-                    borderRadius: '6px',
+                    borderRadius: '4px',
                     color: '#f9fafb',
                     fontSize: '0.9rem'
                   }}
@@ -1253,7 +1361,7 @@ function AdminPanel({ onAuthChange }) {
                   padding: '0.75rem 1.5rem',
                   backgroundColor: '#374151',
                   border: '1px solid #4b5563',
-                  borderRadius: '6px',
+                  borderRadius: '4px',
                   color: '#9ca3af',
                   cursor: 'pointer',
                   fontSize: '0.9rem'
@@ -1267,7 +1375,7 @@ function AdminPanel({ onAuthChange }) {
                   padding: '0.75rem 1.5rem',
                   backgroundColor: '#059669',
                   border: '1px solid #10b981',
-                  borderRadius: '6px',
+                  borderRadius: '4px',
                   color: '#f9fafb',
                   cursor: 'pointer',
                   fontSize: '0.9rem',
@@ -1471,7 +1579,7 @@ function ClaimPage() {
           <div style={{
             background: 'rgba(251, 191, 36, 0.1)',
             border: '1px solid rgba(251, 191, 36, 0.3)',
-            borderRadius: '8px',
+            borderRadius: '4px',
             padding: '1.5rem',
             maxWidth: '500px',
             minWidth: '350px',
@@ -1595,17 +1703,17 @@ function ConsensoOnline() {
     <Container>
       <Card>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <Title level={1}>Consenso Online</Title>
           <p style={{ color: '#9ca3af', fontSize: '1.1rem', marginTop: '1rem' }}>
             Seleziona il tipo di trattamento per cui desideri compilare il modulo di consenso
           </p>
         </div>
         
-        <div style={{ 
-          display: 'grid', 
-          gap: '1.5rem', 
-          maxWidth: '600px', 
-          margin: '0 auto' 
+        <div style={{
+          display: 'grid',
+          gap: '1.5rem',
+          maxWidth: '800px',
+          margin: '0 auto',
+          gridTemplateColumns: '1fr'
         }}>
           <Link 
             to="/consenso/tatuaggio"
@@ -1616,8 +1724,8 @@ function ConsensoOnline() {
           >
             <div style={{
               background: 'rgba(255, 255, 255, 0.05)',
-              border: '2px solid rgba(251, 191, 36, 0.3)',
-              borderRadius: '12px',
+                    border: '2px solid rgba(251, 191, 36, 0.3)',
+                    borderRadius: '4px',
               padding: '2rem',
               textAlign: 'center',
               cursor: 'pointer',
@@ -1636,7 +1744,9 @@ function ConsensoOnline() {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
             }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎨</div>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}>
+                <FaPaintBrush />
+              </div>
               <h3 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
                 Consenso per Tatuaggio
               </h3>
@@ -1655,8 +1765,8 @@ function ConsensoOnline() {
           >
             <div style={{
               background: 'rgba(255, 255, 255, 0.05)',
-              border: '2px solid rgba(251, 191, 36, 0.3)',
-              borderRadius: '12px',
+                    border: '2px solid rgba(251, 191, 36, 0.3)',
+                    borderRadius: '4px',
               padding: '2rem',
               textAlign: 'center',
               cursor: 'pointer',
@@ -1671,7 +1781,9 @@ function ConsensoOnline() {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
             }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💎</div>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}>
+                <FaGem />
+              </div>
               <h3 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
                 Consenso per Piercing
               </h3>
@@ -1682,11 +1794,7 @@ function ConsensoOnline() {
           </Link>
         </div>
         
-        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <Link to="/" className="nav-link" style={{ color: '#9ca3af' }}>
-            ← Torna alla homepage
-          </Link>
-        </div>
+
       </Card>
     </Container>
   )
@@ -1791,11 +1899,7 @@ function ConsensoTatuaggio() {
               Il tuo modulo di consenso per il tatuaggio è stato ricevuto correttamente.
               Ti contatteremo presto per confermare l'appuntamento.
             </p>
-            <div style={{ marginTop: '2rem' }}>
-              <Link to="/" className="nav-link">
-                ← Torna alla homepage
-              </Link>
-            </div>
+
           </div>
         </Card>
       </Container>
@@ -2208,11 +2312,7 @@ function ConsensoPiercing() {
               Il tuo modulo di consenso per il piercing è stato ricevuto correttamente.
               Ti contatteremo presto per confermare l'appuntamento.
             </p>
-            <div style={{ marginTop: '2rem' }}>
-              <Link to="/" className="nav-link">
-                ← Torna alla homepage
-              </Link>
-            </div>
+
           </div>
         </Card>
       </Container>
@@ -2537,8 +2637,40 @@ function ConsensoPiercing() {
   )
 }
 
+function Footer() {
+  const currentYear = new Date().getFullYear();
+  
+  return (
+    <footer className="footer-container">
+      <div className="footer-card">
+        <div className="footer-content">
+          <div className="footer-left">
+            <span className="footer-copyright">
+              Tutti i diritti riservati © {currentYear}
+            </span>
+          </div>
+          <div className="footer-right">
+            <span className="footer-developer">
+              Sviluppato da{' '}
+              <a 
+                href="https://vguarino.it" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="footer-link"
+              >
+                vGuarino
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 function AppContent() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false)
+  const [adminActiveTab, setAdminActiveTab] = useState('dashboard')
   const location = useLocation()
 
   useEffect(() => {
@@ -2550,6 +2682,12 @@ function AppContent() {
     deleteCookie('adminToken')
     setIsAdminLoggedIn(false)
   }
+
+  const handleAdminTabChange = (tab) => {
+    setAdminActiveTab(tab)
+  }
+
+  const isAdminPanel = location.pathname === '/admin' && isAdminLoggedIn
 
   // Determina il titolo della pagina basato sulla route
   const getPageTitle = () => {
@@ -2573,42 +2711,55 @@ function AppContent() {
     }
   }
 
+  // Hide header on gift card landing page
+  const showHeader = !location.pathname.startsWith('/gift/landing/');
+
   return (
     <div className="app-container">
-      <Header pageTitle={getPageTitle()}>
-        <Link to="/" className="header-logo">
-          Tink Studio
-        </Link>
-        <div className="header-nav-links">
-          <Link to="/verify" className="nav-link">
-            Verifica Gift Card
+      {showHeader && (
+        <Header 
+          pageTitle={getPageTitle()}
+          isAdminPanel={isAdminPanel}
+          activeAdminTab={adminActiveTab}
+          onAdminTabChange={handleAdminTabChange}
+          onLogout={handleLogout}
+        >
+          <Link to="/" className="header-logo">
+            <img src="/LogoScritta.svg" alt="Tink Studio" style={{ height: '2rem', width: 'auto' }} />
           </Link>
-          <Link to="/consenso" className="nav-link">
-            Consenso Online
-          </Link>
-          {location.pathname === '/admin' && isAdminLoggedIn ? (
-            <Button 
-              onClick={handleLogout}
-              className="nav-link nav-link-admin"
-            >
-              Logout
-            </Button>
-          ) : (
-            <Link to="/admin" className="nav-link nav-link-admin">
-              Admin Panel
+          <div className="header-nav-links">
+            <Link to="/verify" className="nav-link">
+              Verifica Gift Card
             </Link>
-          )}
-        </div>
-      </Header>
+            <Link to="/consenso" className="nav-link">
+              Consenso Online
+            </Link>
+            {location.pathname === '/admin' && isAdminLoggedIn ? (
+              <Button 
+                onClick={handleLogout}
+                className="nav-link nav-link-admin"
+              >
+                Logout
+              </Button>
+            ) : (
+              <Link to="/admin" className="nav-link nav-link-admin">
+                Admin Panel
+              </Link>
+            )}
+          </div>
+        </Header>
+      )}
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/verify" element={<Verify />} />
-        <Route path="/consenso" element={<ConsensoOnline />} />
-        <Route path="/consenso/tatuaggio" element={<ConsensoTatuaggio />} />
-        <Route path="/consenso/piercing" element={<ConsensoPiercing />} />
-        <Route path="/admin" element={<AdminPanel onAuthChange={setIsAdminLoggedIn} />} />
-        <Route path="/gift/claim/:token" element={<ClaimPage />} />
+<Route path="/" element={<Home />} />
+<Route path="/verify" element={<Verify />} />
+<Route path="/consenso" element={<ConsensoOnline />} />
+<Route path="/consenso/tatuaggio" element={<ConsensoTatuaggio />} />
+<Route path="/consenso/piercing" element={<ConsensoPiercing />} />
+<Route path="/admin" element={<AdminPanel onAuthChange={setIsAdminLoggedIn} activeTab={adminActiveTab} onTabChange={handleAdminTabChange} onLogout={handleLogout} />} />
+<Route path="/gift/claim/:token" element={<ClaimPage />} />
+<Route path="/gift/landing/:token" element={<GiftCardLanding />} />
       </Routes>
+      {showHeader && <Footer />}
     </div>
   )
 }

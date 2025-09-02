@@ -153,6 +153,72 @@ app.post('/api/admin/gift-cards/drafts', requireAdmin, (req, res) => {
   });
 });
 
+// Admin: create complete gift card with customer data
+app.post('/api/admin/gift-cards/complete', requireAdmin, (req, res) => {
+  const { firstName, lastName, phone, amount, currency = 'EUR', expires_at = null, notes = null } = req.body || {};
+  
+  // Validation
+  if (!firstName || !firstName.trim()) {
+    return res.status(400).json({ error: 'First name is required' });
+  }
+  if (!lastName || !lastName.trim()) {
+    return res.status(400).json({ error: 'Last name is required' });
+  }
+  if (!phone || !phone.trim()) {
+    return res.status(400).json({ error: 'Phone is required' });
+  }
+  if (!amount || typeof amount !== 'number' || amount <= 0) {
+    return res.status(400).json({ error: 'Invalid amount' });
+  }
+  
+  const id = uuidv4();
+  const customer_id = uuidv4();
+  const code = genCode();
+  const createdAt = now();
+  const calculatedExpiresAt = monthsFromDate(createdAt, GIFT_CARD_VALIDITY_MONTHS);
+  
+  const giftCard = {
+    id,
+    status: 'active',
+    amount,
+    currency,
+    expires_at: expires_at ? new Date(expires_at) : calculatedExpiresAt,
+    notes,
+    claim_token: null,
+    claim_token_expires_at: null,
+    claimed_at: createdAt,
+    claimed_by_customer_id: customer_id,
+    code,
+    first_name: firstName.trim(),
+    last_name: lastName.trim(),
+    email: null,
+    phone: phone.trim(),
+    birth_date: null,
+    dedication: null,
+    consents: null,
+    created_at: createdAt,
+    updated_at: createdAt,
+  };
+  
+  giftCards.set(id, giftCard);
+  codeIndex.set(code, id);
+  
+  const redeem_url = `${PUBLIC_BASE_URL}/gift/landing/${id}`;
+  
+  return res.status(201).json({
+    gift_card_id: id,
+    amount,
+    code,
+    expires_at: toISO(giftCard.expires_at),
+    redeem_url,
+    customer: {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      phone: phone.trim()
+    }
+  });
+});
+
 // Admin: get all gift cards
 app.get('/api/admin/gift-cards', requireAdmin, (req, res) => {
   // Disable cache to ensure fresh data after customer updates
@@ -611,6 +677,29 @@ app.get('/api/gift-cards/verify/:code', (req, res) => {
     });
   }
   return res.json({ isValid: false, message: 'Gift Card non valida' });
+});
+
+// Gift Card Landing Page endpoint
+app.get('/api/gift-cards/landing/:id', (req, res) => {
+  const { id } = req.params;
+  if (!id) return res.status(400).json({ error: 'ID required' });
+  
+  const gc = giftCards.get(id);
+  if (!gc) return res.status(404).json({ error: 'Gift Card non trovata' });
+  
+  // Return gift card data for landing page
+  return res.json({
+    id: gc.id,
+    amount: gc.amount,
+    currency: gc.currency,
+    code: gc.code,
+    status: gc.status,
+    first_name: gc.first_name,
+    last_name: gc.last_name,
+    phone: gc.phone,
+    expires_at: toISO(gc.expires_at),
+    created_at: toISO(gc.created_at)
+  });
 });
 
 // Verify (POST endpoint for backward compatibility)

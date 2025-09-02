@@ -123,19 +123,14 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
 
   return (
     <div>
-      <h3 className="section-title">📋 Elenco Gift Card</h3>
+      <h3 className="section-title"><i className="fas fa-list"></i> Elenco Gift Card</h3>
       <p className="section-description">
         Visualizza tutte le gift card create e il loro stato attuale
       </p>
       
       {/* Search and Column Filter */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '1rem', 
-        marginBottom: '1.5rem',
-        flexWrap: 'wrap'
-      }}>
-        <div style={{ flex: '1', minWidth: '300px' }}>
+      <div className="gift-card-search-controls">
+        <div className="gift-card-search-input">
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -143,7 +138,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
             style={{
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '8px',
+              borderRadius: '4px',
               padding: '0.75rem',
               color: '#ffffff',
               fontSize: '0.9rem',
@@ -165,7 +160,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
               style={{
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '8px',
+                borderRadius: '4px',
                 padding: '0.75rem 2rem 0.75rem 0.75rem',
                 color: '#ffffff',
                 fontSize: '0.9rem',
@@ -195,7 +190,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                 right: 0,
                 background: 'rgba(0, 0, 0, 0.9)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '8px',
+                borderRadius: '4px',
                 marginTop: '0.25rem',
                 zIndex: 1000,
                 backdropFilter: 'blur(10px)'
@@ -256,7 +251,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
           padding: '3rem',
           color: '#9ca3af',
           background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '8px',
+          borderRadius: '4px',
           border: '1px solid rgba(255, 255, 255, 0.1)'
         }}>
           {searchTerm.trim() ? (
@@ -280,16 +275,13 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
           )}
         </div>
       ) : (
-        <div style={{
+        <div className="gift-card-list-container" style={{
           background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '8px',
+          borderRadius: '4px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           overflow: 'hidden'
         }}>
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse'
-          }}>
+          <table className="gift-card-table">
             <thead>
               <tr style={{
                 background: 'rgba(255, 255, 255, 0.1)',
@@ -378,7 +370,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                     }}>
                       <span style={{
                         padding: '0.25rem 0.75rem',
-                        borderRadius: '12px',
+                        borderRadius: '4px',
                         fontSize: '0.8rem',
                         fontWeight: '500',
                         background: 

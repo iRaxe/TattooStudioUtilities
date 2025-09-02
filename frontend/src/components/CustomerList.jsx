@@ -109,7 +109,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
 
   return (
     <div>
-      <h3 className="section-title">👥 Elenco Clienti</h3>
+      <h3 className="section-title"><i className="fas fa-users"></i> Elenco Clienti</h3>
       <p className="section-description">
         Visualizza tutti i clienti con le statistiche delle loro gift card
       </p>
@@ -129,7 +129,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
             style={{
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '8px',
+              borderRadius: '4px',
               padding: '0.75rem',
               color: '#f3f4f6',
               fontSize: '0.9rem',
@@ -150,7 +150,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
             style={{
               background: 'rgba(255, 255, 255, 0.05)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '8px',
+              borderRadius: '4px',
               padding: '0.75rem 2rem 0.75rem 0.75rem',
               color: '#ffffff',
               fontSize: '0.9rem',
@@ -180,7 +180,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
               right: 0,
               background: 'rgba(0, 0, 0, 0.9)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '8px',
+              borderRadius: '4px',
               marginTop: '0.25rem',
               zIndex: 1000,
               backdropFilter: 'blur(10px)'
@@ -242,7 +242,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
           padding: '3rem',
           color: '#9ca3af',
           background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '8px',
+          borderRadius: '4px',
           border: '1px solid rgba(255, 255, 255, 0.1)'
         }}>
           {customerSearchTerm?.trim() ? (
@@ -268,7 +268,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
       ) : (
         <div style={{
           background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '8px',
+          borderRadius: '4px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           overflow: 'hidden'
         }}>
@@ -498,7 +498,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                             style={{
                               background: 'rgba(34, 197, 94, 0.2)',
                               border: '1px solid rgba(34, 197, 94, 0.5)',
-                              borderRadius: '6px',
+                              borderRadius: '4px',
                               color: '#4ade80',
                               padding: '0.25rem 0.5rem',
                               fontSize: '0.8rem',
@@ -520,7 +520,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                             style={{
                               background: 'rgba(59, 130, 246, 0.2)',
                               border: '1px solid rgba(59, 130, 246, 0.5)',
-                              borderRadius: '6px',
+                              borderRadius: '4px',
                               color: '#60a5fa',
                               padding: '0.25rem 0.5rem',
                               fontSize: '0.8rem',
@@ -542,7 +542,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                             style={{
                               background: 'rgba(59, 130, 246, 0.2)',
                               border: '1px solid rgba(59, 130, 246, 0.5)',
-                              borderRadius: '6px',
+                              borderRadius: '4px',
                               color: '#60a5fa',
                               padding: '0.25rem 0.5rem',
                               fontSize: '0.8rem',
@@ -595,7 +595,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                   <div key={c.id} className="consenso-item" style={{
                     background: 'rgba(55, 65, 81, 0.5)',
                     border: '1px solid #4b5563',
-                    borderRadius: '8px',
+                    borderRadius: '4px',
                     padding: '1rem',
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -617,7 +617,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                         style={{
                           background: 'rgba(34, 197, 94, 0.2)',
                           border: '1px solid rgba(34, 197, 94, 0.5)',
-                          borderRadius: '6px',
+                          borderRadius: '4px',
                           color: '#22c55e',
                           padding: '0.5rem 1rem',
                           fontSize: '0.8rem',
