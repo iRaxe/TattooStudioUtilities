@@ -186,15 +186,23 @@ APP_DIR="/home/$APP_USER/TinkStudio"
 mkdir -p $APP_DIR
 chown $APP_USER:$APP_USER $APP_DIR
 
-export -f log_info log_success log_warning log_error
+sudo -u $APP_USER bash -c "
+    # Definizioni colori e funzioni di logging per subshell
+    C_RESET='\033[0m'
+    C_INFO='\033[0;36m'
+    C_SUCCESS='\033[0;32m'
+    C_WARN='\033[0;33m'
+    C_ERROR='\033[0;31m'
+    log_info() { echo -e \"${C_INFO}[INFO] ${1}${C_RESET}\"; }
+    log_success() { echo -e \"${C_SUCCESS}[SUCCESS] ${1}${C_RESET}\"; }
+    log_warning() { echo -e \"${C_WARN}[WARNING] ${1}${C_RESET}\"; }
+    log_error() { echo -e \"${C_ERROR}[ERROR] ${1}${C_RESET}\"; }
 
-sudo -E -u $APP_USER bash -c "
     cd $APP_DIR
     if [ -d '.git' ]; then
         log_info 'Aggiornamento repository esistente...'
         git pull origin master > /dev/null 2>&1
     else
-        # Prova prima con HTTPS pubblico (senza autenticazione)
         log_info 'Download da repository pubblico...'
         GIT_TERMINAL_PROMPT=0 git clone $GITHUB_REPO . 2>/dev/null
         
@@ -217,7 +225,6 @@ sudo -E -u $APP_USER bash -c "
         fi
     fi
     
-    # Verifica che i file essenziali siano presenti
     log_info 'Verifica file essenziali...'
     REQUIRED_FILES=('docker-compose.yml' 'frontend/Dockerfile' 'backend/Dockerfile' 'init-db.sql')
     MISSING_FILES=()
