@@ -9,7 +9,7 @@ git commit -m "%commit_message%"
 
 echo.
 echo [3/3] Invio delle modifiche al repository GitHub...
-git push origin main
+git push origin master
 
 echo.
 echo Fatto! Le modifiche sono state caricate su GitHub.
