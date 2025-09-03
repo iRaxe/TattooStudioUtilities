@@ -34,7 +34,6 @@ services:
       NODE_ENV: production
       PORT: 3001
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-tinkstudio_secure_password}@postgres:5432/tinkstudio
-      REDIS_URL: redis://:${REDIS_PASSWORD:-tinkstudio_redis_password}@redis:6379    
       REDIS_URL: redis://:${REDIS_PASSWORD:-tinkstudio_redis_password}@redis:6379
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
@@ -48,11 +47,9 @@ services:
     networks:
       - tinkstudio_network
     depends_on:
-      - redis    
-      - postgres
-      postgres:
-        condition: service_healthy
       redis:
+        condition: service_started
+      postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""]
