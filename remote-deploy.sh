@@ -127,7 +127,7 @@ log_success "Dipendenze base installate"
 
 # 3. Installazione Docker
 log_info "3/10 Installazione Docker..."
-if ! command -v docker &> /dev/null; then
+if ! command -v docker > /dev/null 2>&1; then
     dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null 2>&1
     dnf install -y docker-ce docker-ce-cli containerd.io > /dev/null 2>&1
     systemctl enable --now docker > /dev/null 2>&1
@@ -138,15 +138,15 @@ fi
 
 # 4. Installazione Docker Compose
 log_info "4/10 Installazione Docker Compose..."
-if docker compose version &> /dev/null; then
+if docker compose version > /dev/null 2>&1; then
     log_success "Docker Compose (plugin) già installato"
-elif command -v docker-compose &> /dev/null; then
+elif command -v docker-compose > /dev/null 2>&1; then
     log_success "Docker Compose (standalone) già installato"
 else
     log_info "Docker Compose non trovato. Tentativo di installazione..."
     # Metodo 1: Prova a installare il plugin DNF (preferito)
     dnf install -y docker-compose-plugin > /dev/null 2>&1
-    if docker compose version &> /dev/null; then
+    if docker compose version > /dev/null 2>&1; then
         log_success "Docker Compose (plugin) installato con successo."
     else
         # Metodo 2: Fallback a download manuale (standalone)
@@ -158,7 +158,7 @@ else
         fi
         curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose > /dev/null 2>&1
         chmod +x /usr/local/bin/docker-compose
-        if command -v docker-compose &> /dev/null; then
+        if command -v docker-compose > /dev/null 2>&1; then
             log_success "Docker Compose (standalone) installato (versione $DOCKER_COMPOSE_VERSION)"
         else
             log_error "Installazione di Docker Compose fallita."
@@ -170,7 +170,7 @@ fi
 # 5. Creazione utente applicazione
 log_info "5/10 Creazione utente applicazione..."
 APP_USER="tinkstudio"
-if ! id "$APP_USER" &>/dev/null; then
+if ! id "$APP_USER" > /dev/null 2>&1; then
     useradd -m -s /bin/bash $APP_USER
     usermod -aG wheel $APP_USER
     usermod -aG docker $APP_USER
@@ -352,9 +352,9 @@ sudo -u $APP_USER bash -c "
     # Determina comando docker compose con PATH esteso
     export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
     
-    if command -v docker-compose &> /dev/null; then
+    if command -v docker-compose > /dev/null 2>&1; then
         DOCKER_COMPOSE_CMD='docker-compose'
-    elif docker compose version &> /dev/null; then
+    elif docker compose version > /dev/null 2>&1; then
         DOCKER_COMPOSE_CMD='docker compose'
     else
         echo "[ERROR] Nessun comando docker-compose trovato per verifica!"
@@ -389,8 +389,8 @@ RemainAfterExit=yes
 User=$APP_USER
 Group=$APP_USER
 WorkingDirectory=$APP_DIR
-ExecStart=/bin/bash -c 'cd $APP_DIR && (command -v docker-compose &> /dev/null && docker-compose up -d || docker compose up -d)'
-ExecStop=/bin/bash -c 'cd $APP_DIR && (command -v docker-compose &> /dev/null && docker-compose down || docker compose down)'
+ExecStart=/bin/bash -c 'cd $APP_DIR && (command -v docker-compose > /dev/null 2>&1 && docker-compose up -d || docker compose up -d)'
+ExecStop=/bin/bash -c 'cd $APP_DIR && (command -v docker-compose > /dev/null 2>&1 && docker-compose down || docker compose down)'
 TimeoutStartSec=0
 
 [Install]
@@ -468,7 +468,7 @@ echo "   4. Testa l'applicazione: http://$DOMAIN"
 echo ""
 echo "🛠️ COMANDI UTILI:"
 echo "   📊 Stato: sudo systemctl status tinkstudio"
-echo "   📋 Logs: sudo -u $APP_USER bash -c 'cd $APP_DIR && (command -v docker-compose &> /dev/null && docker-compose logs -f || docker compose logs -f)'"
+echo "   📋 Logs: sudo -u $APP_USER bash -c 'cd $APP_DIR && (command -v docker-compose > /dev/null 2>&1 && docker-compose logs -f || docker compose logs -f)'"
 echo "   🔄 Riavvio: sudo systemctl restart tinkstudio"
 echo "   💾 Backup: sudo -u $APP_USER $APP_DIR/backup.sh"
 echo "   🔍 Verifica: $APP_DIR/verify-deployment.sh $DOMAIN"
@@ -477,7 +477,7 @@ echo "📞 SUPPORTO:"
 echo "   📁 Directory app: $APP_DIR"
 echo "   📄 Configurazione: $APP_DIR/.env"
 echo "   🔐 Credenziali: $APP_DIR/.credentials"
-echo "   📊 Stato Docker: sudo -u $APP_USER bash -c 'cd $APP_DIR && (command -v docker-compose &> /dev/null && docker-compose ps || docker compose ps)'"
+echo "   📊 Stato Docker: sudo -u $APP_USER bash -c 'cd $APP_DIR && (command -v docker-compose > /dev/null 2>&1 && docker-compose ps || docker compose ps)'"
 echo ""
 log_success "🚀 TinkStudio è ora installato e funzionante!"
 echo "⚠️  IMPORTANTE: Configura SSL/HTTPS per la sicurezza in produzione!"
