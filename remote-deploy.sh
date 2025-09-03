@@ -183,19 +183,22 @@ sudo -u $APP_USER bash -c "
 "
 log_success "Codice sorgente scaricato"
 
-# Funzione per configurare l'ambiente in modo sicuro
-configure_environment() {
-    local APP_DIR="$1"
-    local DOMAIN="$2"
+# 7. Configurazione ambiente
+log_info "7/10 Configurazione ambiente..."
 
-    cd "$APP_DIR" || { echo "ERRORE: Impossibile accedere a $APP_DIR" >&2; return 1; }
+# Eseguo la configurazione in un subshell come utente corretto
+if sudo -u $APP_USER bash -c '
+    APP_DIR="$1"
+    DOMAIN="$2"
+
+    cd "$APP_DIR" || { echo "ERRORE: Impossibile accedere a $APP_DIR" >&2; exit 1; }
 
     # Copia template .env se non esiste
     if [ ! -f ".env" ] && [ -f ".env.production" ]; then
         cp .env.production .env
     elif [ ! -f ".env" ]; then
         # Crea un .env di base se nessun template è disponibile
-        cat > .env << 'EOF'
+        cat > .env << "EOT"
 # Database Configuration
 POSTGRES_DB=tinkstudio
 POSTGRES_USER=postgres
@@ -213,23 +216,22 @@ GIFT_CARD_VALIDITY_MONTHS=12
 PUBLIC_BASE_URL=https://DOMAIN_PLACEHOLDER
 FRONTEND_URL=https://DOMAIN_PLACEHOLDER
 BACKEND_URL=https://DOMAIN_PLACEHOLDER
-EOF
+EOT
     fi
 
     # Genera credenziali sicure (solo alfanumeriche)
-    POSTGRES_PASS=$(head /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 25)
-    JWT_SECRET=$(head /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 50)
-    ADMIN_PASS=$(head /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 12)
+    POSTGRES_PASS=$(head /dev/urandom | tr -dc "A-Za-z0-9" | head -c 25)
+    JWT_SECRET=$(head /dev/urandom | tr -dc "A-Za-z0-9" | head -c 50)
+    ADMIN_PASS=$(head /dev/urandom | tr -dc "A-Za-z0-9" | head -c 12)
 
     # Sostituisce i placeholder nel file .env
-    # Usiamo | come delimitatore per evitare conflitti con caratteri speciali
     sed -i "s|DOMAIN_PLACEHOLDER|$DOMAIN|g" .env
     sed -i "s|GENERATED_PASSWORD|$POSTGRES_PASS|g" .env
     sed -i "s|GENERATED_JWT_SECRET|$JWT_SECRET|g" .env
     sed -i "s|GENERATED_ADMIN_PASSWORD|$ADMIN_PASS|g" .env
 
-    # Salva le credenziali in un file sicuro e leggibile solo dall'utente
-    cat > .credentials << EOF
+    # Salva le credenziali in un file sicuro
+    cat > .credentials << EOT
 # TinkStudio - Credenziali Generate Automaticamente
 # Data: $(date)
 # Dominio: $DOMAIN
@@ -242,20 +244,15 @@ ADMIN_PASSWORD=$ADMIN_PASS
 FRONTEND_URL=https://$DOMAIN
 ADMIN_LOGIN=https://$DOMAIN/admin
 API_HEALTH=https://$DOMAIN/api/health
-EOF
+EOT
     chmod 600 .credentials
 
     # Mostra le credenziali generate
-    echo '🔐 CREDENZIALI GENERATE:'
+    echo "🔐 CREDENZIALI GENERATE:"
     echo "Database Password: $POSTGRES_PASS"
     echo "JWT Secret: $JWT_SECRET"
     echo "Admin Password: $ADMIN_PASS"
-}
-
-# 7. Configurazione ambiente
-log_info "7/10 Configurazione ambiente..."
-# Esporta la funzione e le variabili necessarie, poi eseguila come utente corretto
-if sudo -u $APP_USER bash -c "$(declare -f configure_environment); configure_environment '$APP_DIR' '$DOMAIN'"; then
+' -- "$APP_DIR" "$DOMAIN"; then
     log_success "Ambiente configurato con credenziali sicure"
 else
     log_error "Configurazione dell'ambiente fallita. Controllare i log."
