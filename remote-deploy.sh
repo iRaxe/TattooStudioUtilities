@@ -187,6 +187,25 @@ mkdir -p $APP_DIR
 chown $APP_USER:$APP_USER $APP_DIR
 
 sudo -u $APP_USER bash -c "
+    # Ridefinisco le funzioni di logging nel subshell
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    NC='\033[0m'
+    
+    log_info() {
+        echo -e \"\${BLUE}[INFO]\${NC} \$1\"
+    }
+    
+    log_success() {
+        echo -e \"\${GREEN}[SUCCESS]\${NC} \$1\"
+    }
+    
+    log_error() {
+        echo -e \"\${RED}[ERROR]\${NC} \$1\"
+    }
+    
     cd $APP_DIR
     if [ -d '.git' ]; then
         log_info 'Aggiornamento repository esistente...'
