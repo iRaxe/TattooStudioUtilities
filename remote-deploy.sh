@@ -183,16 +183,18 @@ sudo -u $APP_USER bash -c "
 "
 log_success "Codice sorgente scaricato"
 
-# 7. Configurazione ambiente
-log_info "7/10 Configurazione ambiente..."
-sudo -u $APP_USER bash -c "
-    cd $APP_DIR
-    
-    # Copia template configurazione
-    if [ -f '.env.production' ]; then
+# Funzione per configurare l'ambiente in modo sicuro
+configure_environment() {
+    local APP_DIR="$1"
+    local DOMAIN="$2"
+
+    cd "$APP_DIR" || { echo "ERRORE: Impossibile accedere a $APP_DIR" >&2; return 1; }
+
+    # Copia template .env se non esiste
+    if [ ! -f ".env" ] && [ -f ".env.production" ]; then
         cp .env.production .env
-    else
-        # Crea configurazione base se non esiste
+    elif [ ! -f ".env" ]; then
+        # Crea un .env di base se nessun template è disponibile
         cat > .env << 'EOF'
 # Database Configuration
 POSTGRES_DB=tinkstudio
@@ -200,7 +202,6 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=GENERATED_PASSWORD
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
-
 # Application Configuration
 NODE_ENV=production
 PORT=3001
@@ -208,42 +209,34 @@ JWT_SECRET=GENERATED_JWT_SECRET
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=GENERATED_ADMIN_PASSWORD
 GIFT_CARD_VALIDITY_MONTHS=12
-
 # URLs
 PUBLIC_BASE_URL=https://DOMAIN_PLACEHOLDER
 FRONTEND_URL=https://DOMAIN_PLACEHOLDER
 BACKEND_URL=https://DOMAIN_PLACEHOLDER
-
-# Optional Services
-REDIS_URL=redis://redis:6379
-SMTP_HOST=
-SMTP_PORT=587
-SMTP_USER=
-SMTP_PASS=
-SMTP_FROM=noreply@DOMAIN_PLACEHOLDER
 EOF
     fi
-    
-    # Genera password sicure
-    POSTGRES_PASS=\$(openssl rand -base64 32 | tr -d '=+/' | cut -c1-25)
-    JWT_SECRET=\$(openssl rand -base64 64 | tr -d '=+/' | cut -c1-50)
-    ADMIN_PASS=\$(openssl rand -base64 16 | tr -d '=+/' | cut -c1-12)
-    
-    # Aggiorna configurazione usando escape per caratteri speciali
+
+    # Genera credenziali sicure (solo alfanumeriche)
+    POSTGRES_PASS=$(head /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 25)
+    JWT_SECRET=$(head /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 50)
+    ADMIN_PASS=$(head /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 12)
+
+    # Sostituisce i placeholder nel file .env
+    # Usiamo | come delimitatore per evitare conflitti con caratteri speciali
     sed -i "s|DOMAIN_PLACEHOLDER|$DOMAIN|g" .env
-    sed -i "s|GENERATED_PASSWORD|\${POSTGRES_PASS}|g" .env
-    sed -i "s|GENERATED_JWT_SECRET|\${JWT_SECRET}|g" .env
-    sed -i "s|GENERATED_ADMIN_PASSWORD|\${ADMIN_PASS}|g" .env
-    
-    # Salva credenziali in file sicuro
+    sed -i "s|GENERATED_PASSWORD|$POSTGRES_PASS|g" .env
+    sed -i "s|GENERATED_JWT_SECRET|$JWT_SECRET|g" .env
+    sed -i "s|GENERATED_ADMIN_PASSWORD|$ADMIN_PASS|g" .env
+
+    # Salva le credenziali in un file sicuro e leggibile solo dall'utente
     cat > .credentials << EOF
 # TinkStudio - Credenziali Generate Automaticamente
-# Data: \$(date)
+# Data: $(date)
 # Dominio: $DOMAIN
 
-POSTGRES_PASSWORD=\$POSTGRES_PASS
-JWT_SECRET=\$JWT_SECRET
-ADMIN_PASSWORD=\$ADMIN_PASS
+POSTGRES_PASSWORD=$POSTGRES_PASS
+JWT_SECRET=$JWT_SECRET
+ADMIN_PASSWORD=$ADMIN_PASS
 
 # URL Accesso
 FRONTEND_URL=https://$DOMAIN
@@ -251,14 +244,23 @@ ADMIN_LOGIN=https://$DOMAIN/admin
 API_HEALTH=https://$DOMAIN/api/health
 EOF
     chmod 600 .credentials
-    
-    echo '🔐 CREDENZIALI GENERATE:'
-    echo \"Database Password: \$POSTGRES_PASS\"
-    echo \"JWT Secret: \$JWT_SECRET\"
-    echo \"Admin Password: \$ADMIN_PASS\"
-"
-log_success "Ambiente configurato con credenziali sicure"
 
+    # Mostra le credenziali generate
+    echo '🔐 CREDENZIALI GENERATE:'
+    echo "Database Password: $POSTGRES_PASS"
+    echo "JWT Secret: $JWT_SECRET"
+    echo "Admin Password: $ADMIN_PASS"
+}
+
+# 7. Configurazione ambiente
+log_info "7/10 Configurazione ambiente..."
+export -f configure_environment
+if sudo -u $APP_USER bash -c "configure_environment '$APP_DIR' '$DOMAIN'"; then
+    log_success "Ambiente configurato con credenziali sicure"
+else
+    log_error "Configurazione dell'ambiente fallita. Controllare i log."
+    exit 1
+fi
 # 8. Configurazione firewall
 log_info "8/10 Configurazione firewall..."
 systemctl enable --now firewalld > /dev/null 2>&1
