@@ -442,7 +442,7 @@ function Home() {
         <div className="button-container">
           <Link to="/verify" style={{ textDecoration: 'none' }}>
             <Button>
-              Verifica Gift Card
+              Verificaa Gift Card
             </Button>
           </Link>
         </div>
@@ -2729,7 +2729,7 @@ function AppContent() {
           </Link>
           <div className="header-nav-links">
             <Link to="/verify" className="nav-link">
-              Verifica Gift Card
+              Verificaa Gift Card
             </Link>
             <Link to="/consenso" className="nav-link">
               Consenso Online
