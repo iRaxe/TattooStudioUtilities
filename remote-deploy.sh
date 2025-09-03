@@ -195,10 +195,10 @@ sudo -u $APP_USER bash -c "
          log_info 'Download da repository pubblico...'
          GIT_TERMINAL_PROMPT=0 git clone $GITHUB_REPO . 2>/dev/null
         
-        if [ \$? -ne 0 ]; then
+        if [ $? -ne 0 ]; then
             log_info 'Tentativo alternativo con wget...'
             wget -q https://github.com/iRaxe/TattooStudioUtilities/archive/refs/heads/master.zip -O tinkstudio.zip
-            if [ \$? -eq 0 ]; then
+            if [ $? -eq 0 ]; then
                 unzip -q tinkstudio.zip
                 mv TattooStudioUtilities-master/* .
                 mv TattooStudioUtilities-master/.[^.]* . 2>/dev/null || true
@@ -325,17 +325,17 @@ sudo -u $APP_USER bash -c "
     fi
     
     # Ferma eventuali container esistenti
-    \$DOCKER_COMPOSE_CMD down > /dev/null 2>&1 || true
+    $DOCKER_COMPOSE_CMD down > /dev/null 2>&1 || true
     
     # Pulisci immagini vecchie
     docker system prune -f > /dev/null 2>&1 || true
     
     # Avvia servizi
-    \$DOCKER_COMPOSE_CMD pull > /dev/null 2>&1 || true
-    \$DOCKER_COMPOSE_CMD build --no-cache > /dev/null 2>&1
-    \$DOCKER_COMPOSE_CMD up -d
+    $DOCKER_COMPOSE_CMD pull > /dev/null 2>&1 || true
+    $DOCKER_COMPOSE_CMD build --no-cache > /dev/null 2>&1
+    $DOCKER_COMPOSE_CMD up -d
     
-    if [ \$? -ne 0 ]; then
+    if [ $? -ne 0 ]; then
         echo '[ERROR] Errore nell\'avvio dei container Docker'
         exit 1
     fi
@@ -361,9 +361,9 @@ sudo -u $APP_USER bash -c "
         exit 1
     fi
     
-    if ! \$DOCKER_COMPOSE_CMD ps | grep -q 'Up'; then
+    if ! $DOCKER_COMPOSE_CMD ps | grep -q 'Up'; then
         echo 'ERRORE: Container non avviati correttamente'
-        \$DOCKER_COMPOSE_CMD ps
+        $DOCKER_COMPOSE_CMD ps
         exit 1
     fi
 " || STATUS_OK=false
