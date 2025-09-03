@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 
 # TinkStudio Remote Deployment Script
 # Questo script può essere eseguito su qualsiasi server AlmaLinux per installare TinkStudio
