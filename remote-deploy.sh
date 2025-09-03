@@ -105,7 +105,7 @@ fi
 
 # 4. Installazione Docker Compose
 log_info "4/10 Installazione Docker Compose..."
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
     DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose > /dev/null 2>&1
     chmod +x /usr/local/bin/docker-compose
@@ -210,10 +210,10 @@ EOF
     ADMIN_PASS=\$(openssl rand -base64 16 | tr -d '=+/' | cut -c1-12)
     
     # Aggiorna configurazione
-    sed -i 's/DOMAIN_PLACEHOLDER/$DOMAIN/g' .env
-    sed -i 's/GENERATED_PASSWORD/'\$POSTGRES_PASS'/g' .env
-    sed -i 's/GENERATED_JWT_SECRET/'\$JWT_SECRET'/g' .env
-    sed -i 's/GENERATED_ADMIN_PASSWORD/'\$ADMIN_PASS'/g' .env
+    sed -i "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" .env
+    sed -i "s/GENERATED_PASSWORD/\${POSTGRES_PASS}/g" .env
+    sed -i "s/GENERATED_JWT_SECRET/\${JWT_SECRET}/g" .env
+    sed -i "s/GENERATED_ADMIN_PASSWORD/\${ADMIN_PASS}/g" .env
     
     # Salva credenziali in file sicuro
     cat > .credentials << EOF
@@ -254,16 +254,28 @@ log_info "9/10 Avvio applicazione Docker..."
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
     
+    # Determina comando docker compose
+    if command -v docker-compose &> /dev/null; then
+        DOCKER_COMPOSE_CMD='docker-compose'
+    else
+        DOCKER_COMPOSE_CMD='docker compose'
+    fi
+    
     # Ferma eventuali container esistenti
-    docker-compose down > /dev/null 2>&1 || true
+    \$DOCKER_COMPOSE_CMD down > /dev/null 2>&1 || true
     
     # Pulisci immagini vecchie
     docker system prune -f > /dev/null 2>&1 || true
     
     # Avvia servizi
-    docker-compose pull > /dev/null 2>&1 || true
-    docker-compose build --no-cache > /dev/null 2>&1
-    docker-compose up -d
+    \$DOCKER_COMPOSE_CMD pull > /dev/null 2>&1 || true
+    \$DOCKER_COMPOSE_CMD build --no-cache > /dev/null 2>&1
+    \$DOCKER_COMPOSE_CMD up -d
+    
+    if [ \$? -ne 0 ]; then
+        echo '[ERROR] Errore nell\'avvio dei container Docker'
+        exit 1
+    fi
 "
 
 # Attendi che i servizi si avviino
@@ -274,9 +286,16 @@ sleep 30
 STATUS_OK=true
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
-    if ! docker-compose ps | grep -q 'Up'; then
+    # Determina comando docker compose
+    if command -v docker-compose &> /dev/null; then
+        DOCKER_COMPOSE_CMD='docker-compose'
+    else
+        DOCKER_COMPOSE_CMD='docker compose'
+    fi
+    
+    if ! \$DOCKER_COMPOSE_CMD ps | grep -q 'Up'; then
         echo 'ERRORE: Container non avviati correttamente'
-        docker-compose ps
+        \$DOCKER_COMPOSE_CMD ps
         exit 1
     fi
 " || STATUS_OK=false
@@ -302,8 +321,8 @@ RemainAfterExit=yes
 User=$APP_USER
 Group=$APP_USER
 WorkingDirectory=$APP_DIR
-ExecStart=/usr/local/bin/docker-compose up -d
-ExecStop=/usr/local/bin/docker-compose down
+ExecStart=/bin/bash -c 'cd $APP_DIR && (command -v docker-compose &> /dev/null && docker-compose up -d || docker compose up -d)'
+ExecStop=/bin/bash -c 'cd $APP_DIR && (command -v docker-compose &> /dev/null && docker-compose down || docker compose down)'
 TimeoutStartSec=0
 
 [Install]
@@ -381,7 +400,7 @@ echo "   4. Testa l'applicazione: http://$DOMAIN"
 echo ""
 echo "🛠️ COMANDI UTILI:"
 echo "   📊 Stato: sudo systemctl status tinkstudio"
-echo "   📋 Logs: sudo -u $APP_USER docker-compose -f $APP_DIR/docker-compose.yml logs -f"
+echo "   📋 Logs: sudo -u $APP_USER bash -c 'cd $APP_DIR && (command -v docker-compose &> /dev/null && docker-compose logs -f || docker compose logs -f)'"
 echo "   🔄 Riavvio: sudo systemctl restart tinkstudio"
 echo "   💾 Backup: sudo -u $APP_USER $APP_DIR/backup.sh"
 echo "   🔍 Verifica: $APP_DIR/verify-deployment.sh $DOMAIN"
@@ -390,7 +409,7 @@ echo "📞 SUPPORTO:"
 echo "   📁 Directory app: $APP_DIR"
 echo "   📄 Configurazione: $APP_DIR/.env"
 echo "   🔐 Credenziali: $APP_DIR/.credentials"
-echo "   📊 Stato Docker: sudo -u $APP_USER docker-compose -f $APP_DIR/docker-compose.yml ps"
+echo "   📊 Stato Docker: sudo -u $APP_USER bash -c 'cd $APP_DIR && (command -v docker-compose &> /dev/null && docker-compose ps || docker compose ps)'"
 echo ""
 log_success "🚀 TinkStudio è ora installato e funzionante!"
 echo "⚠️  IMPORTANTE: Configura SSL/HTTPS per la sicurezza in produzione!"
