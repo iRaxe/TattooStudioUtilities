@@ -189,18 +189,19 @@ chown $APP_USER:$APP_USER $APP_DIR
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
     if [ -d '.git' ]; then
+        log_info 'Aggiornamento repository esistente...'
         git pull origin master > /dev/null 2>&1
     else
         # Prova prima con HTTPS pubblico (senza autenticazione)
-         log_info 'Download da repository pubblico...'
-         GIT_TERMINAL_PROMPT=0 git clone $GITHUB_REPO . 2>/dev/null
+        log_info 'Download da repository pubblico...'
+        GIT_TERMINAL_PROMPT=0 git clone $GITHUB_REPO . 2>/dev/null
         
-        if [ $? -ne 0 ]; then
+        if [ \$? -ne 0 ]; then
             log_info 'Tentativo alternativo con wget...'
             wget -q https://github.com/iRaxe/TattooStudioUtilities/archive/refs/heads/master.zip -O tinkstudio.zip
-            if [ $? -eq 0 ]; then
+            if [ \$? -eq 0 ]; then
                 unzip -q tinkstudio.zip
-                mv TattooStudioUtilities-master/* .
+                mv TattooStudioUtilities-master/* . 2>/dev/null || true
                 mv TattooStudioUtilities-master/.[^.]* . 2>/dev/null || true
                 rm -rf TattooStudioUtilities-master tinkstudio.zip
                 log_success 'Codice sorgente scaricato via ZIP'
@@ -212,6 +213,37 @@ sudo -u $APP_USER bash -c "
         else
             log_success 'Codice sorgente scaricato via Git'
         fi
+    fi
+    
+    # Verifica che i file essenziali siano presenti
+    log_info 'Verifica file essenziali...'
+    REQUIRED_FILES=('docker-compose.yml' 'frontend/Dockerfile' 'backend/Dockerfile' 'init-db.sql')
+    MISSING_FILES=()
+    
+    for file in \"\${REQUIRED_FILES[@]}\"; do
+        if [ ! -f \"\$file\" ]; then
+            MISSING_FILES+=(\"\$file\")
+        fi
+    done
+    
+    if [ \${#MISSING_FILES[@]} -gt 0 ]; then
+        log_error 'File mancanti dopo il download:'
+        for file in \"\${MISSING_FILES[@]}\"; do
+            echo \"  - \$file\"
+        done
+        log_info 'Tentativo di download diretto dei file mancanti...'
+        
+        for file in \"\${MISSING_FILES[@]}\"; do
+            mkdir -p \"\$(dirname \"\$file\")\"
+            curl -s -o \"\$file\" \"https://raw.githubusercontent.com/iRaxe/TattooStudioUtilities/master/\$file\"
+            if [ \$? -eq 0 ] && [ -s \"\$file\" ]; then
+                log_success \"Scaricato: \$file\"
+            else
+                log_error \"Impossibile scaricare: \$file\"
+            fi
+        done
+    else
+        log_success 'Tutti i file essenziali sono presenti'
     fi
 "
 log_success "Codice sorgente scaricato"
