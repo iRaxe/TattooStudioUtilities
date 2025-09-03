@@ -138,7 +138,27 @@ sudo -u $APP_USER bash -c "
     if [ -d '.git' ]; then
         git pull origin master > /dev/null 2>&1
     else
-        git clone $GITHUB_REPO . > /dev/null 2>&1
+        # Prova prima con HTTPS pubblico (senza autenticazione)
+         log_info 'Download da repository pubblico...'
+         GIT_TERMINAL_PROMPT=0 git clone $GITHUB_REPO . 2>/dev/null
+        
+        if [ \$? -ne 0 ]; then
+            log_info 'Tentativo alternativo con wget...'
+            wget -q https://github.com/iRaxe/TattooStudioUtilities/archive/refs/heads/master.zip -O tinkstudio.zip
+            if [ \$? -eq 0 ]; then
+                unzip -q tinkstudio.zip
+                mv TattooStudioUtilities-master/* .
+                mv TattooStudioUtilities-master/.[^.]* . 2>/dev/null || true
+                rm -rf TattooStudioUtilities-master tinkstudio.zip
+                log_success 'Codice sorgente scaricato via ZIP'
+            else
+                log_error 'Impossibile scaricare il codice sorgente'
+                log_info 'Verifica che il repository sia pubblico: $GITHUB_REPO'
+                exit 1
+            fi
+        else
+            log_success 'Codice sorgente scaricato via Git'
+        fi
     fi
 "
 log_success "Codice sorgente scaricato"
