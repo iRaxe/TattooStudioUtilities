@@ -1708,13 +1708,7 @@ function ConsensoOnline() {
           </p>
         </div>
         
-        <div style={{
-          display: 'grid',
-          gap: '1.5rem',
-          maxWidth: '800px',
-          margin: '0 auto',
-          gridTemplateColumns: '1fr'
-        }}>
+        <div className="consenso-cards-grid">
           <Link 
             to="/consenso/tatuaggio"
             style={{

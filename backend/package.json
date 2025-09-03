@@ -5,6 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "node index.js",
+    "dev-local": "node dev-local.js",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,6 +24,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "pg": "^8.16.3",
+    "sqlite3": "^5.1.7",
     "uuid": "^11.1.0"
   }
 }
