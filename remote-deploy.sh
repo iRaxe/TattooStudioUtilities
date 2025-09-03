@@ -37,22 +37,53 @@ echo "Questo script installerà automaticamente"
 echo "TinkStudio su questo server AlmaLinux"
 echo ""
 
-# Verifica parametri
-if [ $# -lt 2 ]; then
-    echo "❌ Parametri mancanti!"
+echo ""
+
+# Funzione per mostrare l'uso
+show_usage() {
+    echo "❌ Parametri o opzioni non valide!"
     echo ""
-    echo "Uso: $0 <domain> <email> [github_repo]"
+    echo "Uso: $0 <domain> <email> [github_repo] [--yes]"
+    echo ""
+    echo "Opzioni:"
+    echo "  --yes, -y    Salta la richiesta di conferma e procede con l'installazione."
     echo ""
     echo "Esempi:"
     echo "  $0 miodominio.com admin@miodominio.com"
-    echo "  $0 test.example.com info@example.com https://github.com/user/repo.git"
-    echo ""
+    echo "  $0 test.example.com info@example.com --yes"
     exit 1
+}
+
+# Parsing degli argomenti
+PARAMS=()
+AUTO_YES=false
+while (( "$#" )); do
+  case "$1" in
+    -y|--yes)
+      AUTO_YES=true
+      shift
+      ;;
+    -*|--*=)
+      show_usage
+      ;;
+    *)
+      PARAMS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# Ripristina parametri posizionali
+set -- "${PARAMS[@]}"
+
+# Verifica parametri posizionali
+if [ ${#PARAMS[@]} -lt 2 ]; then
+    show_usage
 fi
 
-DOMAIN=$1
-EMAIL=$2
-GITHUB_REPO=${3:-"https://github.com/iRaxe/TattooStudioUtilities.git"}
+DOMAIN=${PARAMS[0]}
+EMAIL=${PARAMS[1]}
+GITHUB_REPO=${PARAMS[2]:-"https://github.com/iRaxe/TattooStudioUtilities.git"}
 
 log_info "Configurazione:"
 echo "  🌐 Dominio: $DOMAIN"
@@ -60,12 +91,14 @@ echo "  📧 Email: $EMAIL"
 echo "  📦 Repository: $GITHUB_REPO"
 echo ""
 
-# Conferma utente
-read -p "Continuare con l'installazione? (y/N): " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    log_warning "Installazione annullata dall'utente"
-    exit 0
+# Conferma utente (se non viene passato --yes)
+if [ "$AUTO_YES" = false ]; then
+    read -p "Continuare con l'installazione? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_warning "Installazione annullata dall'utente"
+        exit 0
+    fi
 fi
 
 log_info "Inizio installazione automatica..."
