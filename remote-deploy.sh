@@ -254,8 +254,8 @@ EOF
 
 # 7. Configurazione ambiente
 log_info "7/10 Configurazione ambiente..."
-export -f configure_environment
-if sudo -u $APP_USER bash -c "configure_environment '$APP_DIR' '$DOMAIN'"; then
+# Esporta la funzione e le variabili necessarie, poi eseguila come utente corretto
+if sudo -u $APP_USER bash -c "$(declare -f configure_environment); configure_environment '$APP_DIR' '$DOMAIN'"; then
     log_success "Ambiente configurato con credenziali sicure"
 else
     log_error "Configurazione dell'ambiente fallita. Controllare i log."
