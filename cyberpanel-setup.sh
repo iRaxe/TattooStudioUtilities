@@ -31,21 +31,18 @@ log_error() {
 
 # Verifica parametri
 if [ $# -lt 2 ]; then
-    echo "Uso: $0 <domain> <email> [cyberpanel_user] [cyberpanel_pass]"
+    echo "Uso: $0 <domain> <email>"
     echo "Esempio: $0 miodominio.com admin@miodominio.com"
     exit 1
 fi
 
 DOMAIN=$1
 EMAIL=$2
-CYBERPANEL_USER=${3:-admin}
-CYBERPANEL_PASS=${4:-""}
 
 # Configurazioni
 APP_USER="tinkstudio"
 APP_DIR="/home/$APP_USER/TinkStudio"
 NGINX_CONF_DIR="/usr/local/lsws/conf/vhosts/$DOMAIN"
-SSL_DIR="/etc/letsencrypt/live/$DOMAIN"
 
 log_info "Inizializzazione setup TinkStudio per $DOMAIN"
 
@@ -66,7 +63,7 @@ log_success "CyberPanel trovato"
 # Installa dipendenze
 log_info "Installazione dipendenze..."
 dnf update -y
-dnf install -y git curl wget htop nano firewalld
+dnf install -y git curl wget htop nano firewalld perl
 
 # Installa Docker se non presente
 if ! command -v docker > /dev/null 2>&1; then
@@ -80,7 +77,7 @@ else
 fi
 
 # Installa Docker Compose se non presente
-if ! docker compose version > /dev/null 2>&1; then
+if ! /usr/bin/docker compose version > /dev/null 2>&1; then
     log_info "Installazione Docker Compose (plugin)..."
     dnf install -y docker-compose-plugin
     log_success "Docker Compose (plugin) installato"
@@ -92,7 +89,6 @@ fi
 if ! id "$APP_USER" > /dev/null 2>&1; then
     log_info "Creazione utente $APP_USER..."
     useradd -m -s /bin/bash $APP_USER
-    usermod -aG wheel $APP_USER
     usermod -aG docker $APP_USER
     log_success "Utente $APP_USER creato"
 else
@@ -119,34 +115,44 @@ log_success "Codice sorgente scaricato"
 
 # Configura ambiente
 log_info "Configurazione ambiente..."
-sudo -u $APP_USER bash -c "
-    cd $APP_DIR
+sudo -u $APP_USER bash -c '
+    DOMAIN_SUB=$1
+    EMAIL_SUB=$2
+
+    cd /home/tinkstudio/TinkStudio
     cp .env.production .env
-    
+
     # Genera password sicure
-    POSTGRES_PASS=\$(openssl rand -base64 32)
-    JWT_SECRET=\$(openssl rand -base64 64)
-    ADMIN_PASS=\$(openssl rand -base64 16)
+    DB_PASSWORD=$(openssl rand -base64 32)
+    JWT_SECRET=$(openssl rand -base64 64)
+    ADMIN_PASSWORD=$(openssl rand -base64 16)
+
+    # Esporta le variabili per perl
+    export DB_PASSWORD
+    export JWT_SECRET
+    export ADMIN_PASSWORD
+    export DOMAIN_SUB
+    export EMAIL_SUB
     
-    # Aggiorna configurazione
-    sed -i 's/yourdomain.com/$DOMAIN/g' .env
-    sed -i 's/admin@yourdomain.com/$EMAIL/g' .env
-    sed -i \"s#password_molto_sicura_qui#\$POSTGRES_PASS#g\" .env
-    sed -i \"s#jwt_secret_molto_lungo_e_casuale_qui#\$JWT_SECRET#g\" .env
-    sed -i \"s#password_admin_sicura_qui#\$ADMIN_PASS#g\" .env
-    
-    echo '=== CREDENZIALI GENERATE ==='
-    echo \"Database Password: \$POSTGRES_PASS\"
-    echo \"JWT Secret: \$JWT_SECRET\"
-    echo \"Admin Password: \$ADMIN_PASS\"
-    echo '============================'
-    
+    # Sostituzioni nel file .env usando perl per robustezza
+    perl -pi -e "s{password_molto_sicura_qui}{$ENV{DB_PASSWORD}}g" .env
+    perl -pi -e "s{jwt_secret_molto_lungo_e_casuale_qui}{$ENV{JWT_SECRET}}g" .env
+    perl -pi -e "s{password_admin_sicura_qui}{$ENV{ADMIN_PASSWORD}}g" .env
+    perl -pi -e "s{yourdomain.com}{$ENV{DOMAIN_SUB}}g" .env
+    perl -pi -e "s{admin@yourdomain.com}{$ENV{EMAIL_SUB}}g" .env
+
+    echo "=== CREDENZIALI GENERATE ==="
+    echo "Database Password: $DB_PASSWORD"
+    echo "JWT Secret: $JWT_SECRET"
+    echo "Admin Password: $ADMIN_PASSWORD"
+    echo "============================"
+
     # Salva credenziali in file sicuro
-    echo \"POSTGRES_PASSWORD=\$POSTGRES_PASS\" > .credentials
-    echo \"JWT_SECRET=\$JWT_SECRET\" >> .credentials
-    echo \"ADMIN_PASSWORD=\$ADMIN_PASS\" >> .credentials
+    echo "DB_PASSWORD=$DB_PASSWORD" > .credentials
+    echo "JWT_SECRET=$JWT_SECRET" >> .credentials
+    echo "ADMIN_PASSWORD=$ADMIN_PASSWORD" >> .credentials
     chmod 600 .credentials
-"
+' bash "$DOMAIN" "$EMAIL"
 
 log_success "Ambiente configurato"
 
@@ -160,9 +166,6 @@ firewall-cmd --permanent --add-port=8090/tcp  # CyberPanel
 firewall-cmd --reload
 
 log_success "Firewall configurato"
-
-# Crea sito web in CyberPanel (se possibile via CLI)
-log_info "Configurazione sito web in CyberPanel..."
 
 # Crea directory vhost se non esiste
 mkdir -p $NGINX_CONF_DIR
@@ -178,10 +181,10 @@ log_success "Configurazione Nginx copiata"
 log_info "Avvio applicazione Docker..."
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
-    docker compose down 2>/dev/null || true
-    docker compose pull
-    docker compose build --no-cache
-    docker compose up -d
+    /usr/bin/docker compose down 2>/dev/null || true
+    /usr/bin/docker compose pull
+    /usr/bin/docker compose build --no-cache
+    /usr/bin/docker compose up -d
 "
 
 # Attendi che i servizi si avviino
@@ -192,22 +195,8 @@ sleep 30
 log_info "Verifica stato servizi..."
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
-    docker compose ps
+    /usr/bin/docker compose ps
 "
-
-# Test connettività
-log_info "Test connettività..."
-if curl -f -s http://localhost:3001/api/health > /dev/null; then
-    log_success "Backend raggiungibile"
-else
-    log_warning "Backend non raggiungibile, controlla i logs"
-fi
-
-if curl -f -s http://localhost:80 > /dev/null; then
-    log_success "Frontend raggiungibile"
-else
-    log_warning "Frontend non raggiungibile, controlla i logs"
-fi
 
 # Configura servizio systemd
 log_info "Configurazione servizio systemd..."
@@ -241,23 +230,14 @@ log_success "Servizio systemd configurato"
 log_info "Configurazione backup automatico..."
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
-    chmod +x backup.sh
-    
-    # Aggiungi cron job per backup giornaliero
-    (crontab -l 2>/dev/null; echo '0 2 * * * cd $APP_DIR && ./backup.sh') | crontab -
+    if [ -f backup.sh ]; then
+        chmod +x backup.sh
+        (crontab -l 2>/dev/null; echo '0 2 * * * cd $APP_DIR && ./backup.sh') | crontab -
+        log_success \"Backup automatico configurato\"
+    else
+        log_warning \"File backup.sh non trovato. Salto configurazione backup.\"
+    fi
 "
-
-log_success "Backup automatico configurato"
-
-# Genera certificato SSL self-signed temporaneo
-log_info "Generazione certificato SSL temporaneo..."
-mkdir -p /etc/ssl/tinkstudio
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /etc/ssl/tinkstudio/$DOMAIN.key \
-    -out /etc/ssl/tinkstudio/$DOMAIN.crt \
-    -subj "/C=IT/ST=Italy/L=City/O=TinkStudio/CN=$DOMAIN"
-
-log_success "Certificato SSL temporaneo generato"
 
 # Riavvia OpenLiteSpeed
 log_info "Riavvio OpenLiteSpeed..."
@@ -272,39 +252,22 @@ echo "🎉 INSTALLAZIONE COMPLETATA! 🎉"
 echo "======================================"
 echo ""
 echo "📋 INFORMAZIONI ACCESSO:"
-echo "   🌐 Sito Web: http://$DOMAIN"
-echo "   🔒 HTTPS: https://$DOMAIN (certificato temporaneo)"
+echo "   🌐 Sito Web: https://$DOMAIN"
 echo "   🔧 CyberPanel: https://$(hostname -I | awk '{print $1}'):8090"
-echo "   📊 API Health: http://$DOMAIN/api/health"
 echo ""
 echo "🔑 CREDENZIALI:"
 echo "   📁 File credenziali: $APP_DIR/.credentials"
-echo "   👤 Utente applicazione: $APP_USER"
 echo ""
 echo "📝 PROSSIMI PASSI:"
-echo "   1. Accedi a CyberPanel e crea il sito web '$DOMAIN'"
-echo "   2. Configura SSL Let's Encrypt per '$DOMAIN'"
-echo "   3. Importa la configurazione Nginx da: $NGINX_CONF_DIR/cyberpanel-nginx.conf"
-echo "   4. Testa l'applicazione su: http://$DOMAIN"
+echo "   1. Accedi a CyberPanel e rilascia il certificato SSL Let's Encrypt per '$DOMAIN'"
+echo "   2. Riavvia il server con 'reboot' per applicare tutte le modifiche."
 echo ""
 echo "🛠️ COMANDI UTILI:"
-echo "   📊 Stato servizi: sudo -u $APP_USER docker compose -f $APP_DIR/docker-compose.yml ps"
-echo "   📋 Logs: sudo -u $APP_USER docker compose -f $APP_DIR/docker-compose.yml logs -f"
-echo "   🔄 Riavvio: sudo systemctl restart tinkstudio"
-echo "   💾 Backup: sudo -u $APP_USER $APP_DIR/backup.sh"
-echo ""
-echo "⚠️  IMPORTANTE: Cambia le password di default per sicurezza!"
-echo "   File configurazione: $APP_DIR/.env"
-echo "   Credenziali generate: $APP_DIR/.credentials"
+echo "   📊 Stato servizi: sudo -u $APP_USER /usr/bin/docker compose -f $APP_DIR/docker-compose.yml ps"
+echo "   📋 Logs: sudo -u $APP_USER /usr/bin/docker compose -f $APP_DIR/docker-compose.yml logs -f"
+echo "   🔄 Riavvio app: sudo systemctl restart tinkstudio"
 echo ""
 
 log_success "Setup completato con successo!"
-
-# Mostra credenziali generate
-if [ -f "$APP_DIR/.credentials" ]; then
-    echo "🔐 CREDENZIALI GENERATE:"
-    sudo -u $APP_USER cat $APP_DIR/.credentials
-    echo ""
-fi
 
 exit 0
