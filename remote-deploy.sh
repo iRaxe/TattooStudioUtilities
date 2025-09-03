@@ -209,11 +209,11 @@ EOF
     JWT_SECRET=\$(openssl rand -base64 64 | tr -d '=+/' | cut -c1-50)
     ADMIN_PASS=\$(openssl rand -base64 16 | tr -d '=+/' | cut -c1-12)
     
-    # Aggiorna configurazione
-    sed -i "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" .env
-    sed -i "s/GENERATED_PASSWORD/\${POSTGRES_PASS}/g" .env
-    sed -i "s/GENERATED_JWT_SECRET/\${JWT_SECRET}/g" .env
-    sed -i "s/GENERATED_ADMIN_PASSWORD/\${ADMIN_PASS}/g" .env
+    # Aggiorna configurazione usando escape per caratteri speciali
+    sed -i "s|DOMAIN_PLACEHOLDER|$DOMAIN|g" .env
+    sed -i "s|GENERATED_PASSWORD|\${POSTGRES_PASS}|g" .env
+    sed -i "s|GENERATED_JWT_SECRET|\${JWT_SECRET}|g" .env
+    sed -i "s|GENERATED_ADMIN_PASSWORD|\${ADMIN_PASS}|g" .env
     
     # Salva credenziali in file sicuro
     cat > .credentials << EOF
@@ -254,11 +254,22 @@ log_info "9/10 Avvio applicazione Docker..."
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
     
-    # Determina comando docker compose
+    # Determina comando docker compose con PATH esteso
+    export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+    
     if command -v docker-compose &> /dev/null; then
         DOCKER_COMPOSE_CMD='docker-compose'
-    else
+        echo "[DEBUG] Usando docker-compose: $(which docker-compose)"
+    elif docker compose version &> /dev/null; then
         DOCKER_COMPOSE_CMD='docker compose'
+        echo "[DEBUG] Usando docker compose (plugin)"
+    else
+        echo "[ERROR] Nessun comando docker-compose trovato!"
+        echo "[DEBUG] PATH: $PATH"
+        echo "[DEBUG] Comandi disponibili:"
+        ls -la /usr/local/bin/docker* 2>/dev/null || echo "Nessun docker in /usr/local/bin"
+        ls -la /usr/bin/docker* 2>/dev/null || echo "Nessun docker in /usr/bin"
+        exit 1
     fi
     
     # Ferma eventuali container esistenti
@@ -286,11 +297,16 @@ sleep 30
 STATUS_OK=true
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
-    # Determina comando docker compose
+    # Determina comando docker compose con PATH esteso
+    export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+    
     if command -v docker-compose &> /dev/null; then
         DOCKER_COMPOSE_CMD='docker-compose'
-    else
+    elif docker compose version &> /dev/null; then
         DOCKER_COMPOSE_CMD='docker compose'
+    else
+        echo "[ERROR] Nessun comando docker-compose trovato per verifica!"
+        exit 1
     fi
     
     if ! \$DOCKER_COMPOSE_CMD ps | grep -q 'Up'; then
