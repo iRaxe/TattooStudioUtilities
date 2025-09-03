@@ -1235,6 +1235,11 @@ app.delete('/api/admin/consensi/:id', requireAdmin, (req, res) => {
 
 
 
+// Health check endpoint for Docker
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 // Global error handler to ensure JSON responses on unexpected errors
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err && err.stack ? err.stack : err);

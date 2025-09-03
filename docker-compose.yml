@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: tinkstudio_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tinkstudio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tinkstudio_secure_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - tinkstudio_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tinkstudio"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tinkstudio_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-tinkstudio_secure_password}@postgres:5432/tinkstudio
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      GIFT_CARD_VALIDITY_MONTHS: ${GIFT_CARD_VALIDITY_MONTHS:-4}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost}
+    volumes:
+      - backend_uploads:/app/uploads
+    ports:
+      - "3001:3001"
+    networks:
+      - tinkstudio_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tinkstudio_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - tinkstudio_network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: tinkstudio_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-tinkstudio_redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - tinkstudio_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backup service
+  backup:
+    image: postgres:15-alpine
+    container_name: tinkstudio_backup
+    restart: "no"
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-tinkstudio_secure_password}
+    volumes:
+      - ./backups:/backups
+      - postgres_data:/var/lib/postgresql/data:ro
+    networks:
+      - tinkstudio_network
+    depends_on:
+      - postgres
+    command: >
+      sh -c '
+        while true; do
+          pg_dump -h postgres -U postgres -d tinkstudio > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql
+          find /backups -name "backup_*.sql" -mtime +7 -delete
+          sleep 86400
+        done
+      '
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+networks:
+  tinkstudio_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
