@@ -16,7 +16,7 @@ const GiftCardLanding = () => {
   useEffect(() => {
     const fetchGiftCard = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/gift-cards/landing/${token}`);
+        const response = await fetch(`/api/gift-cards/landing/${token}`);
         if (!response.ok) {
           throw new Error('Gift card not found');
         }
