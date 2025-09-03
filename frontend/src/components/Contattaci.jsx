@@ -35,20 +35,9 @@ function Contattaci() {
            </p>
         </div>
         
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', 
-          gap: '2rem',
-          marginBottom: '3rem'
-        }}>
+        <div className="contattaci-grid">
           {/* Informazioni di Contatto e Orari Uniti */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '2px solid rgba(251, 191, 36, 0.3)',
-            borderRadius: '4px',
-            padding: '2rem',
-            transition: 'all 0.3s ease'
-          }}>
+          <div className="contattaci-card">
             <h2 style={{ 
               color: '#fbbf24', 
               marginBottom: '1.5rem',
@@ -58,13 +47,7 @@ function Contattaci() {
             }}>Informazioni</h2>
             
             {/* Sezione Orari */}
-            <div style={{
-              background: 'rgba(0, 0, 0, 0.3)',
-              padding: '1rem',
-              borderRadius: '8px',
-              marginBottom: '1rem',
-              textAlign: 'left'
-            }}>
+            <div className="contattaci-info-box" style={{ textAlign: 'left' }}>
               <p style={{
                   color: '#f9fafb',
                   margin: '0 0 0.5rem 0',
@@ -101,12 +84,7 @@ function Contattaci() {
                 info@tinkstudio.it
               </Button>
 
-              <div style={{ 
-                background: 'rgba(251, 191, 36, 0.05)',
-                padding: '1rem',
-                borderRadius: '8px',
-                border: '1px solid rgba(251, 191, 36, 0.2)'
-              }}>
+              <div className="contattaci-tip">
                 <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: 0 }}>                  <i className="fas fa-lightbulb"></i> <strong>Consiglio:</strong> Per prenotazioni e informazioni dettagliate, 
                   contattaci via email per una risposta più rapida e completa.
                 </p>
@@ -115,13 +93,7 @@ function Contattaci() {
           </div>
 
           {/* Dove Siamo e Mappa Uniti */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '2px solid rgba(251, 191, 36, 0.3)',
-            borderRadius: '4px',
-            padding: '2rem',
-            transition: 'all 0.3s ease'
-          }}>
+          <div className="contattaci-card">
             <h2 style={{ 
               color: '#fbbf24', 
               marginBottom: '1.5rem',
@@ -131,12 +103,7 @@ function Contattaci() {
             }}>              <i className="fas fa-map-marker-alt"></i> Dove Siamo            </h2>
             
             <div style={{ marginBottom: '0rem' }}>
-              <div style={{ 
-                background: 'rgba(0, 0, 0, 0.3)',
-                padding: '1rem',
-                borderRadius: '8px',
-                marginBottom: '1rem'
-              }}>
+              <div className="contattaci-info-box">
                 <p style={{ color: '#f9fafb', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>                  <strong><i className="fas fa-map-marker-alt"></i> Indirizzo:</strong>                </p>
                 <p style={{ color: '#fbbf24', margin: 0, fontSize: '1.1rem', fontWeight: '500' }}>
                   Via Kennedy, 39<br/>
@@ -159,14 +126,7 @@ function Contattaci() {
             </div>
 
             {/* Mappa Integrata */}
-            <div style={{ 
-              position: 'relative',
-              paddingBottom: '56.25%', // 16:9 aspect ratio
-              height: 0,
-              overflow: 'hidden',
-              borderRadius: '12px',
-              border: '2px solid #fbbf24'
-            }}>
+            <div className="contattaci-map-container">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3019.8234567890123!2d14.2345678!3d40.9123456!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zVmlhIEtlbm5lZHksIDM5LCA4MDAyOCBHcnVtbyBOZXZhbm8gTkE!5e0!3m2!1sit!2sit!4v1234567890123"
                 style={{

@@ -44,7 +44,7 @@ app.use(cors({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // Increased for development
-  message: 'Too many requests from this IP'
+  message: 'Troppe richieste da questo IP'
 });
 app.use(limiter);
 
@@ -60,12 +60,12 @@ const authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
+    return res.status(401).json({ message: 'Token di accesso richiesto' });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ message: 'Invalid or expired token' });
+      return res.status(403).json({ message: 'Token non valido o scaduto' });
     }
     req.user = user;
     next();
@@ -85,7 +85,7 @@ app.post('/api/admin/login', async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ message: 'Username and password required' });
+      return res.status(400).json({ message: 'Username e password richiesti' });
     }
 
     // Simple admin check for development
@@ -96,13 +96,13 @@ app.post('/api/admin/login', async (req, res) => {
         { expiresIn: '7d' }
       );
 
-      res.json({ token, message: 'Login successful' });
+      res.json({ token, message: 'Login effettuato con successo' });
     } else {
-      res.status(401).json({ message: 'Invalid credentials' });
+      res.status(401).json({ message: 'Credenziali non valide' });
     }
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -112,7 +112,7 @@ app.post('/api/admin/gift-cards/drafts', authenticateToken, async (req, res) => 
     const { amount } = req.body;
 
     if (!amount || amount <= 0) {
-      return res.status(400).json({ message: 'Valid amount required' });
+      return res.status(400).json({ message: 'Importo valido richiesto' });
     }
 
     const claimToken = uuidv4();
@@ -139,7 +139,7 @@ app.post('/api/admin/gift-cards/drafts', authenticateToken, async (req, res) => 
     });
   } catch (error) {
     console.error('Create draft error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -154,7 +154,7 @@ app.get('/api/gift-cards/landing/:token', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Gift card not found' });
+      return res.status(404).json({ message: 'Gift card non trovata' });
     }
 
     const giftCard = result.rows[0];
@@ -164,11 +164,13 @@ app.get('/api/gift-cards/landing/:token', async (req, res) => {
       status: giftCard.status,
       first_name: giftCard.first_name,
       last_name: giftCard.last_name,
-      dedication: giftCard.dedication
+      dedication: giftCard.dedication,
+      expires_at: giftCard.expires_at,
+      created_at: giftCard.created_at
     });
   } catch (error) {
     console.error('Get landing gift card error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -183,7 +185,7 @@ app.get('/api/gift-cards/claim/:token', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Gift card not found or already claimed' });
+      return res.status(404).json({ message: 'Gift card non trovata o già utilizzata' });
     }
 
     const giftCard = result.rows[0];
@@ -194,7 +196,7 @@ app.get('/api/gift-cards/claim/:token', async (req, res) => {
     });
   } catch (error) {
     console.error('Get claim gift card error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -215,7 +217,7 @@ app.post('/api/gift-cards/claim/:token', async (req, res) => {
     );
 
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Gift card not found or already claimed' });
+      return res.status(404).json({ message: 'Gift card non trovata o già utilizzata' });
     }
 
     const giftCard = checkResult.rows[0];
@@ -248,7 +250,7 @@ app.post('/api/gift-cards/claim/:token', async (req, res) => {
     });
   } catch (error) {
     console.error('Claim gift card error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -262,7 +264,7 @@ app.get('/api/admin/gift-cards', authenticateToken, async (req, res) => {
     res.json({ giftCards: result.rows });
   } catch (error) {
     console.error('Get gift cards error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -276,7 +278,7 @@ app.get('/api/admin/gift-cards/drafts', authenticateToken, async (req, res) => {
     res.json({ drafts: result.rows });
   } catch (error) {
     console.error('Get draft gift cards error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -287,18 +289,22 @@ app.get('/api/admin/gift-cards/stats', authenticateToken, async (req, res) => {
     const activeResult = await db.query('SELECT COUNT(*) as count FROM gift_cards WHERE status = "active"');
     const draftResult = await db.query('SELECT COUNT(*) as count FROM gift_cards WHERE status = "draft"');
     const usedResult = await db.query('SELECT COUNT(*) as count FROM gift_cards WHERE status = "used"');
-    const totalValueResult = await db.query('SELECT SUM(amount) as total FROM gift_cards WHERE status IN ("active", "used")');
+    const expiredResult = await db.query('SELECT COUNT(*) as count FROM gift_cards WHERE status = "expired"');
+    const totalRevenueResult = await db.query('SELECT SUM(amount) as total FROM gift_cards WHERE status IN ("draft", "active", "used")');
+    const usedRevenueResult = await db.query('SELECT SUM(amount) as total FROM gift_cards WHERE status = "used"');
 
     res.json({
       total: totalResult.rows[0].count,
       active: activeResult.rows[0].count,
       draft: draftResult.rows[0].count,
       used: usedResult.rows[0].count,
-      totalValue: totalValueResult.rows[0].total || 0
+      expired: expiredResult.rows[0].count,
+      totalRevenue: totalRevenueResult.rows[0].total || 0,
+      usedRevenue: usedRevenueResult.rows[0].total || 0
     });
   } catch (error) {
-    console.error('Get stats error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Server error:', error);
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -315,8 +321,8 @@ app.get('/api/admin/customers', authenticateToken, async (req, res) => {
 
     res.json({ customers: result.rows });
   } catch (error) {
-    console.error('Get customers error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Delete gift card error:', error);
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
@@ -328,7 +334,7 @@ app.use((err, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: 'Percorso non trovato' });
 });
 
 // Initialize database and start server

@@ -423,10 +423,10 @@ function Card({ children, className = '' }) {
 
 
 function Title({ children, level = 1, className = '' }) {
-  const levelClass = level === 1 ? 'title-main' : 'title-sub'
+  const levelClass = level === 1 ? 'title-main' : ''
   
   return (
-    <h1 className={`title ${levelClass} ${className}`}>
+    <h1 className={`title ${levelClass} ${className}`.trim()}>
       {children}
     </h1>
   )
@@ -440,8 +440,8 @@ function Home() {
     <Container>
       <Card>
         <p className="description">
-          Benvenuto nella suite digitale di Tink Studio.<br/>
-          La tua piattaforma completa per gift card, consensi online e tutti i servizi del nostro studio.
+          Benvenuti nella suite digitale di T'ink.<br/>
+          La nostra piattaforma completa per gift card, consensi online e tutti i servizi dello studio.
         </p>
         <div className="button-container">
           <Link to="/verify" style={{ textDecoration: 'none' }}>
@@ -1439,7 +1439,7 @@ function ClaimPage() {
 
     try {
       const token = window.location.pathname.split('/').pop()
-      const response = await fetch(`/api/gift-cards/claim/${token}/finalize`, {
+      const response = await fetch(`/api/gift-cards/claim/${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1450,10 +1450,17 @@ function ClaimPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setClaimData({ ...claimData, ...data, status: 'active' })
-        setTimeout(() => {
-          generatePDF()
-        }, 1000)
+        // Mostra il link condivisibile invece di generare PDF
+        setClaimData({ 
+          ...claimData, 
+          status: 'active',
+          first_name: form.first_name,
+          last_name: form.last_name,
+          phone: form.phone,
+          email: form.email,
+          dedication: form.dedication,
+          landing_url: data.landing_url
+        })
       } else {
         setError(data.message || 'Errore durante l\'attivazione')
       }
@@ -1492,17 +1499,15 @@ function ClaimPage() {
     return (
       <Container>
         <Card>
-          <Title level={2}>Errore</Title>
-          <Alert type="error" style={{textAlign: 'center'}}>
+          <Title level={2} style={{ color: '#ef4444', marginBottom: '1rem' }}><i className="fas fa-exclamation-triangle"></i> Errore</Title>
+          <div style={{ color: '#f9fafb', marginBottom: '2rem', fontSize: '1.1rem' }}>
             {error}
-          </Alert>
-          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-            <Link to="/" style={{ textDecoration: 'none' }}>
-              <Button variant="secondary">
-                Torna alla Home
-              </Button>
-            </Link>
           </div>
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <Button variant="primary">
+              <i className="fas fa-home"></i> Torna alla Home
+            </Button>
+          </Link>
         </Card>
       </Container>
     )
@@ -1513,8 +1518,8 @@ function ClaimPage() {
       <Container>
         <Card>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
-            <p>Caricamento...</p>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}><i className="fas fa-spinner fa-spin"></i></div>
+            <p style={{ color: '#9ca3af', fontSize: '1.1rem' }}>Caricamento della tua Gift Card...</p>
           </div>
         </Card>
       </Container>
@@ -1524,90 +1529,78 @@ function ClaimPage() {
   if (claimData.status === 'active') {
     return (
       <Container>
-        <div style={{
-          display: 'flex',
-          gap: '2rem',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
-          margin: '2rem auto',
-          maxWidth: '1000px',
-          flexWrap: 'wrap'
-        }}>
-          {/* Gift Card */}
-          <div ref={cardRef} style={{
-            background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
-            borderRadius: '15px',
-            padding: '2rem',
-            maxWidth: '400px',
-            minWidth: '350px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-            color: '#1f2937',
-            textAlign: 'center',
-            flex: '1'
-          }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h1 style={{ color: '#d97706', marginBottom: '0.5rem' }}>Tink Studio</h1>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem' }}>Gift Card</h2>
+        <Card>
+          <div ref={cardRef} style={{ textAlign: 'center' }}>
+            <div className="claim-success-header">
+              <h1 className="claim-success-title"><i className="fas fa-trophy"></i> Congratulazioni!</h1>
+              <h2 className="claim-success-subtitle">Gift Card personalizzata con successo!</h2>
             </div>
             
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#059669' }}>
-                €{claimData.amount}
-              </div>
+            <div className="claim-success-amount">
+              €{claimData.amount}
             </div>
             
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Intestata a:</div>
-              <div>{claimData.first_name} {claimData.last_name}</div>
+            <div className="claim-success-details">
+              <div className="claim-success-label">Intestata a:</div>
+              <div className="claim-success-value">{claimData.first_name} {claimData.last_name}</div>
             </div>
             
             {claimData.dedication && (
-              <div style={{ marginBottom: '1.5rem', fontStyle: 'italic' }}>
+              <div className="claim-success-dedication">
                 "{claimData.dedication}"
               </div>
             )}
             
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>Codice:</div>
-              <div style={{ fontFamily: 'monospace', fontSize: '1.1rem', letterSpacing: '2px' }}>
-                {claimData.code}
+            <div className="claim-success-details">
+              <div className="claim-success-label">Link da condividere:</div>
+              <div className="claim-success-code" style={{ wordBreak: 'break-all', fontSize: '0.9rem' }}>
+                {claimData.landing_url}
               </div>
             </div>
             
-            <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-              Valida fino al: {new Date(claimData.expires_at).toLocaleDateString('it-IT')}
+            <div className="claim-success-actions" style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(claimData.landing_url)
+                  alert('Link copiato negli appunti!')
+                }}
+                className="claim-pdf-button"
+                aria-label="Copia link negli appunti"
+              >
+                <i className="fas fa-copy"></i> Copia Link
+              </button>
+              
+              {navigator.share && (
+                <button 
+                  onClick={() => {
+                    navigator.share({
+                      title: 'Gift Card Tink Studio',
+                      text: `Hai ricevuto una gift card di €${claimData.amount}!`,
+                      url: claimData.landing_url
+                    })
+                  }}
+                  className="claim-pdf-button"
+                  aria-label="Condividi gift card"
+                >
+                  <i className="fas fa-share-alt"></i> Condividi
+                </button>
+              )}
             </div>
           </div>
           
           {/* Disclaimer */}
-          <div style={{
-            background: 'rgba(251, 191, 36, 0.1)',
-            border: '1px solid rgba(251, 191, 36, 0.3)',
-            borderRadius: '4px',
-            padding: '1.5rem',
-            maxWidth: '500px',
-            minWidth: '350px',
-            fontSize: '0.9rem',
-            color: '#92400e',
-            flex: '1'
-          }}>
-            <div className="flex-center" style={{ marginBottom: '1rem' }}>
-              <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>📋</span>
-              <strong>Condizioni di utilizzo:</strong>
+          <div className="claim-success-disclaimer">
+            <div className="claim-disclaimer-header">
+              <span className="claim-disclaimer-icon"><i className="fas fa-clipboard-list"></i></span>
+              <h3 className="claim-disclaimer-title">Condizioni di utilizzo</h3>
             </div>
-            <ul style={{ margin: 0, paddingLeft: '1.5rem', lineHeight: '1.6' }}>
-              <li>In caso di spostamento dell'appuntamento, la gift card mantiene la sua validità</li>
+            <ul className="claim-disclaimer-list">
+              <li>In caso di spostamento dell'appuntamento, la gift card mantiene la sua validità sino a 4 mesi dalla creazione</li>
               <li>In caso di mancata presentazione o rinuncia al servizio, la gift card non sarà rimborsabile</li>
-              <li>Il valore della gift card può essere defalcato in caso di utilizzo parziale del servizio</li>
+              <li>La gift card è personale e non trasferibile</li>
             </ul>
           </div>
-        </div>
-        
-        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <Button onClick={generatePDF} aria-label="Scarica PDF del consenso">
-            📄 Scarica PDF
-          </Button>
-        </div>
+        </Card>
       </Container>
     )
   }
@@ -1615,47 +1608,45 @@ function ClaimPage() {
   return (
     <Container>
       <Card>
-        
-        <div style={{
-          background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-          borderRadius: '15px',
-          padding: '2rem',
-          margin: '2rem auto',
-          maxWidth: '300px',
-          textAlign: 'center',
-          color: '#1f2937',
-          boxShadow: '0 10px 30px rgba(251, 191, 36, 0.3)'
-        }}>
-          <h3 style={{ margin: '0 0 1rem 0' }}>Gift Card</h3>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', margin: '1rem 0' }}>
-            €{claimData.amount}
+        <div className="claim-card-layout">
+          <div className="claim-gift-card-preview">
+            <h3 className="claim-gift-card-title">Gift Card</h3>
+            <div className="claim-gift-card-amount">
+              €{claimData.amount}
+            </div>
+            <div className="claim-gift-card-brand">
+              Tink Studio
+            </div>
           </div>
-          <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-            Tink Studio
-          </div>
-        </div>
-        
-        <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gap: '1.25rem', marginBottom: '2rem' }}>
-            <Input
+          
+          <div className="claim-form-section">
+          <Title level={2} style={{ marginBottom: '0.5rem' }}>Attiva la Gift Card</Title>
+          <p style={{ color: '#d1d5db', marginBottom: '2rem' }}>Completa i dati di chi riceverà la gift card</p>
+          
+          <div className="claim-form">
+            <input
+              className="claim-form-input"
               required
               value={form.first_name}
               onChange={(e) => setForm({...form, first_name: e.target.value})}
               placeholder="Nome *"
             />
-            <Input
+            <input
+              className="claim-form-input"
               required
               value={form.last_name}
               onChange={(e) => setForm({...form, last_name: e.target.value})}
               placeholder="Cognome *"
             />
-            <Input
+            <input
+              className="claim-form-input"
               type="email"
               value={form.email}
               onChange={(e) => setForm({...form, email: e.target.value})}
               placeholder="Email (opzionale)"
             />
-            <Input
+            <input
+              className="claim-form-input"
               required
               type="tel"
               value={form.phone}
@@ -1668,33 +1659,30 @@ function ClaimPage() {
               minLength={9}
               maxLength={10}
             />
-            <Textarea
+            <textarea
+              className="claim-form-textarea"
               value={form.dedication}
               onChange={(e) => setForm({...form, dedication: e.target.value})}
-              style={{
-                minHeight: '120px',
-                resize: 'vertical'
-              }}
-              placeholder="Dedica personalizzata (opzionale)"
+              placeholder={`Dedica personalizzata (opzionale)
+Aggiungi un messaggio speciale alla tua gift card...`}
             />
           </div>
 
-          <Button
+          <button
+            className="claim-submit-button"
             onClick={handleFinalize}
             disabled={!form.first_name.trim() || !form.last_name.trim() || !form.phone.trim() || loading}
             aria-label={loading ? 'Attivazione gift card in corso' : 'Attiva gift card'}
-            style={{
-              width: '100%'
-            }}
           >
-            {loading ? '🔄 Attivazione in corso...' : '🎁 Attiva Gift Card'}
-          </Button>
+            {loading ? 'Attivazione in corso...' : 'Attiva Gift Card'}
+          </button>
 
           {error && (
-            <Alert type="error">
+            <div className="claim-error-message" style={{ marginTop: '1rem' }}>
               {error}
-            </Alert>
+            </div>
           )}
+          </div>
         </div>
       </Card>
     </Container>

@@ -93,7 +93,7 @@ function Dashboard({ stats }) {
             <h4 style={{ color: '#f3f4f6', marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '600' }}>
               <i className="fas fa-chart-pie"></i> Analisi Fatturato
             </h4>
-            <div className="dashboard-revenue-chart" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', flexWrap: 'wrap', gap: '2rem' }}>
+            <div className="dashboard-revenue-chart">
               {/* Pie Chart */}
               <div className="dashboard-pie-chart" style={{ position: 'relative', width: '250px', height: '250px' }}>
                 <svg width="250" height="250" viewBox="0 0 250 250" style={{ transform: 'rotate(-90deg)' }}>
@@ -165,7 +165,7 @@ function Dashboard({ stats }) {
               </div>
 
               {/* Legend and Stats */}
-              <div className="dashboard-legend" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: '200px' }}>
+              <div className="dashboard-legend">
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',

@@ -147,7 +147,7 @@ const GiftCardLanding = () => {
                 <li>L'appuntamento può essere spostato 1 volta senza perdere la caparra se avvisati entro 48 ore lavorative</li>
                 <li>Se non vi presentaste all'appuntamento o decideste di non tatuarvi più, lo studio tratterrà la caparra</li>
                 <li>La caparra verrà defalcata dal costo totale del lavoro (Al termine dell'ultima seduta)</li>
-                <li>Questo coupon scade il {giftCard?.created_at ? new Date(new Date(giftCard.created_at).getTime() + 4 * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('it-IT') : 'N/A'}</li>
+                <li>Questo coupon scade il {giftCard?.expires_at ? new Date(giftCard.expires_at).toLocaleDateString('it-IT') : 'N/A'}</li>
               </ol>
             </div>
           </div>

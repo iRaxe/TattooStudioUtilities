@@ -237,6 +237,11 @@ app.get('/api/admin/gift-cards', requireAdmin, (req, res) => {
       code: card.code,
       claim_token: card.claim_token,
       customer_name: (card.first_name && card.last_name) ? `${card.first_name} ${card.last_name}` : null,
+      first_name: card.first_name || null,
+      last_name: card.last_name || null,
+      email: card.email || null,
+      phone: card.phone || null,
+      birth_date: card.birth_date || null,
       created_at: toISO(card.created_at),
       claimed_at: toISO(card.claimed_at),
       expires_at: toISO(card.expires_at)
