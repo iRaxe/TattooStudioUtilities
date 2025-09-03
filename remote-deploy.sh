@@ -309,10 +309,10 @@ sudo -u $APP_USER bash -c "
     # Determina comando docker compose con PATH esteso
     export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
     
-    if command -v docker-compose &> /dev/null; then
+    if command -v docker-compose > /dev/null 2>&1; then
         DOCKER_COMPOSE_CMD='docker-compose'
         echo "[DEBUG] Usando docker-compose: $(which docker-compose)"
-    elif docker compose version &> /dev/null; then
+    elif docker compose version > /dev/null 2>&1; then
         DOCKER_COMPOSE_CMD='docker compose'
         echo "[DEBUG] Usando docker compose (plugin)"
     else
