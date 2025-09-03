@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import QRCode from 'qrcode'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import { FaPaintBrush, FaGem, FaTachometerAlt, FaPlus, FaGift, FaUsers, FaSignOutAlt, FaSearch, FaPen } from 'react-icons/fa'
+import { FaPaintBrush, FaGem, FaTachometerAlt, FaPlus, FaGift, FaUsers, FaSignOutAlt, FaSearch, FaPen, FaPhone } from 'react-icons/fa'
 
 
 // Import new components
@@ -14,6 +14,7 @@ import CreateGiftCard from './components/CreateGiftCard'
 import GiftCardList from './components/GiftCardList'
 import CustomerList from './components/CustomerList'
 import GiftCardLanding from './components/GiftCardLanding'
+import Contattaci from './components/Contattaci'
 import Input from './components/common/Input'
 import Textarea from './components/common/Textarea'
 import Modal from './components/common/Modal'
@@ -356,6 +357,9 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
             <Link to="/consenso" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
               <FaPen style={{ marginRight: '0.5rem' }} /> Consenso Online
             </Link>
+            <Link to="/contattaci" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
+              <FaPhone style={{ marginRight: '0.5rem' }} /> Contattaci
+            </Link>
             <Link to="/admin" className="bm-item menu-item menu-item-admin" onClick={() => setIsMobileMenuOpen(false)}>
               <FaTachometerAlt style={{ marginRight: '0.5rem' }} /> Admin Panel
             </Link>
@@ -436,8 +440,8 @@ function Home() {
     <Container>
       <Card>
         <p className="description">
-          Benvenuto nel sistema Gift Card di Tink Studio.<br/>
-          Verifica la validità della tua gift card e scopri il suo valore.
+          Benvenuto nella suite digitale di Tink Studio.<br/>
+          La tua piattaforma completa per gift card, consensi online e tutti i servizi del nostro studio.
         </p>
         <div className="button-container">
           <Link to="/verify" style={{ textDecoration: 'none' }}>
@@ -2692,6 +2696,8 @@ function AppContent() {
         return 'Verifica Gift Card'
       case '/consenso':
         return 'Consenso Online per Tatuaggi e Piercing'
+      case '/contattaci':
+        return 'Contattaci - T\'ink Tattoo Studio'
       case '/admin':
         return 'Pannello Amministratore'
       default:
@@ -2728,6 +2734,9 @@ function AppContent() {
             <Link to="/consenso" className="nav-link">
               Consenso Online
             </Link>
+            <Link to="/contattaci" className="nav-link">
+              Contattaci
+            </Link>
             {location.pathname === '/admin' && isAdminLoggedIn ? (
               <Button 
                 onClick={handleLogout}
@@ -2746,6 +2755,7 @@ function AppContent() {
       <Routes>
 <Route path="/" element={<Home />} />
 <Route path="/verify" element={<Verify />} />
+<Route path="/contattaci" element={<Contattaci />} />
 <Route path="/consenso" element={<ConsensoOnline />} />
 <Route path="/consenso/tatuaggio" element={<ConsensoTatuaggio />} />
 <Route path="/consenso/piercing" element={<ConsensoPiercing />} />

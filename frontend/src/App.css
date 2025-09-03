@@ -391,15 +391,30 @@ body {
 
 /* Footer Component */
 .footer-container {
-  margin-top: auto;
   width: 100%;
   padding: 0 1rem;
   box-sizing: border-box;
+  max-width: 1300px;
+  margin-top: auto;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .footer-container {
+    margin-bottom: 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
   .footer-container {
     padding: 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-container {
+    margin-bottom: 1rem;
   }
 }
 
@@ -413,8 +428,7 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  max-width: 1300px;
-  margin: 0 auto;
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -760,6 +774,7 @@ button.nav-link-admin:hover {
 
 /* Card Component */
 .glass-card {
+  width: 100%;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -770,8 +785,6 @@ button.nav-link-admin:hover {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  width: 100%;
-  max-width: 1300px;
   text-align: center;
   display: flex;
   flex-direction: column;
