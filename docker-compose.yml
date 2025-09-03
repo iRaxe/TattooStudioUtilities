@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -36,6 +34,7 @@ services:
       NODE_ENV: production
       PORT: 3001
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-tinkstudio_secure_password}@postgres:5432/tinkstudio
+      REDIS_URL: redis://:${REDIS_PASSWORD:-tinkstudio_redis_password}@redis:6379    
       REDIS_URL: redis://:${REDIS_PASSWORD:-tinkstudio_redis_password}@redis:6379
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
@@ -49,6 +48,8 @@ services:
     networks:
       - tinkstudio_network
     depends_on:
+      - redis    
+      - postgres
       postgres:
         condition: service_healthy
       redis:
@@ -68,8 +69,7 @@ services:
     container_name: tinkstudio_frontend
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
     networks:
       - tinkstudio_network
     depends_on:
