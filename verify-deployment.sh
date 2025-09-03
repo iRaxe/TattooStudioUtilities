@@ -42,7 +42,7 @@ test_command() {
     local description="$2"
     local expected="$3"
     
-    if eval "$cmd" &>/dev/null; then
+    if eval "$cmd" > /dev/null 2>&1; then
         if [ -n "$expected" ]; then
             local result=$(eval "$cmd" 2>/dev/null)
             if [[ "$result" == *"$expected"* ]]; then
@@ -189,7 +189,7 @@ if [ "$DOMAIN" != "localhost" ] && [[ "$DOMAIN" != *"192.168."* ]] && [[ "$DOMAI
     log_info "8. Verifica SSL..."
     
     # Test certificato SSL
-    if command -v openssl &> /dev/null; then
+    if command -v openssl > /dev/null 2>&1; then
         test_command "echo | openssl s_client -connect $DOMAIN:443 -servername $DOMAIN 2>/dev/null | grep -q 'Verify return code: 0'" "Certificato SSL valido"
     fi
     
@@ -241,7 +241,7 @@ echo ""
 log_info "11. Verifica performance..."
 
 # Test tempo di risposta
-if command -v curl &> /dev/null; then
+if command -v curl > /dev/null 2>&1; then
     local response_time=$(curl -o /dev/null -s -w "%{time_total}" "http://localhost/api/health" 2>/dev/null || echo "999")
     local response_time_ms=$(echo "$response_time * 1000" | bc 2>/dev/null || echo "999")
     
@@ -255,7 +255,7 @@ if command -v curl &> /dev/null; then
 fi
 
 # Test utilizzo risorse
-if command -v docker &> /dev/null; then
+if command -v docker > /dev/null 2>&1; then
     local memory_usage=$(docker stats --no-stream --format "table {{.MemPerc}}" 2>/dev/null | tail -n +2 | head -1 | sed 's/%//' || echo "0")
     if [ "$memory_usage" != "0" ] && (( $(echo "$memory_usage < 80" | bc -l 2>/dev/null || echo 1) )); then
         log_success "Utilizzo memoria Docker: ${memory_usage}%"

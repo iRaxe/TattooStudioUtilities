@@ -56,7 +56,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Verifica se CyberPanel è installato
-if ! command -v cyberpanel &> /dev/null; then
+if ! command -v cyberpanel > /dev/null 2>&1; then
     log_error "CyberPanel non trovato. Installalo prima di continuare."
     exit 1
 fi
@@ -69,7 +69,7 @@ dnf update -y
 dnf install -y git curl wget htop nano firewalld
 
 # Installa Docker se non presente
-if ! command -v docker &> /dev/null; then
+if ! command -v docker > /dev/null 2>&1; then
     log_info "Installazione Docker..."
     dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     dnf install -y docker-ce docker-ce-cli containerd.io
@@ -80,7 +80,7 @@ else
 fi
 
 # Installa Docker Compose se non presente
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker-compose > /dev/null 2>&1; then
     log_info "Installazione Docker Compose..."
     curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
@@ -90,7 +90,7 @@ else
 fi
 
 # Crea utente applicazione
-if ! id "$APP_USER" &>/dev/null; then
+if ! id "$APP_USER" > /dev/null 2>&1; then
     log_info "Creazione utente $APP_USER..."
     useradd -m -s /bin/bash $APP_USER
     usermod -aG wheel $APP_USER

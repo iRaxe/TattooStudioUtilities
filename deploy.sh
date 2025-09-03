@@ -43,7 +43,7 @@ if [[ $EUID -eq 0 ]]; then
 fi
 
 # Check if Docker is installed
-if ! command -v docker &> /dev/null; then
+if ! command -v docker > /dev/null 2>&1; then
     print_status "Installing Docker..."
     sudo dnf update -y
     sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -55,7 +55,7 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker-compose > /dev/null 2>&1; then
     print_status "Installing Docker Compose..."
     sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
