@@ -105,13 +105,33 @@ fi
 
 # 4. Installazione Docker Compose
 log_info "4/10 Installazione Docker Compose..."
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-    DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose > /dev/null 2>&1
-    chmod +x /usr/local/bin/docker-compose
-    log_success "Docker Compose installato (versione $DOCKER_COMPOSE_VERSION)"
+if docker compose version &> /dev/null; then
+    log_success "Docker Compose (plugin) già installato"
+elif command -v docker-compose &> /dev/null; then
+    log_success "Docker Compose (standalone) già installato"
 else
-    log_success "Docker Compose già installato"
+    log_info "Docker Compose non trovato. Tentativo di installazione..."
+    # Metodo 1: Prova a installare il plugin DNF (preferito)
+    dnf install -y docker-compose-plugin > /dev/null 2>&1
+    if docker compose version &> /dev/null; then
+        log_success "Docker Compose (plugin) installato con successo."
+    else
+        # Metodo 2: Fallback a download manuale (standalone)
+        log_warning "Installazione del plugin fallita. Fallback al download manuale."
+        DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        if [ -z "$DOCKER_COMPOSE_VERSION" ]; then
+            log_warning "Impossibile ottenere l'ultima versione, uso v2.24.6 come fallback."
+            DOCKER_COMPOSE_VERSION="v2.24.6"
+        fi
+        curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose > /dev/null 2>&1
+        chmod +x /usr/local/bin/docker-compose
+        if command -v docker-compose &> /dev/null; then
+            log_success "Docker Compose (standalone) installato (versione $DOCKER_COMPOSE_VERSION)"
+        else
+            log_error "Installazione di Docker Compose fallita."
+            exit 1
+        fi
+    fi
 fi
 
 # 5. Creazione utente applicazione
