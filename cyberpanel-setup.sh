@@ -80,13 +80,12 @@ else
 fi
 
 # Installa Docker Compose se non presente
-if ! command -v docker-compose > /dev/null 2>&1; then
-    log_info "Installazione Docker Compose..."
-    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-    log_success "Docker Compose installato"
+if ! docker compose version > /dev/null 2>&1; then
+    log_info "Installazione Docker Compose (plugin)..."
+    dnf install -y docker-compose-plugin
+    log_success "Docker Compose (plugin) installato"
 else
-    log_success "Docker Compose già installato"
+    log_success "Docker Compose (plugin) già installato"
 fi
 
 # Crea utente applicazione
@@ -132,9 +131,9 @@ sudo -u $APP_USER bash -c "
     # Aggiorna configurazione
     sed -i 's/yourdomain.com/$DOMAIN/g' .env
     sed -i 's/admin@yourdomain.com/$EMAIL/g' .env
-    sed -i \"s/password_molto_sicura_qui/\$POSTGRES_PASS/g\" .env
-    sed -i \"s/jwt_secret_molto_lungo_e_casuale_qui/\$JWT_SECRET/g\" .env
-    sed -i \"s/password_admin_sicura_qui/\$ADMIN_PASS/g\" .env
+    sed -i \"s#password_molto_sicura_qui#\$POSTGRES_PASS#g\" .env
+    sed -i \"s#jwt_secret_molto_lungo_e_casuale_qui#\$JWT_SECRET#g\" .env
+    sed -i \"s#password_admin_sicura_qui#\$ADMIN_PASS#g\" .env
     
     echo '=== CREDENZIALI GENERATE ==='
     echo \"Database Password: \$POSTGRES_PASS\"
@@ -179,10 +178,10 @@ log_success "Configurazione Nginx copiata"
 log_info "Avvio applicazione Docker..."
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
-    docker-compose down 2>/dev/null || true
-    docker-compose pull
-    docker-compose build --no-cache
-    docker-compose up -d
+    docker compose down 2>/dev/null || true
+    docker compose pull
+    docker compose build --no-cache
+    docker compose up -d
 "
 
 # Attendi che i servizi si avviino
@@ -193,7 +192,7 @@ sleep 30
 log_info "Verifica stato servizi..."
 sudo -u $APP_USER bash -c "
     cd $APP_DIR
-    docker-compose ps
+    docker compose ps
 "
 
 # Test connettività
@@ -224,8 +223,8 @@ RemainAfterExit=yes
 User=$APP_USER
 Group=$APP_USER
 WorkingDirectory=$APP_DIR
-ExecStart=/usr/local/bin/docker-compose up -d
-ExecStop=/usr/local/bin/docker-compose down
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
 TimeoutStartSec=0
 
 [Install]
@@ -289,8 +288,8 @@ echo "   3. Importa la configurazione Nginx da: $NGINX_CONF_DIR/cyberpanel-nginx
 echo "   4. Testa l'applicazione su: http://$DOMAIN"
 echo ""
 echo "🛠️ COMANDI UTILI:"
-echo "   📊 Stato servizi: sudo -u $APP_USER docker-compose -f $APP_DIR/docker-compose.yml ps"
-echo "   📋 Logs: sudo -u $APP_USER docker-compose -f $APP_DIR/docker-compose.yml logs -f"
+echo "   📊 Stato servizi: sudo -u $APP_USER docker compose -f $APP_DIR/docker-compose.yml ps"
+echo "   📋 Logs: sudo -u $APP_USER docker compose -f $APP_DIR/docker-compose.yml logs -f"
 echo "   🔄 Riavvio: sudo systemctl restart tinkstudio"
 echo "   💾 Backup: sudo -u $APP_USER $APP_DIR/backup.sh"
 echo ""
