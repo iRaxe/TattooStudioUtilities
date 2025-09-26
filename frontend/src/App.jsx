@@ -1439,7 +1439,7 @@ function ClaimPage() {
 
     try {
       const token = window.location.pathname.split('/').pop()
-      const response = await fetch(`/api/gift-cards/claim/${token}`, {
+      const response = await fetch(`/api/gift-cards/claim/${token}/finalize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1451,8 +1451,8 @@ function ClaimPage() {
 
       if (response.ok) {
         // Mostra il link condivisibile invece di generare PDF
-        setClaimData({ 
-          ...claimData, 
+        setClaimData({
+          ...claimData,
           status: 'active',
           first_name: form.first_name,
           last_name: form.last_name,
