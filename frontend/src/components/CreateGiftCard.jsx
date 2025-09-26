@@ -57,6 +57,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
         const data = await response.json();
 
         if (response.ok) {
+          console.log('Draft creation successful:', data);
           const newCard = {
             amount: parseFloat(amount),
             claimUrl: data.claim_url,
@@ -64,17 +65,22 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             claimToken: data.claim_token,
             isDraft: true
           };
-          
+
+          console.log('Setting lastCreatedCard:', newCard);
           setLastCreatedCard(newCard);
           setAmount('');
-          
+
           // Notify parent components
           if (onGiftCardCreated) onGiftCardCreated();
           if (onStatsUpdate) onStatsUpdate();
-          
+
           // Copy link to clipboard automatically
-          navigator.clipboard.writeText(data.claim_url);
+          if (data.claim_url) {
+            navigator.clipboard.writeText(data.claim_url);
+            console.log('Link copied to clipboard:', data.claim_url);
+          }
         } else {
+          console.error('Draft creation failed:', data);
           setError(data.message || 'Errore durante la creazione');
         }
       } else {
@@ -96,6 +102,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
         const data = await response.json();
 
         if (response.ok) {
+          console.log('Complete gift card creation successful:', data);
           const newCard = {
             firstName: firstName.trim(),
             lastName: lastName.trim(),
@@ -106,20 +113,25 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             code: data.code,
             isDraft: false
           };
-          
+
+          console.log('Setting lastCreatedCard for complete card:', newCard);
           setLastCreatedCard(newCard);
           setFirstName('');
           setLastName('');
           setPhone('');
           setAmount('');
-          
+
           // Notify parent components
           if (onGiftCardCreated) onGiftCardCreated();
           if (onStatsUpdate) onStatsUpdate();
-          
+
           // Copy link to clipboard automatically
-          navigator.clipboard.writeText(data.redeem_url);
+          if (data.redeem_url) {
+            navigator.clipboard.writeText(data.redeem_url);
+            console.log('Redeem URL copied to clipboard:', data.redeem_url);
+          }
         } else {
+          console.error('Complete gift card creation failed:', data);
           setError(data.message || 'Errore durante la creazione');
         }
       }

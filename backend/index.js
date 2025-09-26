@@ -241,15 +241,26 @@ app.post('/api/admin/login', async (req, res) => {
 
 // Admin: create draft
 app.post('/api/admin/gift-cards/drafts', requireAdmin, (req, res) => {
+  console.log('=== CREATING DRAFT GIFT CARD ===');
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('PUBLIC_BASE_URL:', PUBLIC_BASE_URL);
+
   const { amount, currency = 'EUR', expires_at = null, notes = null } = req.body || {};
   if (!amount || typeof amount !== 'number' || amount <= 0) {
+    console.log('ERROR: Invalid amount:', amount);
     return res.status(400).json({ error: 'Invalid amount' });
   }
+
   const id = uuidv4();
   const claim_token = uuidv4();
   const claim_token_expires_at = minutesFromNow(CLAIM_TOKEN_TTL_MINUTES);
   const createdAt = now();
   const calculatedExpiresAt = monthsFromDate(createdAt, GIFT_CARD_VALIDITY_MONTHS);
+
+  console.log('Generated IDs:');
+  console.log('- Gift card ID:', id);
+  console.log('- Claim token:', claim_token);
+
   const draft = {
     id,
     status: 'draft',
@@ -265,43 +276,63 @@ app.post('/api/admin/gift-cards/drafts', requireAdmin, (req, res) => {
     created_at: createdAt,
     updated_at: createdAt,
   };
+
   giftCards.set(id, draft);
   tokenIndex.set(claim_token, id);
+
   const claim_url = `${PUBLIC_BASE_URL}/gift/claim/${claim_token}`;
-  return res.status(201).json({
+  console.log('Generated claim URL:', claim_url);
+
+  const response = {
     draft_id: id,
     amount,
     claim_token,
     expires_at: toISO(draft.expires_at),
     claim_url,
     claim_token_expires_at: toISO(claim_token_expires_at),
-  });
+  };
+
+  console.log('Sending response:', JSON.stringify(response, null, 2));
+  return res.status(201).json(response);
 });
 
 // Admin: create complete gift card with customer data
 app.post('/api/admin/gift-cards/complete', requireAdmin, (req, res) => {
+  console.log('=== CREATING COMPLETE GIFT CARD ===');
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('PUBLIC_BASE_URL:', PUBLIC_BASE_URL);
+
   const { firstName, lastName, phone, amount, currency = 'EUR', expires_at = null, notes = null } = req.body || {};
-  
+
   // Validation
   if (!firstName || !firstName.trim()) {
+    console.log('ERROR: First name is required');
     return res.status(400).json({ error: 'First name is required' });
   }
   if (!lastName || !lastName.trim()) {
+    console.log('ERROR: Last name is required');
     return res.status(400).json({ error: 'Last name is required' });
   }
   if (!phone || !phone.trim()) {
+    console.log('ERROR: Phone is required');
     return res.status(400).json({ error: 'Phone is required' });
   }
   if (!amount || typeof amount !== 'number' || amount <= 0) {
+    console.log('ERROR: Invalid amount:', amount);
     return res.status(400).json({ error: 'Invalid amount' });
   }
-  
+
   const id = uuidv4();
   const customer_id = uuidv4();
   const code = genCode();
   const createdAt = now();
   const calculatedExpiresAt = monthsFromDate(createdAt, GIFT_CARD_VALIDITY_MONTHS);
-  
+
+  console.log('Generated IDs for complete gift card:');
+  console.log('- Gift card ID:', id);
+  console.log('- Customer ID:', customer_id);
+  console.log('- Generated code:', code);
+
   const giftCard = {
     id,
     status: 'active',
@@ -324,13 +355,14 @@ app.post('/api/admin/gift-cards/complete', requireAdmin, (req, res) => {
     created_at: createdAt,
     updated_at: createdAt,
   };
-  
+
   giftCards.set(id, giftCard);
   codeIndex.set(code, id);
-  
+
   const redeem_url = `${PUBLIC_BASE_URL}/gift/landing/${id}`;
-  
-  return res.status(201).json({
+  console.log('Generated redeem URL:', redeem_url);
+
+  const response = {
     gift_card_id: id,
     amount,
     code,
@@ -341,7 +373,10 @@ app.post('/api/admin/gift-cards/complete', requireAdmin, (req, res) => {
       last_name: lastName.trim(),
       phone: phone.trim()
     }
-  });
+  };
+
+  console.log('Sending complete gift card response:', JSON.stringify(response, null, 2));
+  return res.status(201).json(response);
 });
 
 // Admin: get all gift cards
