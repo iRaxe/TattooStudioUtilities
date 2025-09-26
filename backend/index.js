@@ -835,7 +835,8 @@ app.post('/api/gift-cards/claim/:token/finalize', limiter, (req, res) => {
   tokenIndex.delete(req.params.token); // one-time use
 
   const verify_url = `${PUBLIC_BASE_URL}/verify?code=${code}`;
-  const qr_payload = verify_url; // keep simple
+  const landing_url = `${PUBLIC_BASE_URL}/gift/landing/${gc.id}`;
+  const qr_payload = landing_url; // use landing page instead of verify
 
   return res.json({
     id: gc.id,
@@ -847,6 +848,7 @@ app.post('/api/gift-cards/claim/:token/finalize', limiter, (req, res) => {
     first_name,
     last_name,
     qr_code_data: qr_payload,
+    landing_url: landing_url,
     holder: { first_name, last_name, email, phone, birth_date },
     dedication,
   });
