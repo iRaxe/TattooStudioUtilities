@@ -6,8 +6,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://tinkstudio.it',
         changeOrigin: true,
+        secure: false,
+        ws: true
       }
     }
   }
