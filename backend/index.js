@@ -14,7 +14,25 @@ const app = express();
 // Basic security and middlewares
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+      'http://127.0.0.1:3000'
+    ];
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Token']
@@ -63,16 +81,18 @@ function genCode() {
 function requireAdmin(req, res, next) {
   const authHeader = req.header('Authorization');
   const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
-  
+
   if (!token) {
+    console.log('No token provided in Authorization header');
     return res.status(401).json({ error: 'Access token required' });
   }
-  
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.admin = decoded;
     next();
   } catch (err) {
+    console.log('Token verification failed:', err.message);
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }

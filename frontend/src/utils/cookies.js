@@ -5,6 +5,34 @@ export const setCookie = (name, value, days = 7) => {
   document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict;Secure=${window.location.protocol === 'https:'}`;
 };
 
+export const setCookieWithOptions = (name, value, options = {}) => {
+  const {
+    days = 7,
+    sameSite = 'Strict',
+    secure = window.location.protocol === 'https:',
+    httpOnly = false
+  } = options;
+
+  const expires = new Date();
+  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+
+  let cookieString = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+
+  if (sameSite) {
+    cookieString += `;SameSite=${sameSite}`;
+  }
+
+  if (secure) {
+    cookieString += ';Secure';
+  }
+
+  if (httpOnly) {
+    cookieString += ';HttpOnly';
+  }
+
+  document.cookie = cookieString;
+};
+
 export const getCookie = (name) => {
   const nameEQ = name + "=";
   const ca = document.cookie.split(';');
