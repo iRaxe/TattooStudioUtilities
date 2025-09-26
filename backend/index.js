@@ -24,12 +24,18 @@ app.use(cors({
       'http://localhost:3000',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:5174',
-      'http://127.0.0.1:3000'
+      'http://127.0.0.1:3000',
+      'http://tinkstudio.it',
+      'https://tinkstudio.it',
+      'http://www.tinkstudio.it',
+      'https://www.tinkstudio.it'
     ];
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Allow all tinkstudio.it subdomains and ports
+    if (origin.includes('tinkstudio.it') || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log('CORS: Blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -104,34 +110,100 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
 app.get('/api/health', (req, res) => { res.json({ ok: true }); });
 
 // Admin login endpoint
-app.post('/api/admin/login', (req, res) => {
-  const { username, password } = req.body || {};
-  
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username and password required' });
-  }
-  
-  // Simple credential check (in production, use bcrypt)
-  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Invalid credentials' });
-  }
-  
-  // Generate JWT
-  const token = jwt.sign(
-    { 
+app.post('/api/admin/login', async (req, res) => {
+  try {
+    console.log('=== ADMIN LOGIN ATTEMPT ===');
+    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('Environment variables loaded:');
+    console.log('- ADMIN_USERNAME:', ADMIN_USERNAME ? 'SET' : 'NOT SET');
+    console.log('- ADMIN_PASSWORD:', ADMIN_PASSWORD ? 'SET' : 'NOT SET');
+    console.log('- JWT_SECRET:', JWT_SECRET ? 'SET (length: ' + JWT_SECRET.length + ')' : 'NOT SET');
+    console.log('- JWT_EXPIRES_IN:', JWT_EXPIRES_IN);
+
+    const { username, password } = req.body || {};
+
+    console.log('Parsed credentials:');
+    console.log('- username:', username);
+    console.log('- password:', password ? 'PROVIDED' : 'NOT PROVIDED');
+
+    if (!username || !password) {
+      console.log('ERROR: Missing username or password');
+      return res.status(400).json({
+        error: 'Username and password required',
+        debug: {
+          receivedUsername: !!username,
+          receivedPassword: !!password
+        }
+      });
+    }
+
+    console.log('Credential validation:');
+    console.log('- username match:', username === ADMIN_USERNAME);
+    console.log('- password match:', password === ADMIN_PASSWORD);
+
+    // Simple credential check (in production, use bcrypt)
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+      console.log('ERROR: Invalid credentials provided');
+      return res.status(401).json({
+        error: 'Invalid credentials',
+        debug: {
+          usernameMatch: username === ADMIN_USERNAME,
+          passwordMatch: password === ADMIN_PASSWORD,
+          expectedUsername: ADMIN_USERNAME,
+          providedUsername: username
+        }
+      });
+    }
+
+    console.log('Generating JWT token...');
+
+    // Generate JWT
+    const tokenPayload = {
       username,
       role: 'admin',
       iat: Math.floor(Date.now() / 1000)
-    },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
-  
-  return res.json({
-    token,
-    expires_in: JWT_EXPIRES_IN,
-    user: { username, role: 'admin' }
-  });
+    };
+
+    console.log('Token payload:', JSON.stringify(tokenPayload, null, 2));
+
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+    console.log('Token generated successfully');
+    console.log('Token length:', token.length);
+    console.log('Token preview:', token.substring(0, 50) + '...');
+
+    const response = {
+      token,
+      expires_in: JWT_EXPIRES_IN,
+      user: { username, role: 'admin' }
+    };
+
+    console.log('Login successful, sending response');
+    console.log('=== END LOGIN ATTEMPT ===');
+
+    return res.json(response);
+
+  } catch (error) {
+    console.error('=== CRITICAL ERROR IN LOGIN ENDPOINT ===');
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      debug: {
+        errorType: error.constructor.name,
+        errorMessage: error.message,
+        environmentLoaded: {
+          ADMIN_USERNAME: !!ADMIN_USERNAME,
+          ADMIN_PASSWORD: !!ADMIN_PASSWORD,
+          JWT_SECRET: !!JWT_SECRET,
+          JWT_EXPIRES_IN: !!JWT_EXPIRES_IN
+        }
+      }
+    });
+  }
 });
 
 // Admin: create draft
