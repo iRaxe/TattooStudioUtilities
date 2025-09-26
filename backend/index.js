@@ -709,14 +709,61 @@ app.put('/api/admin/customers/:phone', requireAdmin, (req, res) => {
 
 // Public: get claim details by token (rate limited)
 app.get('/api/gift-cards/claim/:token', limiter, (req, res) => {
+  console.log('=== GIFT CARD CLAIM REQUEST ===');
+  console.log('Request URL:', req.url);
+  console.log('Request method:', req.method);
+  console.log('Token parameter:', req.params.token);
+  console.log('Available tokens in memory:', Array.from(tokenIndex.keys()));
+
   const id = tokenIndex.get(req.params.token);
-  if (!id) return res.status(404).json({ error: 'Invalid token' });
-  const gc = giftCards.get(id);
-  if (!gc || gc.status !== 'draft') return res.status(400).json({ error: 'Token not valid for claim' });
-  if (gc.claim_token_expires_at && now() > gc.claim_token_expires_at) {
-    return res.status(410).json({ error: 'Token expired' });
+  console.log('Token found in index:', !!id);
+  console.log('Gift card ID:', id);
+
+  if (!id) {
+    console.log('ERROR: Invalid token - not found in tokenIndex');
+    return res.status(404).json({
+      error: 'Invalid token',
+      debug: {
+        requestedToken: req.params.token,
+        availableTokens: Array.from(tokenIndex.keys()),
+        tokenIndexSize: tokenIndex.size
+      }
+    });
   }
-  return res.json({ amount: gc.amount, currency: gc.currency, expires_at: toISO(gc.expires_at) });
+
+  const gc = giftCards.get(id);
+  console.log('Gift card found:', !!gc);
+  console.log('Gift card status:', gc?.status);
+
+  if (!gc || gc.status !== 'draft') {
+    console.log('ERROR: Token not valid for claim');
+    return res.status(400).json({
+      error: 'Token not valid for claim',
+      debug: {
+        giftCardStatus: gc?.status,
+        expectedStatus: 'draft',
+        giftCardId: id
+      }
+    });
+  }
+
+  if (gc.claim_token_expires_at && now() > gc.claim_token_expires_at) {
+    console.log('ERROR: Token expired');
+    return res.status(410).json({
+      error: 'Token expired',
+      debug: {
+        expiresAt: toISO(gc.claim_token_expires_at),
+        currentTime: toISO(now())
+      }
+    });
+  }
+
+  console.log('Claim request successful');
+  return res.json({
+    amount: gc.amount,
+    currency: gc.currency,
+    expires_at: toISO(gc.expires_at)
+  });
 });
 
 // Public: finalize claim (rate limited)
