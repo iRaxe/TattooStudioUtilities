@@ -1450,6 +1450,7 @@ function ClaimPage() {
       const data = await response.json()
 
       if (response.ok) {
+        console.log('Gift card finalized successfully:', data);
         // Mostra il link condivisibile invece di generare PDF
         setClaimData({
           ...claimData,
@@ -1459,9 +1460,11 @@ function ClaimPage() {
           phone: form.phone,
           email: form.email,
           dedication: form.dedication,
-          landing_url: data.landing_url
+          landing_url: data.qr_code_data || data.landing_url
         })
+        console.log('Updated claimData with landing_url:', data.qr_code_data || data.landing_url);
       } else {
+        console.error('Gift card finalization failed:', data);
         setError(data.message || 'Errore durante l\'attivazione')
       }
     } catch (error) {
