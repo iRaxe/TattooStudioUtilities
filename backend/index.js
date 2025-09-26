@@ -85,21 +85,54 @@ function genCode() {
 
 // JWT Admin authentication middleware
 function requireAdmin(req, res, next) {
+  console.log('=== ADMIN MIDDLEWARE CHECK ===');
+  console.log('Request URL:', req.url);
+  console.log('Request method:', req.method);
+  console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+
   const authHeader = req.header('Authorization');
+  console.log('Authorization header:', authHeader);
+
   const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
+  console.log('Extracted token:', token ? token.substring(0, 50) + '...' : 'NO TOKEN');
 
   if (!token) {
-    console.log('No token provided in Authorization header');
-    return res.status(401).json({ error: 'Access token required' });
+    console.log('ERROR: No token provided in Authorization header');
+    return res.status(401).json({
+      error: 'Access token required',
+      debug: {
+        headers: req.headers,
+        authHeader: authHeader,
+        hasToken: false
+      }
+    });
   }
 
   try {
+    console.log('Verifying token...');
+    console.log('JWT_SECRET loaded:', !!JWT_SECRET);
+    console.log('JWT_SECRET length:', JWT_SECRET ? JWT_SECRET.length : 0);
+
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('Token decoded successfully:', JSON.stringify(decoded, null, 2));
     req.admin = decoded;
+    console.log('Middleware check passed, proceeding...');
     next();
   } catch (err) {
-    console.log('Token verification failed:', err.message);
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    console.log('ERROR: Token verification failed');
+    console.log('Error name:', err.name);
+    console.log('Error message:', err.message);
+    console.log('JWT_SECRET loaded:', !!JWT_SECRET);
+
+    return res.status(401).json({
+      error: 'Invalid or expired token',
+      debug: {
+        errorName: err.name,
+        errorMessage: err.message,
+        tokenPrefix: token.substring(0, 20) + '...',
+        jwtSecretLoaded: !!JWT_SECRET
+      }
+    });
   }
 }
 
