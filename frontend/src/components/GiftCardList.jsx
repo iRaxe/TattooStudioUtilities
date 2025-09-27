@@ -482,79 +482,123 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                     }}>
                       <div className="flex gap-sm flex-wrap">
                         {card.status === 'draft' && card.claim_token && (
-                          <Button
-                            variant="secondary"
+                          <button
                             onClick={() => {
                               const claimUrl = `${window.location.origin}/gift/claim/${card.claim_token}`;
                               navigator.clipboard.writeText(claimUrl);
                               alert(`Link copiato negli appunti!\n\n${claimUrl}`);
                             }}
-                            aria-label="Copia link gift card"
+                            title="Copia link gift card"
                             style={{
                               background: 'rgba(251, 191, 36, 0.2)',
                               border: '1px solid rgba(251, 191, 36, 0.5)',
                               color: '#fbbf24',
-                              padding: '0.25rem 0.5rem',
+                              padding: '0.5rem',
                               borderRadius: '4px',
-                              fontSize: '0.8rem',
-                              cursor: 'pointer'
+                              cursor: 'pointer',
+                              fontSize: '1.2rem',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = 'rgba(251, 191, 36, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = 'rgba(251, 191, 36, 0.2)';
                             }}
                           >
-                            📋 Copia Link
-                          </Button>
+                            📋
+                          </button>
                         )}
                         {card.status === 'active' && card.code && (
-                          <Button
-                            variant="secondary"
+                          <button
                             onClick={() => handleMarkAsUsedByCode(card.code)}
-                            aria-label="Marca gift card come usata"
+                            title="Marca gift card come usata"
                             style={{
                               background: 'rgba(239, 68, 68, 0.2)',
                               border: '1px solid rgba(239, 68, 68, 0.5)',
                               color: '#ef4444',
-                              padding: '0.25rem 0.5rem',
+                              padding: '0.5rem',
                               borderRadius: '4px',
-                              fontSize: '0.8rem',
-                              cursor: 'pointer'
+                              cursor: 'pointer',
+                              fontSize: '1.2rem',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = 'rgba(239, 68, 68, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = 'rgba(239, 68, 68, 0.2)';
                             }}
                           >
-                            ✓ Marca Usata
-                          </Button>
+                            ✓
+                          </button>
                         )}
                         {(() => {
                           const isExpired = card.expires_at && new Date(card.expires_at) < new Date();
                           return isExpired && (
-                            <Button
-                              variant="secondary"
+                            <button
                               onClick={() => handleRenewGiftCard(card.id)}
-                              aria-label="Rinnova scadenza gift card"
+                              title="Rinnova scadenza gift card"
                               style={{
                                 background: 'rgba(34, 197, 94, 0.2)',
                                 border: '1px solid rgba(34, 197, 94, 0.5)',
                                 color: '#22c55e',
-                                padding: '0.25rem 0.5rem',
+                                padding: '0.5rem',
                                 borderRadius: '4px',
-                                fontSize: '0.8rem',
                                 cursor: 'pointer',
-                                marginRight: '0.5rem'
+                                fontSize: '1.2rem',
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = 'rgba(34, 197, 94, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'rgba(34, 197, 94, 0.2)';
                               }}
                             >
-                              🔄 Rinnova
-                            </Button>
+                              🔄
+                            </button>
                           );
                         })()}
                         {(card.status === 'draft' || card.status === 'active' || card.status === 'used') && (
-                          <Button
-                            variant="danger"
+                          <button
                             onClick={() => handleDeleteGiftCard(card.id)}
-                            aria-label="Elimina gift card"
+                            title="Elimina gift card"
                             style={{
-                              padding: '0.25rem 0.5rem',
-                              fontSize: '0.8rem'
+                              background: 'rgba(239, 68, 68, 0.2)',
+                              border: '1px solid rgba(239, 68, 68, 0.5)',
+                              color: '#ef4444',
+                              padding: '0.5rem',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '1.2rem',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.background = 'rgba(239, 68, 68, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = 'rgba(239, 68, 68, 0.2)';
                             }}
                           >
-                            🗑️ Elimina
-                          </Button>
+                            🗑️
+                          </button>
                         )}
                       </div>
                     </td>
