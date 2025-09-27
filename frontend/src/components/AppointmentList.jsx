@@ -80,37 +80,113 @@ function AppointmentList() {
 
   const fetchTatuatori = async () => {
     try {
+      console.log('[DEBUG] Caricamento tatuatori...');
       const token = getCookie('adminToken');
-      const response = await fetch('/api/admin/tatuatori', {
+      const apiUrl = '/api/admin/tatuatori';
+      console.log('[DEBUG] API URL tatuatori:', apiUrl);
+      console.log('[DEBUG] Token presente:', !!token);
+      console.log('[DEBUG] Headers:', {
+        'Authorization': `Bearer ${token ? '***PRESENT***' : 'MISSING'}`
+      });
+
+      const response = await fetch(apiUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('[DEBUG] Response status tatuatori:', response.status);
+      console.log('[DEBUG] Response ok:', response.ok);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('[DEBUG] Dati tatuatori ricevuti:', data);
+        console.log('[DEBUG] Numero tatuatori:', data.tatuatori?.length || 0);
+        console.log('[DEBUG] Lista tatuatori:', data.tatuatori || []);
         setTatuatori(data.tatuatori || []);
+        console.log('[DEBUG] Tatuatori impostati nello stato');
+      } else {
+        console.log('[DEBUG] Errore response tatuatori:', response.statusText);
+        console.log('[DEBUG] Response headers tatuatori:', Object.fromEntries(response.headers.entries()));
+        const errorText = await response.text();
+        console.log('[DEBUG] Errore dettagliato tatuatori:', errorText);
+
+        // Controlla errori CORS e permessi
+        if (response.status === 0) {
+          console.error('[DEBUG] ERRORE CORS: La richiesta è stata bloccata dal browser');
+        } else if (response.status === 401) {
+          console.error('[DEBUG] ERRORE AUTENTICAZIONE: Token non valido o mancante');
+        } else if (response.status === 403) {
+          console.error('[DEBUG] ERRORE PERMESSI: Accesso negato all\'endpoint');
+        } else if (response.status >= 500) {
+          console.error('[DEBUG] ERRORE SERVER: Problema interno del server');
+        }
       }
     } catch (error) {
-      console.error('Errore nel caricamento tatuatori:', error);
+      console.error('[DEBUG] Errore nel caricamento tatuatori:', error);
+      console.error('[DEBUG] Errore stack:', error.stack);
+
+      // Controlla errori di rete specifici
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.error('[DEBUG] ERRORE DI RETE: Impossibile raggiungere il server');
+        console.error('[DEBUG] Verifica che il backend sia in esecuzione');
+      }
     }
   };
 
   const fetchStanze = async () => {
     try {
+      console.log('[DEBUG] Caricamento stanze...');
       const token = getCookie('adminToken');
-      const response = await fetch('/api/admin/stanze', {
+      const apiUrl = '/api/admin/stanze';
+      console.log('[DEBUG] API URL stanze:', apiUrl);
+      console.log('[DEBUG] Token presente:', !!token);
+      console.log('[DEBUG] Headers:', {
+        'Authorization': `Bearer ${token ? '***PRESENT***' : 'MISSING'}`
+      });
+
+      const response = await fetch(apiUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('[DEBUG] Response status stanze:', response.status);
+      console.log('[DEBUG] Response ok:', response.ok);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('[DEBUG] Dati stanze ricevuti:', data);
+        console.log('[DEBUG] Numero stanze:', data.stanze?.length || 0);
+        console.log('[DEBUG] Lista stanze:', data.stanze || []);
         setStanze(data.stanze || []);
+        console.log('[DEBUG] Stanze impostate nello stato');
+      } else {
+        console.log('[DEBUG] Errore response stanze:', response.statusText);
+        console.log('[DEBUG] Response headers stanze:', Object.fromEntries(response.headers.entries()));
+        const errorText = await response.text();
+        console.log('[DEBUG] Errore dettagliato stanze:', errorText);
+
+        // Controlla errori CORS e permessi
+        if (response.status === 0) {
+          console.error('[DEBUG] ERRORE CORS: La richiesta è stata bloccata dal browser');
+        } else if (response.status === 401) {
+          console.error('[DEBUG] ERRORE AUTENTICAZIONE: Token non valido o mancante');
+        } else if (response.status === 403) {
+          console.error('[DEBUG] ERRORE PERMESSI: Accesso negato all\'endpoint');
+        } else if (response.status >= 500) {
+          console.error('[DEBUG] ERRORE SERVER: Problema interno del server');
+        }
       }
     } catch (error) {
-      console.error('Errore nel caricamento stanze:', error);
+      console.error('[DEBUG] Errore nel caricamento stanze:', error);
+      console.error('[DEBUG] Errore stack:', error.stack);
+
+      // Controlla errori di rete specifici
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.error('[DEBUG] ERRORE DI RETE: Impossibile raggiungere il server');
+        console.error('[DEBUG] Verifica che il backend sia in esecuzione');
+      }
     }
   };
 
@@ -831,15 +907,24 @@ function AppointmentList() {
         title="➕ Crea Nuovo Appuntamento"
         maxWidth="800px"
       >
-        <AppointmentForm
-          tatuatori={tatuatori}
-          stanze={stanze}
-          onSave={() => {
-            setShowCreateModal(false);
-            fetchAppointments(); // Refresh lista
-          }}
-          onCancel={() => setShowCreateModal(false)}
-        />
+        {(() => {
+          console.log('[DEBUG] Props per AppointmentForm (creazione):');
+          console.log('[DEBUG] Numero tatuatori passati:', tatuatori?.length || 0);
+          console.log('[DEBUG] Lista tatuatori:', tatuatori || []);
+          console.log('[DEBUG] Numero stanze passate:', stanze?.length || 0);
+          console.log('[DEBUG] Lista stanze:', stanze || []);
+          return (
+            <AppointmentForm
+              tatuatori={tatuatori}
+              stanze={stanze}
+              onSave={() => {
+                setShowCreateModal(false);
+                fetchAppointments(); // Refresh lista
+              }}
+              onCancel={() => setShowCreateModal(false)}
+            />
+          );
+        })()}
       </Modal>
 
       {/* Modale Modifica Appuntamento */}
@@ -849,20 +934,30 @@ function AppointmentList() {
         title="✏️ Modifica Appuntamento"
         maxWidth="800px"
       >
-        <AppointmentForm
-          appointment={editingAppointment}
-          tatuatori={tatuatori}
-          stanze={stanze}
-          onSave={() => {
-            setShowEditModal(false);
-            setEditingAppointment(null);
-            fetchAppointments(); // Refresh lista
-          }}
-          onCancel={() => {
-            setShowEditModal(false);
-            setEditingAppointment(null);
-          }}
-        />
+        {(() => {
+          console.log('[DEBUG] Props per AppointmentForm (modifica):');
+          console.log('[DEBUG] Numero tatuatori passati:', tatuatori?.length || 0);
+          console.log('[DEBUG] Lista tatuatori:', tatuatori || []);
+          console.log('[DEBUG] Numero stanze passate:', stanze?.length || 0);
+          console.log('[DEBUG] Lista stanze:', stanze || []);
+          console.log('[DEBUG] Appointment da modificare:', editingAppointment);
+          return (
+            <AppointmentForm
+              appointment={editingAppointment}
+              tatuatori={tatuatori}
+              stanze={stanze}
+              onSave={() => {
+                setShowEditModal(false);
+                setEditingAppointment(null);
+                fetchAppointments(); // Refresh lista
+              }}
+              onCancel={() => {
+                setShowEditModal(false);
+                setEditingAppointment(null);
+              }}
+            />
+          );
+        })()}
       </Modal>
 
       {/* Vista Calendario */}
