@@ -15,6 +15,10 @@ import GiftCardList from './components/GiftCardList'
 import CustomerList from './components/CustomerList'
 import GiftCardLanding from './components/GiftCardLanding'
 import Contattaci from './components/Contattaci'
+import AppointmentList from './components/AppointmentList'
+import AppointmentForm from './components/AppointmentForm'
+import AppointmentCalendar from './components/AppointmentCalendar'
+import AvailabilityChecker from './components/AvailabilityChecker'
 import Input from './components/common/Input'
 import Textarea from './components/common/Textarea'
 import Modal from './components/common/Modal'
@@ -330,7 +334,7 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
             >
               <FaGift style={{ marginRight: '0.5rem' }} /> Elenco Gift Card
             </button>
-            <button 
+            <button
               className={`bm-item menu-item ${activeAdminTab === 'customers' ? 'menu-item-admin' : ''}`}
               onClick={() => {
                 onAdminTabChange?.('customers')
@@ -339,7 +343,16 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
             >
               <FaUsers style={{ marginRight: '0.5rem' }} /> Elenco Clienti
             </button>
-            <button 
+            <button
+              className={`bm-item menu-item ${activeAdminTab === 'appointments' ? 'menu-item-admin' : ''}`}
+              onClick={() => {
+                onAdminTabChange?.('appointments')
+                setIsMobileMenuOpen(false)
+              }}
+            >
+              <FaPaintBrush style={{ marginRight: '0.5rem' }} /> Appuntamenti
+            </button>
+            <button
               className="bm-item menu-item menu-item-admin"
               onClick={() => {
                 onLogout?.()
@@ -661,7 +674,9 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
   const [lastCreatedCard, setLastCreatedCard] = useState(null)
   const [stats, setStats] = useState(null)
   const [customers, setCustomers] = useState([])
- 
+  const [tatuatori, setTatuatori] = useState([])
+  const [stanze, setStanze] = useState([])
+
   const [editingCustomer, setEditingCustomer] = useState(null)
   const [showCustomerModal, setShowCustomerModal] = useState(false)
   const [customerModalData, setCustomerModalData] = useState(null)
@@ -693,6 +708,8 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
       fetchAllGiftCards()
       fetchStats()
       fetchCustomers()
+      fetchTatuatori()
+      fetchStanze()
     }
   }, [onAuthChange])
 
@@ -772,13 +789,49 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
           'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         setCustomers(data.customers)
       }
     } catch (error) {
       console.error('Error fetching customers:', error)
+    }
+  }
+
+  const fetchTatuatori = async () => {
+    try {
+      const token = getCookie('adminToken')
+      const response = await fetch('/api/admin/tatuatori', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setTatuatori(data.tatuatori || [])
+      }
+    } catch (error) {
+      console.error('Error fetching tatuatori:', error)
+    }
+  }
+
+  const fetchStanze = async () => {
+    try {
+      const token = getCookie('adminToken')
+      const response = await fetch('/api/admin/stanze', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setStanze(data.stanze || [])
+      }
+    } catch (error) {
+      console.error('Error fetching stanze:', error)
     }
   }
 
@@ -998,6 +1051,9 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
               fetchDraftCards()
               fetchAllGiftCards()
               fetchStats()
+              fetchCustomers()
+              fetchTatuatori()
+              fetchStanze()
             }, 100)
           }} onAuthChange={onAuthChange} />
         </Card>
@@ -1090,6 +1146,20 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
             >
               <FaUsers style={{ marginRight: '0.5rem' }} /> Elenco Clienti
             </Button>
+            <Button
+              variant={activeTab === 'appointments' ? 'primary' : 'ghost'}
+              onClick={() => handleTabChange('appointments')}
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                padding: '0.75rem 1rem',
+                borderRadius: '4px'
+              }}
+            >
+              <FaPaintBrush style={{ marginRight: '0.5rem' }} /> Appuntamenti
+            </Button>
           </div>
         </div>
         
@@ -1150,7 +1220,17 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
             generateConsentPDF={generateConsentPDF}
             deleteConsent={deleteConsent}
           />
-            
+
+        )}
+
+        {/* Appointments Tab */}
+        {activeTab === 'appointments' && (
+          <div>
+            <AppointmentList
+              tatuatori={tatuatori}
+              stanze={stanze}
+            />
+          </div>
         )}
         
         </div>

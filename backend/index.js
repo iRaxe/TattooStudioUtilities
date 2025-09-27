@@ -54,6 +54,11 @@ const codeIndex = new Map(); // code -> id
 const tokenIndex = new Map(); // token -> id
 const consensi = new Map(); // id -> consenso data
 
+// Appointment system stores
+const tatuatori = new Map(); // id -> tatuatore
+const stanze = new Map(); // id -> stanza
+const appuntamenti = new Map(); // id -> appuntamento
+
 // Helpers
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:5174';
 const CLAIM_TOKEN_TTL_MINUTES = parseInt(process.env.CLAIM_TOKEN_TTL_MINUTES || '10080', 10);
@@ -81,6 +86,87 @@ function isExpired(giftCard) {
 function toISO(dt) { return dt ? new Date(dt).toISOString() : null; }
 function genCode() {
   return Math.random().toString(36).slice(2, 10).toUpperCase();
+}
+
+// Helper functions for appointment system
+function isValidBusinessHours(dateTime) {
+  const date = new Date(dateTime);
+  const hour = date.getHours();
+  return hour >= 9 && hour < 21; // 9:00-21:00
+}
+
+function isOverlappingAppointment(existingStart, existingDuration, newStart, newDuration) {
+  const existingEnd = new Date(existingStart.getTime() + existingDuration * 60000);
+  const newEnd = new Date(newStart.getTime() + newDuration * 60000);
+
+  // Check for overlap
+  return (newStart < existingEnd && newEnd > existingStart);
+}
+
+function checkRoomAvailability(stanzaId, tatuatoreId, startTime, duration, excludeAppointmentId = null) {
+  const conflicts = [];
+
+  for (const [id, appointment] of appuntamenti.entries()) {
+    // Skip the appointment being updated
+    if (excludeAppointmentId && id === excludeAppointmentId) continue;
+
+    // Check if appointment conflicts with requested time
+    if ((appointment.stanza_id === stanzaId || appointment.tatuatore_id === tatuatoreId) &&
+        appointment.stato !== 'cancellato' &&
+        isOverlappingAppointment(
+          new Date(appointment.orario_inizio),
+          appointment.durata_minuti,
+          new Date(startTime),
+          duration
+        )) {
+      conflicts.push({
+        appointment_id: id,
+        tatuatore_nome: tatuatori.get(appointment.tatuatore_id)?.nome,
+        stanza_nome: stanze.get(appointment.stanza_id)?.nome,
+        orario_inizio: appointment.orario_inizio,
+        durata_minuti: appointment.durata_minuti,
+        stato: appointment.stato
+      });
+    }
+  }
+
+  return conflicts;
+}
+
+function validateAppointmentData(data) {
+  const errors = [];
+
+  if (!data.tatuatore_id) errors.push('Tatuatore obbligatorio');
+  if (!data.stanza_id) errors.push('Stanza obbligatoria');
+  if (!data.orario_inizio) errors.push('Orario inizio obbligatorio');
+  if (!data.durata_minuti || data.durata_minuti < 15) errors.push('Durata minima 15 minuti');
+
+  // Validate business hours
+  if (data.orario_inizio && !isValidBusinessHours(data.orario_inizio)) {
+    errors.push('Orario fuori dall\'orario di lavoro (9:00-21:00)');
+  }
+
+  // Check tatuatore exists and is active
+  if (data.tatuatore_id && !tatuatori.has(data.tatuatore_id)) {
+    errors.push('Tatuatore non trovato');
+  } else if (data.tatuatore_id) {
+    const tatuatore = tatuatori.get(data.tatuatore_id);
+    if (!tatuatore.attivo) {
+      errors.push('Tatuatore non attivo');
+    }
+  }
+
+  // Check stanza exists and is active
+  if (data.stanza_id && !stanze.has(data.stanza_id)) {
+    errors.push('Stanza non trovata');
+  } else if (data.stanza_id) {
+    const stanza = stanze.get(data.stanza_id);
+    if (!stanza.attivo) {
+      errors.push('Stanza non attiva');
+    }
+  }
+
+  return errors;
 }
 
 // JWT Admin authentication middleware
@@ -236,6 +322,735 @@ app.post('/api/admin/login', async (req, res) => {
         }
       }
     });
+  }
+});
+
+// ========== APPOINTMENT SYSTEM ENDPOINTS ==========
+
+// ========== TATUATORI CRUD ==========
+
+// GET /api/admin/tatuatori - Lista tatuatori
+app.get('/api/admin/tatuatori', requireAdmin, (req, res) => {
+  try {
+    const allTatuatori = Array.from(tatuatori.values())
+      .map(tatuatore => ({
+        id: tatuatore.id,
+        nome: tatuatore.nome,
+        attivo: tatuatore.attivo,
+        created_at: toISO(tatuatore.created_at),
+        updated_at: toISO(tatuatore.updated_at)
+      }))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    res.json({ tatuatori: allTatuatori });
+  } catch (error) {
+    console.error('Errore nel recupero tatuatori:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// POST /api/admin/tatuatori - Crea tatuatore
+app.post('/api/admin/tatuatori', requireAdmin, (req, res) => {
+  try {
+    const { nome, attivo = true } = req.body || {};
+
+    if (!nome || !nome.trim()) {
+      return res.status(400).json({ error: 'Nome tatuatore obbligatorio' });
+    }
+
+    const id = uuidv4();
+    const now = new Date();
+
+    const tatuatore = {
+      id,
+      nome: nome.trim(),
+      attivo,
+      created_at: now,
+      updated_at: now
+    };
+
+    tatuatori.set(id, tatuatore);
+
+    res.status(201).json({
+      id: tatuatore.id,
+      nome: tatuatore.nome,
+      attivo: tatuatore.attivo,
+      created_at: toISO(tatuatore.created_at)
+    });
+  } catch (error) {
+    console.error('Errore nella creazione tatuatore:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// PUT /api/admin/tatuatori/:id - Modifica tatuatore
+app.put('/api/admin/tatuatori/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, attivo } = req.body || {};
+
+    if (!tatuatori.has(id)) {
+      return res.status(404).json({ error: 'Tatuatore non trovato' });
+    }
+
+    const tatuatore = tatuatori.get(id);
+
+    if (nome !== undefined) {
+      if (!nome || !nome.trim()) {
+        return res.status(400).json({ error: 'Nome tatuatore obbligatorio' });
+      }
+      tatuatore.nome = nome.trim();
+    }
+
+    if (attivo !== undefined) {
+      tatuatore.attivo = !!attivo;
+    }
+
+    tatuatore.updated_at = new Date();
+
+    res.json({
+      id: tatuatore.id,
+      nome: tatuatore.nome,
+      attivo: tatuatore.attivo,
+      updated_at: toISO(tatuatore.updated_at)
+    });
+  } catch (error) {
+    console.error('Errore nella modifica tatuatore:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// DELETE /api/admin/tatuatori/:id - Elimina tatuatore
+app.delete('/api/admin/tatuatori/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!tatuatori.has(id)) {
+      return res.status(404).json({ error: 'Tatuatore non trovato' });
+    }
+
+    // Check if tatuatore has appointments
+    const hasAppointments = Array.from(appuntamenti.values())
+      .some(app => app.tatuatore_id === id && app.stato !== 'cancellato');
+
+    if (hasAppointments) {
+      return res.status(400).json({
+        error: 'Impossibile eliminare tatuatore con appuntamenti esistenti'
+      });
+    }
+
+    const tatuatore = tatuatori.get(id);
+    tatuatori.delete(id);
+
+    res.json({
+      success: true,
+      message: 'Tatuatore eliminato con successo',
+      deletedTatuatore: {
+        id: tatuatore.id,
+        nome: tatuatore.nome
+      }
+    });
+  } catch (error) {
+    console.error('Errore nell\'eliminazione tatuatore:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// ========== STANZE CRUD ==========
+
+// GET /api/admin/stanze - Lista stanze
+app.get('/api/admin/stanze', requireAdmin, (req, res) => {
+  try {
+    const allStanze = Array.from(stanze.values())
+      .map(stanza => ({
+        id: stanza.id,
+        nome: stanza.nome,
+        no_overbooking: stanza.no_overbooking,
+        attivo: stanza.attivo,
+        created_at: toISO(stanza.created_at),
+        updated_at: toISO(stanza.updated_at)
+      }))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    res.json({ stanze: allStanze });
+  } catch (error) {
+    console.error('Errore nel recupero stanze:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// POST /api/admin/stanze - Crea stanza
+app.post('/api/admin/stanze', requireAdmin, (req, res) => {
+  try {
+    const { nome, no_overbooking = false, attivo = true } = req.body || {};
+
+    if (!nome || !nome.trim()) {
+      return res.status(400).json({ error: 'Nome stanza obbligatorio' });
+    }
+
+    const id = uuidv4();
+    const now = new Date();
+
+    const stanza = {
+      id,
+      nome: nome.trim(),
+      no_overbooking,
+      attivo,
+      created_at: now,
+      updated_at: now
+    };
+
+    stanze.set(id, stanza);
+
+    res.status(201).json({
+      id: stanza.id,
+      nome: stanza.nome,
+      no_overbooking: stanza.no_overbooking,
+      attivo: stanza.attivo,
+      created_at: toISO(stanza.created_at)
+    });
+  } catch (error) {
+    console.error('Errore nella creazione stanza:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// PUT /api/admin/stanze/:id - Modifica stanza
+app.put('/api/admin/stanze/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, no_overbooking, attivo } = req.body || {};
+
+    if (!stanze.has(id)) {
+      return res.status(404).json({ error: 'Stanza non trovata' });
+    }
+
+    const stanza = stanze.get(id);
+
+    if (nome !== undefined) {
+      if (!nome || !nome.trim()) {
+        return res.status(400).json({ error: 'Nome stanza obbligatorio' });
+      }
+      stanza.nome = nome.trim();
+    }
+
+    if (no_overbooking !== undefined) {
+      stanza.no_overbooking = !!no_overbooking;
+    }
+
+    if (attivo !== undefined) {
+      stanza.attivo = !!attivo;
+    }
+
+    stanza.updated_at = new Date();
+
+    res.json({
+      id: stanza.id,
+      nome: stanza.nome,
+      no_overbooking: stanza.no_overbooking,
+      attivo: stanza.attivo,
+      updated_at: toISO(stanza.updated_at)
+    });
+  } catch (error) {
+    console.error('Errore nella modifica stanza:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// DELETE /api/admin/stanze/:id - Elimina stanza
+app.delete('/api/admin/stanze/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!stanze.has(id)) {
+      return res.status(404).json({ error: 'Stanza non trovata' });
+    }
+
+    // Check if stanza has appointments
+    const hasAppointments = Array.from(appuntamenti.values())
+      .some(app => app.stanza_id === id && app.stato !== 'cancellato');
+
+    if (hasAppointments) {
+      return res.status(400).json({
+        error: 'Impossibile eliminare stanza con appuntamenti esistenti'
+      });
+    }
+
+    const stanza = stanze.get(id);
+    stanze.delete(id);
+
+    res.json({
+      success: true,
+      message: 'Stanza eliminata con successo',
+      deletedStanza: {
+        id: stanza.id,
+        nome: stanza.nome
+      }
+    });
+  } catch (error) {
+    console.error('Errore nell\'eliminazione stanza:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// ========== APPUNTAMENTI CRUD ==========
+
+// GET /api/admin/appuntamenti - Lista appuntamenti
+app.get('/api/admin/appuntamenti', requireAdmin, (req, res) => {
+  try {
+    const {
+      tatuatore_id,
+      stanza_id,
+      stato,
+      data_inizio,
+      data_fine,
+      cliente_telefono
+    } = req.query;
+
+    let filteredAppointments = Array.from(appuntamenti.values());
+
+    // Apply filters
+    if (tatuatore_id) {
+      filteredAppointments = filteredAppointments.filter(app => app.tatuatore_id === tatuatore_id);
+    }
+
+    if (stanza_id) {
+      filteredAppointments = filteredAppointments.filter(app => app.stanza_id === stanza_id);
+    }
+
+    if (stato) {
+      filteredAppointments = filteredAppointments.filter(app => app.stato === stato);
+    }
+
+    if (cliente_telefono) {
+      filteredAppointments = filteredAppointments.filter(app =>
+        app.cliente_telefono && app.cliente_telefono.includes(cliente_telefono)
+      );
+    }
+
+    if (data_inizio || data_fine) {
+      filteredAppointments = filteredAppointments.filter(app => {
+        const appDate = new Date(app.orario_inizio);
+        if (data_inizio && appDate < new Date(data_inizio)) return false;
+        if (data_fine) {
+          const endDate = new Date(app.orario_inizio);
+          endDate.setMinutes(endDate.getMinutes() + app.durata_minuti);
+          if (endDate > new Date(data_fine)) return false;
+        }
+        return true;
+      });
+    }
+
+    const appointmentsWithDetails = filteredAppointments.map(appuntamento => {
+      const tatuatore = tatuatori.get(appuntamento.tatuatore_id);
+      const stanza = stanze.get(appuntamento.stanza_id);
+
+      return {
+        id: appuntamento.id,
+        tatuatore_id: appuntamento.tatuatore_id,
+        tatuatore_nome: tatuatore?.nome || 'Sconosciuto',
+        stanza_id: appuntamento.stanza_id,
+        stanza_nome: stanza?.nome || 'Sconosciuta',
+        cliente_telefono: appuntamento.cliente_telefono,
+        cliente_nome: appuntamento.cliente_nome,
+        orario_inizio: toISO(appuntamento.orario_inizio),
+        durata_minuti: appuntamento.durata_minuti,
+        note: appuntamento.note,
+        stato: appuntamento.stato,
+        created_at: toISO(appuntamento.created_at),
+        updated_at: toISO(appuntamento.updated_at)
+      };
+    }).sort((a, b) => new Date(b.orario_inizio) - new Date(a.orario_inizio));
+
+    res.json({ appuntamenti: appointmentsWithDetails });
+  } catch (error) {
+    console.error('Errore nel recupero appuntamenti:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// POST /api/admin/appuntamenti - Crea appuntamento
+app.post('/api/admin/appuntamenti', requireAdmin, (req, res) => {
+  try {
+    const {
+      tatuatore_id,
+      stanza_id,
+      cliente_telefono,
+      cliente_nome,
+      orario_inizio,
+      durata_minuti = 60,
+      note
+    } = req.body || {};
+
+    const appointmentData = {
+      tatuatore_id,
+      stanza_id,
+      cliente_telefono,
+      cliente_nome,
+      orario_inizio,
+      durata_minuti,
+      note,
+      stato: 'confermato'
+    };
+
+    // Validate data
+    const validationErrors = validateAppointmentData(appointmentData);
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        error: 'Dati appuntamento non validi',
+        details: validationErrors
+      });
+    }
+
+    // Check availability
+    const conflicts = checkRoomAvailability(stanza_id, tatuatore_id, orario_inizio, durata_minuti);
+
+    // Check if conflicts are blocking (only for "sexy" room)
+    const currentStanza = stanze.get(stanza_id);
+    const hasBlockingConflicts = conflicts.some(conflict => {
+      const conflictStanza = stanze.get(conflict.stanza_id);
+      return conflictStanza && conflictStanza.no_overbooking;
+    });
+
+    if (hasBlockingConflicts) {
+      return res.status(409).json({
+        error: 'Conflitto di prenotazione',
+        conflicts,
+        message: 'La stanza "sexy" non permette sovrapposizioni'
+      });
+    }
+
+    const id = uuidv4();
+    const now = new Date();
+
+    const appuntamento = {
+      id,
+      tatuatore_id,
+      stanza_id,
+      cliente_telefono: cliente_telefono || null,
+      cliente_nome: cliente_nome || null,
+      orario_inizio: new Date(orario_inizio),
+      durata_minuti,
+      note: note || null,
+      stato: 'confermato',
+      created_at: now,
+      updated_at: now
+    };
+
+    appuntamenti.set(id, appuntamento);
+
+    // Return appointment with details
+    const tatuatore = tatuatori.get(tatuatore_id);
+    const stanza = stanze.get(stanza_id);
+
+    res.status(201).json({
+      id: appuntamento.id,
+      tatuatore_id: appuntamento.tatuatore_id,
+      tatuatore_nome: tatuatore?.nome,
+      stanza_id: appuntamento.stanza_id,
+      stanza_nome: stanza?.nome,
+      cliente_telefono: appuntamento.cliente_telefono,
+      cliente_nome: appuntamento.cliente_nome,
+      orario_inizio: toISO(appuntamento.orario_inizio),
+      durata_minuti: appuntamento.durata_minuti,
+      note: appuntamento.note,
+      stato: appuntamento.stato,
+      created_at: toISO(appuntamento.created_at),
+      conflicts: conflicts.length > 0 ? conflicts : undefined
+    });
+  } catch (error) {
+    console.error('Errore nella creazione appuntamento:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// GET /api/admin/appuntamenti/:id - Dettagli appuntamento
+app.get('/api/admin/appuntamenti/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!appuntamenti.has(id)) {
+      return res.status(404).json({ error: 'Appuntamento non trovato' });
+    }
+
+    const appuntamento = appuntamenti.get(id);
+    const tatuatore = tatuatori.get(appuntamento.tatuatore_id);
+    const stanza = stanze.get(appuntamento.stanza_id);
+
+    res.json({
+      id: appuntamento.id,
+      tatuatore_id: appuntamento.tatuatore_id,
+      tatuatore_nome: tatuatore?.nome,
+      stanza_id: appuntamento.stanza_id,
+      stanza_nome: stanza?.nome,
+      cliente_telefono: appuntamento.cliente_telefono,
+      cliente_nome: appuntamento.cliente_nome,
+      orario_inizio: toISO(appuntamento.orario_inizio),
+      durata_minuti: appuntamento.durata_minuti,
+      note: appuntamento.note,
+      stato: appuntamento.stato,
+      created_at: toISO(appuntamento.created_at),
+      updated_at: toISO(appuntamento.updated_at)
+    });
+  } catch (error) {
+    console.error('Errore nel recupero appuntamento:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// PUT /api/admin/appuntamenti/:id - Modifica appuntamento
+app.put('/api/admin/appuntamenti/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      tatuatore_id,
+      stanza_id,
+      cliente_telefono,
+      cliente_nome,
+      orario_inizio,
+      durata_minuti,
+      note,
+      stato
+    } = req.body || {};
+
+    if (!appuntamenti.has(id)) {
+      return res.status(404).json({ error: 'Appuntamento non trovato' });
+    }
+
+    const appuntamento = appuntamenti.get(id);
+
+    // Build update data
+    const updateData = {};
+    if (tatuatore_id !== undefined) updateData.tatuatore_id = tatuatore_id;
+    if (stanza_id !== undefined) updateData.stanza_id = stanza_id;
+    if (cliente_telefono !== undefined) updateData.cliente_telefono = cliente_telefono;
+    if (cliente_nome !== undefined) updateData.cliente_nome = cliente_nome;
+    if (orario_inizio !== undefined) updateData.orario_inizio = orario_inizio;
+    if (durata_minuti !== undefined) updateData.durata_minuti = durata_minuti;
+    if (note !== undefined) updateData.note = note;
+    if (stato !== undefined) updateData.stato = stato;
+
+    // Validate data if any changes
+    if (Object.keys(updateData).length > 0) {
+      const validationErrors = validateAppointmentData(updateData);
+      if (validationErrors.length > 0) {
+        return res.status(400).json({
+          error: 'Dati appuntamento non validi',
+          details: validationErrors
+        });
+      }
+
+      // Check availability for time/room changes
+      if (updateData.orario_inizio || updateData.stanza_id || updateData.tatuatore_id) {
+        const checkStanzaId = updateData.stanza_id || appuntamento.stanza_id;
+        const checkTatuatoreId = updateData.tatuatore_id || appuntamento.tatuatore_id;
+        const checkStartTime = updateData.orario_inizio ? new Date(updateData.orario_inizio) : appuntamento.orario_inizio;
+        const checkDuration = updateData.durata_minuti || appuntamento.durata_minuti;
+
+        const conflicts = checkRoomAvailability(checkStanzaId, checkTatuatoreId, checkStartTime, checkDuration, id);
+
+        // Check if conflicts are blocking (only for "sexy" room)
+        const checkStanza = stanze.get(checkStanzaId);
+        const hasBlockingConflicts = conflicts.some(conflict => {
+          const conflictStanza = stanze.get(conflict.stanza_id);
+          return conflictStanza && conflictStanza.no_overbooking;
+        });
+
+        if (hasBlockingConflicts) {
+          return res.status(409).json({
+            error: 'Conflitto di prenotazione',
+            conflicts,
+            message: 'La stanza "sexy" non permette sovrapposizioni'
+          });
+        }
+      }
+
+      // Apply updates
+      Object.assign(appuntamento, updateData);
+      appuntamento.updated_at = new Date();
+    }
+
+    const tatuatore = tatuatori.get(appuntamento.tatuatore_id);
+    const stanza = stanze.get(appuntamento.stanza_id);
+
+    res.json({
+      id: appuntamento.id,
+      tatuatore_id: appuntamento.tatuatore_id,
+      tatuatore_nome: tatuatore?.nome,
+      stanza_id: appuntamento.stanza_id,
+      stanza_nome: stanza?.nome,
+      cliente_telefono: appuntamento.cliente_telefono,
+      cliente_nome: appuntamento.cliente_nome,
+      orario_inizio: toISO(appuntamento.orario_inizio),
+      durata_minuti: appuntamento.durata_minuti,
+      note: appuntamento.note,
+      stato: appuntamento.stato,
+      updated_at: toISO(appuntamento.updated_at)
+    });
+  } catch (error) {
+    console.error('Errore nella modifica appuntamento:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// DELETE /api/admin/appuntamenti/:id - Elimina appuntamento
+app.delete('/api/admin/appuntamenti/:id', requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!appuntamenti.has(id)) {
+      return res.status(404).json({ error: 'Appuntamento non trovato' });
+    }
+
+    const appuntamento = appuntamenti.get(id);
+    appuntamenti.delete(id);
+
+    res.json({
+      success: true,
+      message: 'Appuntamento eliminato con successo',
+      deletedAppointment: {
+        id: appuntamento.id,
+        tatuatore_id: appuntamento.tatuatore_id,
+        stanza_id: appuntamento.stanza_id,
+        orario_inizio: toISO(appuntamento.orario_inizio)
+      }
+    });
+  } catch (error) {
+    console.error('Errore nell\'eliminazione appuntamento:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// ========== DISPONIBILITA' ENDPOINTS ==========
+
+// GET /api/admin/disponibilita - Verifica disponibilità
+app.get('/api/admin/disponibilita', requireAdmin, (req, res) => {
+  try {
+    const {
+      tatuatore_id,
+      stanza_id,
+      data,
+      durata_minuti = 60
+    } = req.query;
+
+    if (!data) {
+      return res.status(400).json({ error: 'Data obbligatoria' });
+    }
+
+    const targetDate = new Date(data);
+    const dayStart = new Date(targetDate);
+    dayStart.setHours(9, 0, 0, 0);
+    const dayEnd = new Date(targetDate);
+    dayEnd.setHours(21, 0, 0, 0);
+
+    const availableSlots = [];
+
+    // Generate 15-minute slots for the day
+    for (let time = new Date(dayStart); time < dayEnd; time.setMinutes(time.getMinutes() + 15)) {
+      const slotStart = new Date(time);
+      const slotEnd = new Date(slotStart.getTime() + durata_minuti * 60000);
+
+      // Skip if slot goes beyond business hours
+      if (slotEnd > dayEnd) continue;
+
+      // Check conflicts
+      const conflicts = checkRoomAvailability(
+        stanza_id,
+        tatuatore_id,
+        slotStart,
+        durata_minuti
+      );
+
+      // Check if slot is available
+      const isAvailable = conflicts.length === 0;
+
+      availableSlots.push({
+        orario_inizio: toISO(slotStart),
+        orario_fine: toISO(slotEnd),
+        disponibile: isAvailable,
+        durata_minuti,
+        conflicts: conflicts.length > 0 ? conflicts : undefined
+      });
+    }
+
+    res.json({
+      data: toISO(targetDate),
+      durata_minuti,
+      tatuatore_id,
+      stanza_id,
+      slots_disponibili: availableSlots.filter(slot => slot.disponibile).length,
+      total_slots: availableSlots.length,
+      slots: availableSlots
+    });
+  } catch (error) {
+    console.error('Errore nel controllo disponibilità:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+// ========== INTEGRAZIONE CLIENTI ==========
+
+// GET /api/admin/appuntamenti/cliente/:telefono - Appuntamenti per telefono cliente
+app.get('/api/admin/appuntamenti/cliente/:telefono', requireAdmin, (req, res) => {
+  try {
+    const { telefono } = req.params;
+
+    const customerAppointments = Array.from(appuntamenti.values())
+      .filter(app => app.cliente_telefono === telefono)
+      .map(appuntamento => {
+        const tatuatore = tatuatori.get(appuntamento.tatuatore_id);
+        const stanza = stanze.get(appuntamento.stanza_id);
+
+        return {
+          id: appuntamento.id,
+          tatuatore_nome: tatuatore?.nome,
+          stanza_nome: stanza?.nome,
+          orario_inizio: toISO(appuntamento.orario_inizio),
+          durata_minuti: appuntamento.durata_minuti,
+          stato: appuntamento.stato,
+          note: appuntamento.note
+        };
+      })
+      .sort((a, b) => new Date(b.orario_inizio) - new Date(a.orario_inizio));
+
+    // Get customer info from existing systems
+    let customerInfo = null;
+
+    // Check in gift cards
+    for (const [cardId, card] of giftCards.entries()) {
+      if (card.phone === telefono) {
+        customerInfo = {
+          nome: `${card.first_name} ${card.last_name}`,
+          email: card.email,
+          telefono: card.phone,
+          fonte: 'gift_card'
+        };
+        break;
+      }
+    }
+
+    // Check in customers from consent
+    if (!customerInfo && global.customersFromConsent) {
+      const consentCustomer = global.customersFromConsent.get(telefono);
+      if (consentCustomer) {
+        customerInfo = {
+          nome: `${consentCustomer.first_name} ${consentCustomer.last_name}`,
+          email: consentCustomer.email,
+          telefono: consentCustomer.phone,
+          fonte: 'consenso'
+        };
+      }
+    }
+
+    res.json({
+      telefono,
+      cliente: customerInfo,
+      appuntamenti: customerAppointments,
+      totale: customerAppointments.length
+    });
+  } catch (error) {
+    console.error('Errore nel recupero appuntamenti cliente:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
   }
 });
 
