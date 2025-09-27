@@ -3,6 +3,7 @@ import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
 import Modal from './common/Modal';
+import AppointmentForm from './AppointmentForm';
 
 function AppointmentList() {
   const [appointments, setAppointments] = useState([]);
