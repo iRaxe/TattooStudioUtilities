@@ -194,7 +194,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                 { key: 'expired', label: 'Scadute' },
                 { key: 'amount', label: 'Importo Totale' },
                 { key: 'lastPurchase', label: 'Ultimo Acquisto' },
-                { key: 'consents', label: 'Consensi Online' }
+                { key: 'consents', label: 'Azioni' }
               ].map(column => (
                 <label
                   key={column.key}
@@ -360,7 +360,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     fontWeight: '600',
                     color: '#fbbf24',
                     fontSize: '0.9rem'
-                  }}>Consensi Online</th>
+                  }}>Azioni</th>
                 )}
               </tr>
             </thead>
@@ -491,19 +491,28 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                       fontSize: '0.9rem'
                     }}>
                       {customer.phone ? (
-                        <div className="flex-col gap-sm">
-                          <Button
-                            variant="secondary"
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.5rem',
+                          alignItems: 'center'
+                        }}>
+                          <button
                             onClick={() => handleShowCustomerModal(customer)}
+                            title="Dettagli cliente"
                             style={{
                               background: 'rgba(34, 197, 94, 0.2)',
                               border: '1px solid rgba(34, 197, 94, 0.5)',
                               borderRadius: '4px',
                               color: '#4ade80',
-                              padding: '0.25rem 0.5rem',
-                              fontSize: '0.8rem',
+                              padding: '0.5rem',
                               cursor: 'pointer',
-                              width: '100%'
+                              fontSize: '1rem',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
                             }}
                             onMouseEnter={(e) => {
                               e.target.style.background = 'rgba(34, 197, 94, 0.3)';
@@ -512,20 +521,24 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               e.target.style.background = 'rgba(34, 197, 94, 0.2)';
                             }}
                           >
-                            Dettagli
-                          </Button>
-                          <Button
-                            variant="secondary"
+                            👁️
+                          </button>
+                          <button
                             onClick={() => handleEditCustomer(customer)}
+                            title="Modifica cliente"
                             style={{
                               background: 'rgba(59, 130, 246, 0.2)',
                               border: '1px solid rgba(59, 130, 246, 0.5)',
                               borderRadius: '4px',
                               color: '#60a5fa',
-                              padding: '0.25rem 0.5rem',
-                              fontSize: '0.8rem',
+                              padding: '0.5rem',
                               cursor: 'pointer',
-                              width: '100%'
+                              fontSize: '1rem',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
                             }}
                             onMouseEnter={(e) => {
                               e.target.style.background = 'rgba(59, 130, 246, 0.3)';
@@ -534,30 +547,34 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               e.target.style.background = 'rgba(59, 130, 246, 0.2)';
                             }}
                           >
-                            Modifica
-                          </Button>
-                          <Button
-                            variant="secondary"
+                            ✏️
+                          </button>
+                          <button
                             onClick={() => openConsentsModalForCustomer(customer)}
+                            title="Visualizza consensi"
                             style={{
-                              background: 'rgba(59, 130, 246, 0.2)',
-                              border: '1px solid rgba(59, 130, 246, 0.5)',
+                              background: 'rgba(168, 85, 247, 0.2)',
+                              border: '1px solid rgba(168, 85, 247, 0.5)',
                               borderRadius: '4px',
-                              color: '#60a5fa',
-                              padding: '0.25rem 0.5rem',
-                              fontSize: '0.8rem',
+                              color: '#a855f7',
+                              padding: '0.5rem',
                               cursor: 'pointer',
-                              width: '100%'
+                              fontSize: '1rem',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
                             }}
                             onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(59, 130, 246, 0.3)';
+                              e.target.style.background = 'rgba(168, 85, 247, 0.3)';
                             }}
                             onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(59, 130, 246, 0.2)';
+                              e.target.style.background = 'rgba(168, 85, 247, 0.2)';
                             }}
                           >
-                             Visualizza
-                           </Button>
+                            📄
+                          </button>
                         </div>
                       ) : (
                         <span style={{ color: '#6b7280' }}>N/A</span>
