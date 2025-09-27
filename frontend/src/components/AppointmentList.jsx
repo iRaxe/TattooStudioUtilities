@@ -4,7 +4,7 @@ import Input from './common/Input';
 import Button from './common/Button';
 import Modal from './common/Modal';
 
-function AppointmentList({ onEditAppointment, onDeleteAppointment, onViewAppointment }) {
+function AppointmentList() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -171,14 +171,89 @@ function AppointmentList({ onEditAppointment, onDeleteAppointment, onViewAppoint
     }
   };
 
+  // Stato per la vista corrente
+  const [currentView, setCurrentView] = useState('list'); // 'list', 'calendar', 'availability'
+
+  // Stati per modali
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState(null);
+
   return (
     <div>
-      <h3 className="section-title">
-        <i className="fas fa-calendar-alt"></i> Elenco Appuntamenti
-      </h3>
-      <p className="section-description">
-        Gestisci tutti gli appuntamenti con filtri avanzati
-      </p>
+      {/* Header con azioni principali */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '2rem',
+        flexWrap: 'wrap',
+        gap: '1rem'
+      }}>
+        <div>
+          <h3 className="section-title">
+            <i className="fas fa-calendar-alt"></i> Gestione Appuntamenti
+          </h3>
+          <p className="section-description">
+            Gestisci tutti gli appuntamenti con filtri avanzati e viste multiple
+          </p>
+        </div>
+
+        {/* Azioni principali */}
+        <div style={{
+          display: 'flex',
+          gap: '0.75rem',
+          flexWrap: 'wrap'
+        }}>
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '0.9rem',
+              fontWeight: '600',
+              padding: '0.75rem 1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <i className="fas fa-plus"></i>
+            ➕ Crea Appuntamento
+          </Button>
+
+          <Button
+            variant={currentView === 'calendar' ? 'primary' : 'secondary'}
+            onClick={() => setCurrentView('calendar')}
+            style={{
+              fontSize: '0.9rem',
+              padding: '0.75rem 1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <i className="fas fa-calendar-alt"></i>
+            📅 Calendario
+          </Button>
+
+          <Button
+            variant={currentView === 'availability' ? 'primary' : 'secondary'}
+            onClick={() => setCurrentView('availability')}
+            style={{
+              fontSize: '0.9rem',
+              padding: '0.75rem 1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <i className="fas fa-clock"></i>
+            ⏰ Disponibilità
+          </Button>
+        </div>
+      </div>
 
       {/* Filtri */}
       <div style={{
@@ -651,7 +726,10 @@ function AppointmentList({ onEditAppointment, onDeleteAppointment, onViewAppoint
                             justifyContent: 'center'
                           }}>
                             <button
-                              onClick={() => onViewAppointment?.(appointment)}
+                              onClick={() => {
+                                setEditingAppointment(appointment);
+                                setShowEditModal(true);
+                              }}
                               title="Visualizza dettagli"
                               style={{
                                 background: 'rgba(59, 130, 246, 0.2)',
@@ -677,7 +755,10 @@ function AppointmentList({ onEditAppointment, onDeleteAppointment, onViewAppoint
                               👁️
                             </button>
                             <button
-                              onClick={() => onEditAppointment?.(appointment)}
+                              onClick={() => {
+                                setEditingAppointment(appointment);
+                                setShowEditModal(true);
+                              }}
                               title="Modifica appuntamento"
                               style={{
                                 background: 'rgba(34, 197, 94, 0.2)',
@@ -738,6 +819,87 @@ function AppointmentList({ onEditAppointment, onDeleteAppointment, onViewAppoint
             </div>
           )}
         </>
+      )}
+
+      {/* Modale Creazione Appuntamento */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="➕ Crea Nuovo Appuntamento"
+        maxWidth="800px"
+      >
+        <AppointmentForm
+          tatuatori={tatuatori}
+          stanze={stanze}
+          onSave={() => {
+            setShowCreateModal(false);
+            fetchAppointments(); // Refresh lista
+          }}
+          onCancel={() => setShowCreateModal(false)}
+        />
+      </Modal>
+
+      {/* Modale Modifica Appuntamento */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="✏️ Modifica Appuntamento"
+        maxWidth="800px"
+      >
+        <AppointmentForm
+          appointment={editingAppointment}
+          tatuatori={tatuatori}
+          stanze={stanze}
+          onSave={() => {
+            setShowEditModal(false);
+            setEditingAppointment(null);
+            fetchAppointments(); // Refresh lista
+          }}
+          onCancel={() => {
+            setShowEditModal(false);
+            setEditingAppointment(null);
+          }}
+        />
+      </Modal>
+
+      {/* Vista Calendario */}
+      {currentView === 'calendar' && (
+        <div style={{ marginTop: '2rem' }}>
+          <AppointmentCalendar
+            tatuatori={tatuatori}
+            stanze={stanze}
+            onAppointmentClick={(appointment) => {
+              setEditingAppointment(appointment);
+              setShowEditModal(true);
+            }}
+          />
+        </div>
+      )}
+
+      {/* Vista Disponibilità */}
+      {currentView === 'availability' && (
+        <div style={{ marginTop: '2rem' }}>
+          <AvailabilityChecker
+            tatuatori={tatuatori}
+            stanze={stanze}
+            onSlotSelect={(orario_inizio, durata_minuti) => {
+              // Pre-compila form con slot selezionato
+              const newAppointment = {
+                orario_inizio,
+                durata_minuti,
+                tatuatore_id: '', // Da selezionare
+                stanza_id: '', // Da selezionare
+                cliente_telefono: '',
+                cliente_nome: '',
+                note: '',
+                stato: 'confermato'
+              };
+              setEditingAppointment(newAppointment);
+              setShowCreateModal(true);
+              setCurrentView('list'); // Torna alla lista dopo selezione
+            }}
+          />
+        </div>
       )}
     </div>
   );
