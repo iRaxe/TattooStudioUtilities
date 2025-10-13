@@ -4,6 +4,7 @@ import { ArrowRight, CalendarCheck2, CreditCard, ShieldCheck, Sparkles, Users } 
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { PublicLayout } from '../components/layout/PublicLayout'
+import { HeroShowcase } from '../components/landing/HeroShowcase'
 
 const highlights = [
   {
@@ -47,43 +48,51 @@ const stats = [
 export function LandingPage() {
   return (
     <PublicLayout className="gap-20 py-24">
-      <section className="relative flex flex-col items-center gap-10 text-center">
+      <section className="relative grid items-center gap-12 text-center lg:grid-cols-[1.05fr_0.95fr] lg:text-left">
         <div
           aria-hidden="true"
           className="absolute inset-x-6 top-1/2 -z-10 h-64 -translate-y-1/2 rounded-full bg-amber-500/10 blur-3xl"
         />
-        <span className="rounded-full border border-white/10 bg-black/40 px-4 py-1 text-[0.7rem] uppercase tracking-[0.55em] text-amber-200/80">
-          Gift Card • Suite Digitale Tink
-        </span>
-        <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-foreground sm:text-5xl">
-          L’esperienza premium per gestire gift card, clienti e consensi in studio.
-        </h1>
-        <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
-          Una piattaforma dedicata a tatuatori e piercing artist: emissione gift card, verifica in tempo reale, archivio clienti e firma digitale dei consensi. Tutto in un unico spazio sicuro.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button
-            asChild
-            size="lg"
-            className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-base font-semibold uppercase tracking-[0.2em] text-black shadow-[0_20px_45px_-20px_rgba(251,191,36,0.85)] hover:from-amber-300 hover:via-amber-400 hover:to-amber-500"
-          >
-            <Link to="/verify" className="flex items-center gap-2">
-              Verifica gift card
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="secondary" size="lg" className="border border-white/10 bg-black/40 text-base">
-            <Link to="/contattaci">Parla con il team</Link>
-          </Button>
+        <div className="flex flex-col items-center gap-8 lg:items-start">
+          <div className="flex flex-col items-center gap-6 lg:items-start">
+            <span className="rounded-full border border-white/10 bg-black/40 px-4 py-1 text-[0.7rem] uppercase tracking-[0.55em] text-amber-200/80">
+              Gift Card • Suite Digitale Tink
+            </span>
+            <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-foreground sm:text-5xl">
+              L’esperienza premium per gestire gift card, clienti e consensi in studio.
+            </h1>
+            <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
+              Una piattaforma dedicata a tatuatori e piercing artist: emissione gift card, verifica in tempo reale, archivio clienti e firma digitale dei consensi. Tutto in un unico spazio sicuro.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+            <Button
+              asChild
+              size="lg"
+              className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-base font-semibold uppercase tracking-[0.2em] text-black shadow-[0_20px_45px_-20px_rgba(251,191,36,0.85)] hover:from-amber-300 hover:via-amber-400 hover:to-amber-500"
+            >
+              <Link to="/verify" className="flex items-center gap-2">
+                Verifica gift card
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="secondary" size="lg" className="border border-white/10 bg-black/40 text-base">
+              <Link to="/contattaci">Parla con il team</Link>
+            </Button>
+          </div>
+          <div className="grid w-full gap-4 rounded-3xl border border-white/10 bg-black/40 p-6 sm:grid-cols-3">
+            {stats.map((item) => (
+              <div
+                key={item.label}
+                className="flex flex-col items-center gap-1 rounded-2xl border border-white/5 bg-black/30 p-4 text-center lg:items-start lg:text-left"
+              >
+                <span className="text-3xl font-semibold text-foreground">{item.value}</span>
+                <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground">{item.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="grid w-full gap-4 rounded-3xl border border-white/10 bg-black/40 p-6 sm:grid-cols-3">
-          {stats.map((item) => (
-            <div key={item.label} className="flex flex-col items-center gap-1 rounded-2xl border border-white/5 bg-black/30 p-4">
-              <span className="text-3xl font-semibold text-foreground">{item.value}</span>
-              <span className="text-xs uppercase tracking-[0.4em] text-muted-foreground">{item.label}</span>
-            </div>
-          ))}
-        </div>
+        <HeroShowcase />
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
