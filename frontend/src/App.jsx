@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Toaster, toast } from 'sonner'
 
@@ -67,7 +67,7 @@ export default function App() {
     }
   }, [])
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = async () => {
     try {
       if (!token) return
       const response = await fetch('/api/admin/stats', {
@@ -83,11 +83,11 @@ export default function App() {
     } catch (error) {
       console.error('Stats error:', error)
     }
-  }, [token])
+  }
 
   useEffect(() => {
     fetchStats()
-  }, [fetchStats])
+  }, [token])
 
   const handleLogout = () => {
     deleteCookie('adminToken')

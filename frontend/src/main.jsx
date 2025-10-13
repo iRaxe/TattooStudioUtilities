@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-export function Root() {
+function Root() {
   useEffect(() => {
     document.documentElement.classList.add('dark')
   }, [])
