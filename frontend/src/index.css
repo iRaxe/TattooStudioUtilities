@@ -1,103 +1,71 @@
-/* Base styles without Tailwind import to ensure Node 18 compatibility */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@font-face {
-  font-family: 'Cinzel';
-  src: local('Cinzel'), local('Cinzel-Regular');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'OldLondon';
-  src: url('/fonts/OldLondon.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'CloisterBlack';
-  src: url('/CloisterBlack.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-:root {
-  color-scheme: light dark;
-}
-
-body {
-  background: linear-gradient(135deg, #171717, #262626, #171717);
-  color: #e5e5e5;
-  min-height: 100vh;
-}
-
-.container-boxed {
-  max-width: 72rem; /* ~1200px */
-  margin: 0 auto;
-  padding: 3rem 1.5rem;
-}
-
-.glass {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 4px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 2px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+
+    --muted: 223 40% 16%;
+    --muted-foreground: 215 20% 65%;
+
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
+
+    --card: 222 47% 7%;
+    --card-foreground: 210 40% 98%;
+
+    --border: 222 47% 15%;
+    --input: 222 47% 12%;
+
+    --primary: 15 92% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 17% 16%;
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 27 87% 67%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 15 92% 58%;
+    --radius: 0.75rem;
   }
-  a:hover {
-    color: #747bff;
+
+  .dark {
+    color-scheme: dark;
   }
-  button {
-    background-color: #f9f9f9;
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    min-height: 100vh;
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  p {
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
   }
 }
