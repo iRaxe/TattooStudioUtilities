@@ -1,13 +1,12 @@
 const { Pool } = require('pg');
 
-// Create a Pool only if a connection string or PG env variables are provided
 function createPool() {
   const connectionString = process.env.DATABASE_URL;
   const hasDiscrete = process.env.PGHOST || process.env.PGDATABASE || process.env.PGUSER;
   if (!connectionString && !hasDiscrete) {
-    return null; // DB not configured; backend will run with in-memory storage
+    throw new Error('Database connection not configured. Set DATABASE_URL or PG* environment variables.');
   }
-  const pool = new Pool(
+  return new Pool(
     connectionString
       ? { connectionString, ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : false }
       : {
@@ -19,37 +18,33 @@ function createPool() {
           ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : false,
         }
   );
-  return pool;
 }
 
 const pool = createPool();
 
 async function initSchema() {
-  if (!pool) {
-    console.log('[DB] No database configuration found. Skipping schema init (using in-memory storage).');
-    return false;
-  }
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    await client.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
 
-    // Enable pgcrypto extension if available for gen_random_uuid
-    await client.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto`);
-
-    // Customers table
     await client.query(`
       CREATE TABLE IF NOT EXISTS customers (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         first_name text NOT NULL,
         last_name text NOT NULL,
         email text,
-        phone text,
+        phone text UNIQUE NOT NULL,
         birth_date date,
-        created_at timestamptz NOT NULL DEFAULT now()
+        birth_place text,
+        fiscal_code text,
+        address text,
+        city text,
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now()
       );
     `);
 
-    // Gift cards table
     await client.query(`
       CREATE TABLE IF NOT EXISTS gift_cards (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -61,7 +56,7 @@ async function initSchema() {
         claim_token uuid UNIQUE,
         claim_token_expires_at timestamptz,
         claimed_at timestamptz,
-        claimed_by_customer_id uuid REFERENCES customers(id),
+        claimed_by_customer_id uuid REFERENCES customers(id) ON DELETE SET NULL,
         code text UNIQUE,
         first_name text,
         last_name text,
@@ -70,22 +65,96 @@ async function initSchema() {
         birth_date date,
         dedication text,
         consents jsonb,
+        used_at timestamptz,
         created_at timestamptz NOT NULL DEFAULT now(),
         updated_at timestamptz NOT NULL DEFAULT now()
       );
     `);
 
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_gift_cards_status ON gift_cards(status);`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_gift_cards_code ON gift_cards(code);`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_gift_cards_claim_token ON gift_cards(claim_token);`);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tatuatori (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        nome text NOT NULL,
+        attivo boolean NOT NULL DEFAULT true,
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS stanze (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        nome text NOT NULL,
+        no_overbooking boolean NOT NULL DEFAULT false,
+        attivo boolean NOT NULL DEFAULT true,
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS appuntamenti (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        tatuatore_id uuid NOT NULL REFERENCES tatuatori(id) ON DELETE CASCADE,
+        stanza_id uuid NOT NULL REFERENCES stanze(id) ON DELETE CASCADE,
+        cliente_telefono text,
+        cliente_nome text,
+        orario_inizio timestamptz NOT NULL,
+        durata_minuti integer NOT NULL DEFAULT 60,
+        note text,
+        stato text NOT NULL DEFAULT 'confermato' CHECK (stato IN ('confermato','cancellato','completato')),
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS consensi (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        customer_id uuid REFERENCES customers(id) ON DELETE SET NULL,
+        gift_card_id uuid REFERENCES gift_cards(id) ON DELETE SET NULL,
+        type text NOT NULL,
+        phone text,
+        payload jsonb NOT NULL,
+        submitted_at timestamptz NOT NULL DEFAULT now(),
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now()
+      );
+    `);
+
+    await client.query('CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_gift_cards_status ON gift_cards(status)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_gift_cards_code ON gift_cards(code)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_gift_cards_claim_token ON gift_cards(claim_token)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_appuntamenti_tatuatore ON appuntamenti(tatuatore_id)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_appuntamenti_stanza ON appuntamenti(stanza_id)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_appuntamenti_orario ON appuntamenti(orario_inizio)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_consensi_phone ON consensi(phone)');
+
+    await client.query(`
+      CREATE OR REPLACE FUNCTION set_updated_at()
+      RETURNS trigger AS $$
+      BEGIN
+        NEW.updated_at = NOW();
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+    `);
+
+    await client.query(`CREATE TRIGGER trg_customers_updated BEFORE UPDATE ON customers FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
+    await client.query(`CREATE TRIGGER trg_gift_cards_updated BEFORE UPDATE ON gift_cards FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
+    await client.query(`CREATE TRIGGER trg_tatuatori_updated BEFORE UPDATE ON tatuatori FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
+    await client.query(`CREATE TRIGGER trg_stanze_updated BEFORE UPDATE ON stanze FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
+    await client.query(`CREATE TRIGGER trg_appuntamenti_updated BEFORE UPDATE ON appuntamenti FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
+    await client.query(`CREATE TRIGGER trg_consensi_updated BEFORE UPDATE ON consensi FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
 
     await client.query('COMMIT');
-    console.log('[DB] Schema initialized.');
     return true;
-  } catch (err) {
+  } catch (error) {
     await client.query('ROLLBACK');
-    console.error('[DB] Schema init failed:', err.message);
-    return false;
+    // eslint-disable-next-line no-console
+    console.error('[DB] Schema init failed:', error.message);
+    throw error;
   } finally {
     client.release();
   }
