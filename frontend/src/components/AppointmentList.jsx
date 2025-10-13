@@ -3,6 +3,7 @@ import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
 import Modal from './common/Modal';
+import Alert from './common/Alert';
 import AppointmentForm from './AppointmentForm';
 import AppointmentCalendar from './AppointmentCalendar';
 import AvailabilityChecker from './AvailabilityChecker';
@@ -190,6 +191,198 @@ function AppointmentList() {
     }
   };
 
+  const handleOpenSettings = () => {
+    setSettingsTab('tatuatori');
+    setTatuatoriFeedback(null);
+    setStanzeFeedback(null);
+    fetchTatuatori();
+    fetchStanze();
+    setShowSettingsModal(true);
+  };
+
+  const handleCloseSettings = () => {
+    setShowSettingsModal(false);
+    setSettingsTab('tatuatori');
+  };
+
+  const handleCreateTatuatore = async () => {
+    const nome = newTatuatoreNome.trim();
+
+    if (!nome) {
+      setTatuatoriFeedback({ type: 'danger', message: 'Inserisci il nome del tatuatore.' });
+      return;
+    }
+
+    try {
+      setIsCreatingTatuatore(true);
+      setTatuatoriFeedback(null);
+      const token = getCookie('adminToken');
+      const response = await fetch('/api/admin/tatuatori', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ nome })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Errore nella creazione del tatuatore');
+      }
+
+      await fetchTatuatori();
+      setNewTatuatoreNome('');
+      setTatuatoriFeedback({ type: 'success', message: 'Tatuatore aggiunto con successo.' });
+    } catch (error) {
+      console.error('Errore creazione tatuatore:', error);
+      setTatuatoriFeedback({ type: 'danger', message: error.message || 'Errore nella creazione del tatuatore.' });
+    } finally {
+      setIsCreatingTatuatore(false);
+    }
+  };
+
+  const handleToggleTatuatore = async (id, attivoAttuale) => {
+    try {
+      setUpdatingTatuatoreId(id);
+      const token = getCookie('adminToken');
+      const response = await fetch(`/api/admin/tatuatori/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ attivo: !attivoAttuale })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Errore nell\'aggiornamento del tatuatore');
+      }
+
+      const updated = await response.json();
+      setTatuatori(prev => prev.map(t => (t.id === id ? { ...t, attivo: updated.attivo } : t)));
+      setTatuatoriFeedback({
+        type: 'success',
+        message: `Tatuatore ${!attivoAttuale ? 'attivato' : 'disattivato'} con successo.`
+      });
+    } catch (error) {
+      console.error('Errore aggiornamento tatuatore:', error);
+      setTatuatoriFeedback({ type: 'danger', message: error.message || 'Errore nell\'aggiornamento del tatuatore.' });
+    } finally {
+      setUpdatingTatuatoreId(null);
+    }
+  };
+
+  const handleCreateStanza = async () => {
+    const nome = newStanzaNome.trim();
+
+    if (!nome) {
+      setStanzeFeedback({ type: 'danger', message: 'Inserisci il nome della stanza.' });
+      return;
+    }
+
+    try {
+      setIsCreatingStanza(true);
+      setStanzeFeedback(null);
+      const token = getCookie('adminToken');
+      const response = await fetch('/api/admin/stanze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nome,
+          no_overbooking: newStanzaNoOverbooking
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Errore nella creazione della stanza');
+      }
+
+      await fetchStanze();
+      setNewStanzaNome('');
+      setNewStanzaNoOverbooking(false);
+      setStanzeFeedback({ type: 'success', message: 'Stanza aggiunta con successo.' });
+    } catch (error) {
+      console.error('Errore creazione stanza:', error);
+      setStanzeFeedback({ type: 'danger', message: error.message || 'Errore nella creazione della stanza.' });
+    } finally {
+      setIsCreatingStanza(false);
+    }
+  };
+
+  const handleToggleStanzaAttiva = async (id, attivoAttuale) => {
+    try {
+      setUpdatingStanzaId(id);
+      const token = getCookie('adminToken');
+      const response = await fetch(`/api/admin/stanze/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ attivo: !attivoAttuale })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Errore nell\'aggiornamento della stanza');
+      }
+
+      const updated = await response.json();
+      setStanze(prev => prev.map(stanza => (
+        stanza.id === id ? { ...stanza, attivo: updated.attivo } : stanza
+      )));
+      setStanzeFeedback({
+        type: 'success',
+        message: `Stanza ${!attivoAttuale ? 'attivata' : 'disattivata'} con successo.`
+      });
+    } catch (error) {
+      console.error('Errore aggiornamento stanza:', error);
+      setStanzeFeedback({ type: 'danger', message: error.message || 'Errore nell\'aggiornamento della stanza.' });
+    } finally {
+      setUpdatingStanzaId(null);
+    }
+  };
+
+  const handleToggleStanzaNoOverbooking = async (id, statoAttuale) => {
+    try {
+      setUpdatingStanzaNoOverbookingId(id);
+      const token = getCookie('adminToken');
+      const response = await fetch(`/api/admin/stanze/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ no_overbooking: !statoAttuale })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Errore nell\'aggiornamento della stanza');
+      }
+
+      const updated = await response.json();
+      setStanze(prev => prev.map(stanza => (
+        stanza.id === id ? { ...stanza, no_overbooking: updated.no_overbooking } : stanza
+      )));
+      setStanzeFeedback({
+        type: 'success',
+        message: `Impostazione overbooking ${!statoAttuale ? 'abilitata' : 'disabilitata'} con successo.`
+      });
+    } catch (error) {
+      console.error('Errore aggiornamento stanza (overbooking):', error);
+      setStanzeFeedback({ type: 'danger', message: error.message || 'Errore nell\'aggiornamento della stanza.' });
+    } finally {
+      setUpdatingStanzaNoOverbookingId(null);
+    }
+  };
+
   const handleDeleteAppointment = async (appointmentId) => {
     if (!appointmentId) return;
 
@@ -257,6 +450,18 @@ function AppointmentList() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsTab, setSettingsTab] = useState('tatuatori');
+  const [newTatuatoreNome, setNewTatuatoreNome] = useState('');
+  const [newStanzaNome, setNewStanzaNome] = useState('');
+  const [newStanzaNoOverbooking, setNewStanzaNoOverbooking] = useState(false);
+  const [tatuatoriFeedback, setTatuatoriFeedback] = useState(null);
+  const [stanzeFeedback, setStanzeFeedback] = useState(null);
+  const [isCreatingTatuatore, setIsCreatingTatuatore] = useState(false);
+  const [isCreatingStanza, setIsCreatingStanza] = useState(false);
+  const [updatingTatuatoreId, setUpdatingTatuatoreId] = useState(null);
+  const [updatingStanzaId, setUpdatingStanzaId] = useState(null);
+  const [updatingStanzaNoOverbookingId, setUpdatingStanzaNoOverbookingId] = useState(null);
 
   return (
     <div>
@@ -284,6 +489,21 @@ function AppointmentList() {
           gap: '0.75rem',
           flexWrap: 'wrap'
         }}>
+          <Button
+            variant="secondary"
+            onClick={handleOpenSettings}
+            style={{
+              fontSize: '0.9rem',
+              padding: '0.75rem 1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <i className="fas fa-cogs"></i>
+            ⚙️ Impostazioni
+          </Button>
+
           <Button
             onClick={() => setShowCreateModal(true)}
             style={{
@@ -958,6 +1178,338 @@ function AppointmentList() {
             />
           );
         })()}
+      </Modal>
+
+      {/* Modale Impostazioni Risorse */}
+      <Modal
+        isOpen={showSettingsModal}
+        onClose={handleCloseSettings}
+        title="⚙️ Impostazioni Risorse"
+        maxWidth="720px"
+      >
+        <div style={{
+          marginBottom: '1.5rem',
+          color: '#d1d5db',
+          lineHeight: 1.5,
+          fontSize: '0.95rem'
+        }}>
+          <p style={{ marginBottom: '0.5rem' }}>
+            Aggiungi e gestisci tatuatori e stanze per poter assegnare correttamente gli appuntamenti.
+          </p>
+          <p style={{ margin: 0 }}>
+            Ricorda che per creare un nuovo appuntamento è necessario avere almeno un tatuatore e una stanza attivi.
+          </p>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          gap: '0.75rem',
+          marginBottom: '1.5rem',
+          flexWrap: 'wrap'
+        }}>
+          <Button
+            variant={settingsTab === 'tatuatori' ? 'primary' : 'ghost'}
+            onClick={() => {
+              setSettingsTab('tatuatori');
+              setTatuatoriFeedback(null);
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.9rem'
+            }}
+          >
+            👥 Tatuatori
+          </Button>
+          <Button
+            variant={settingsTab === 'stanze' ? 'primary' : 'ghost'}
+            onClick={() => {
+              setSettingsTab('stanze');
+              setStanzeFeedback(null);
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.9rem'
+            }}
+          >
+            🏠 Stanze
+          </Button>
+        </div>
+
+        {settingsTab === 'tatuatori' ? (
+          <div>
+            {tatuatoriFeedback && (
+              <Alert type={tatuatoriFeedback.type} style={{ marginBottom: '1rem' }}>
+                {tatuatoriFeedback.message}
+              </Alert>
+            )}
+
+            <div style={{
+              display: 'flex',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
+              marginBottom: '1.5rem'
+            }}>
+              <Input
+                value={newTatuatoreNome}
+                onChange={(e) => setNewTatuatoreNome(e.target.value)}
+                placeholder="Nome tatuatore"
+                style={{ flex: '1 1 240px', minWidth: '200px' }}
+              />
+              <Button
+                onClick={handleCreateTatuatore}
+                disabled={isCreatingTatuatore}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                {isCreatingTatuatore ? 'Salvataggio...' : 'Aggiungi tatuatore'}
+              </Button>
+            </div>
+
+            <div>
+              {tatuatori.length === 0 ? (
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px dashed rgba(255, 255, 255, 0.2)',
+                  borderRadius: '6px',
+                  padding: '1.5rem',
+                  textAlign: 'center',
+                  color: '#9ca3af'
+                }}>
+                  Nessun tatuatore presente. Aggiungine uno per iniziare a pianificare gli appuntamenti.
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gap: '1rem'
+                }}>
+                  {tatuatori.map(tatuatore => (
+                    <div
+                      key={tatuatore.id}
+                      style={{
+                        background: 'rgba(17, 24, 39, 0.6)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '6px',
+                        padding: '1rem'
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        flexWrap: 'wrap'
+                      }}>
+                        <div style={{ flex: '1 1 auto' }}>
+                          <div style={{
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            color: '#f9fafb',
+                            marginBottom: '0.25rem'
+                          }}>
+                            {tatuatore.nome}
+                          </div>
+                          <div style={{
+                            display: 'flex',
+                            gap: '0.5rem',
+                            flexWrap: 'wrap'
+                          }}>
+                            <span style={{
+                              background: tatuatore.attivo ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                              color: tatuatore.attivo ? '#34d399' : '#f87171',
+                              padding: '0.25rem 0.6rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.8rem',
+                              fontWeight: '600'
+                            }}>
+                              {tatuatore.attivo ? 'Attivo' : 'Disattivato'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{
+                          display: 'flex',
+                          gap: '0.5rem'
+                        }}>
+                          <Button
+                            variant="secondary"
+                            onClick={() => handleToggleTatuatore(tatuatore.id, tatuatore.attivo)}
+                            disabled={updatingTatuatoreId === tatuatore.id}
+                            style={{
+                              padding: '0.5rem 1rem',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            {updatingTatuatoreId === tatuatore.id ? 'Aggiornamento...' : tatuatore.attivo ? 'Disattiva' : 'Attiva'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div>
+            {stanzeFeedback && (
+              <Alert type={stanzeFeedback.type} style={{ marginBottom: '1rem' }}>
+                {stanzeFeedback.message}
+              </Alert>
+            )}
+
+            <div style={{
+              display: 'grid',
+              gap: '0.75rem',
+              marginBottom: '1.5rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              alignItems: 'center'
+            }}>
+              <Input
+                value={newStanzaNome}
+                onChange={(e) => setNewStanzaNome(e.target.value)}
+                placeholder="Nome stanza"
+              />
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: '#d1d5db',
+                fontSize: '0.9rem'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={newStanzaNoOverbooking}
+                  onChange={(e) => setNewStanzaNoOverbooking(e.target.checked)}
+                />
+                Evita overbooking
+              </label>
+              <Button
+                onClick={handleCreateStanza}
+                disabled={isCreatingStanza}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                {isCreatingStanza ? 'Salvataggio...' : 'Aggiungi stanza'}
+              </Button>
+            </div>
+
+            <div>
+              {stanze.length === 0 ? (
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px dashed rgba(255, 255, 255, 0.2)',
+                  borderRadius: '6px',
+                  padding: '1.5rem',
+                  textAlign: 'center',
+                  color: '#9ca3af'
+                }}>
+                  Nessuna stanza disponibile. Aggiungi una stanza per pianificare gli appuntamenti.
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gap: '1rem'
+                }}>
+                  {stanze.map(stanza => (
+                    <div
+                      key={stanza.id}
+                      style={{
+                        background: 'rgba(17, 24, 39, 0.6)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '6px',
+                        padding: '1rem'
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        flexWrap: 'wrap'
+                      }}>
+                        <div style={{ flex: '1 1 auto' }}>
+                          <div style={{
+                            fontSize: '1rem',
+                            fontWeight: '600',
+                            color: '#f9fafb',
+                            marginBottom: '0.25rem'
+                          }}>
+                            {stanza.nome}
+                          </div>
+                          <div style={{
+                            display: 'flex',
+                            gap: '0.5rem',
+                            flexWrap: 'wrap'
+                          }}>
+                            <span style={{
+                              background: stanza.attivo ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                              color: stanza.attivo ? '#34d399' : '#f87171',
+                              padding: '0.25rem 0.6rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.8rem',
+                              fontWeight: '600'
+                            }}>
+                              {stanza.attivo ? 'Attiva' : 'Disattivata'}
+                            </span>
+                            <span style={{
+                              background: stanza.no_overbooking ? 'rgba(59, 130, 246, 0.15)' : 'rgba(99, 102, 241, 0.1)',
+                              color: stanza.no_overbooking ? '#93c5fd' : '#818cf8',
+                              padding: '0.25rem 0.6rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.8rem',
+                              fontWeight: '600'
+                            }}>
+                              {stanza.no_overbooking ? 'No overbooking' : 'Overbooking consentito'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{
+                          display: 'flex',
+                          gap: '0.5rem',
+                          flexWrap: 'wrap'
+                        }}>
+                          <Button
+                            variant="secondary"
+                            onClick={() => handleToggleStanzaAttiva(stanza.id, stanza.attivo)}
+                            disabled={updatingStanzaId === stanza.id}
+                            style={{
+                              padding: '0.5rem 1rem',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            {updatingStanzaId === stanza.id ? 'Aggiornamento...' : stanza.attivo ? 'Disattiva' : 'Attiva'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleToggleStanzaNoOverbooking(stanza.id, stanza.no_overbooking)}
+                            disabled={updatingStanzaNoOverbookingId === stanza.id}
+                            style={{
+                              padding: '0.5rem 1rem',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            {updatingStanzaNoOverbookingId === stanza.id ? 'Aggiornamento...' : stanza.no_overbooking ? 'Permetti overbooking' : 'Blocca overbooking'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Vista Calendario */}
