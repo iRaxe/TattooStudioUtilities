@@ -258,13 +258,13 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                 {lastCreatedCard.isDraft ? lastCreatedCard.claimUrl : lastCreatedCard.redeemUrl}
               </div>
               <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                {lastCreatedCard.isDraft ? 
-                  '🎁 Condividi questo link con chi regala la gift card. Dovrà compilare i dati del festeggiato' :
-                  '🎁 Condividi questo link con il cliente per una esperienza gift card personalizzata e animata'
+                {lastCreatedCard.isDraft ?
+                  'Suggerimento: condividi questo link con chi regala la gift card. Dovrà compilare i dati del festeggiato' :
+                  'Suggerimento: condividi questo link con il cliente per una esperienza gift card personalizzata e animata'
                 }
               </div>
             </div>
-            
+
             <div className="flex gap-md flex-wrap">
               <Button
                 onClick={() => {
@@ -274,9 +274,9 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                 }}
                 variant="secondary"
               >
-                📋 Copia Link
+                Copia link
               </Button>
-              
+
               {navigator.share && (
                 <Button
                   onClick={() => {
@@ -292,15 +292,15 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                   }}
                   variant="secondary"
                 >
-                  📤 Condividi
-              </Button>
+                  Condividi
+                </Button>
               )}
-              
+
               <Button
                 onClick={() => setLastCreatedCard(null)}
                 variant="secondary"
               >
-                ✖️ Chiudi
+                Chiudi
               </Button>
             </div>
           </div>

@@ -178,7 +178,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                 transform: 'translateY(-50%)',
                 fontSize: '0.8rem'
               }}>
-                {showColumnDropdown ? '▲' : '▼'}
+                {showColumnDropdown ? '^' : 'v'}
               </span>
             </Button>
             
@@ -493,15 +493,11 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               background: 'rgba(251, 191, 36, 0.2)',
                               border: '1px solid rgba(251, 191, 36, 0.5)',
                               color: '#fbbf24',
-                              padding: '0.5rem',
+                              padding: '0.5rem 0.75rem',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              fontSize: '1.2rem',
-                              width: '40px',
-                              height: '40px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
+                              fontSize: '0.85rem',
+                              fontWeight: 600
                             }}
                             onMouseEnter={(e) => {
                               e.target.style.background = 'rgba(251, 191, 36, 0.3)';
@@ -510,7 +506,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               e.target.style.background = 'rgba(251, 191, 36, 0.2)';
                             }}
                           >
-                            📋
+                            Copia link
                           </button>
                         )}
                         {card.status === 'active' && card.code && (
@@ -521,15 +517,11 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               background: 'rgba(239, 68, 68, 0.2)',
                               border: '1px solid rgba(239, 68, 68, 0.5)',
                               color: '#ef4444',
-                              padding: '0.5rem',
+                              padding: '0.5rem 0.75rem',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              fontSize: '1.2rem',
-                              width: '40px',
-                              height: '40px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
+                              fontSize: '0.85rem',
+                              fontWeight: 600
                             }}
                             onMouseEnter={(e) => {
                               e.target.style.background = 'rgba(239, 68, 68, 0.3)';
@@ -538,7 +530,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               e.target.style.background = 'rgba(239, 68, 68, 0.2)';
                             }}
                           >
-                            ✓
+                            Marca usata
                           </button>
                         )}
                         {(() => {
@@ -551,15 +543,11 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                                 background: 'rgba(34, 197, 94, 0.2)',
                                 border: '1px solid rgba(34, 197, 94, 0.5)',
                                 color: '#22c55e',
-                                padding: '0.5rem',
+                                padding: '0.5rem 0.75rem',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
-                                fontSize: '1.2rem',
-                                width: '40px',
-                                height: '40px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
+                                fontSize: '0.85rem',
+                                fontWeight: 600
                               }}
                               onMouseEnter={(e) => {
                                 e.target.style.background = 'rgba(34, 197, 94, 0.3)';
@@ -568,7 +556,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                                 e.target.style.background = 'rgba(34, 197, 94, 0.2)';
                               }}
                             >
-                              🔄
+                              Rinnova
                             </button>
                           );
                         })()}
@@ -580,15 +568,11 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               background: 'rgba(239, 68, 68, 0.2)',
                               border: '1px solid rgba(239, 68, 68, 0.5)',
                               color: '#ef4444',
-                              padding: '0.5rem',
+                              padding: '0.5rem 0.75rem',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              fontSize: '1.2rem',
-                              width: '40px',
-                              height: '40px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
+                              fontSize: '0.85rem',
+                              fontWeight: 600
                             }}
                             onMouseEnter={(e) => {
                               e.target.style.background = 'rgba(239, 68, 68, 0.3)';
@@ -597,7 +581,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               e.target.style.background = 'rgba(239, 68, 68, 0.2)';
                             }}
                           >
-                            🗑️
+                            Elimina
                           </button>
                         )}
                       </div>

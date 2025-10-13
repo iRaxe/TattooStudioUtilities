@@ -168,7 +168,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
               transform: 'translateY(-50%)',
               fontSize: '0.8rem'
             }}>
-              {showCustomerColumnFilter ? '▲' : '▼'}
+              {showCustomerColumnFilter ? '^' : 'v'}
             </span>
           </Button>
           
@@ -505,11 +505,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               border: '1px solid rgba(34, 197, 94, 0.5)',
                               borderRadius: '4px',
                               color: '#4ade80',
-                              padding: '0.5rem',
+                              padding: '0.5rem 0.75rem',
                               cursor: 'pointer',
-                              fontSize: '1rem',
-                              width: '40px',
-                              height: '40px',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center'
@@ -521,7 +520,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               e.target.style.background = 'rgba(34, 197, 94, 0.2)';
                             }}
                           >
-                            👁️
+                            Vedi
                           </button>
                           <button
                             onClick={() => handleEditCustomer(customer)}
@@ -531,11 +530,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               border: '1px solid rgba(59, 130, 246, 0.5)',
                               borderRadius: '4px',
                               color: '#60a5fa',
-                              padding: '0.5rem',
+                              padding: '0.5rem 0.75rem',
                               cursor: 'pointer',
-                              fontSize: '1rem',
-                              width: '40px',
-                              height: '40px',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center'
@@ -547,7 +545,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               e.target.style.background = 'rgba(59, 130, 246, 0.2)';
                             }}
                           >
-                            ✏️
+                            Modifica
                           </button>
                           <button
                             onClick={() => openConsentsModalForCustomer(customer)}
@@ -557,11 +555,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               border: '1px solid rgba(168, 85, 247, 0.5)',
                               borderRadius: '4px',
                               color: '#a855f7',
-                              padding: '0.5rem',
+                              padding: '0.5rem 0.75rem',
                               cursor: 'pointer',
-                              fontSize: '1rem',
-                              width: '40px',
-                              height: '40px',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center'
@@ -573,7 +570,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               e.target.style.background = 'rgba(168, 85, 247, 0.2)';
                             }}
                           >
-                            📄
+                            Consensi
                           </button>
                         </div>
                       ) : (
@@ -638,15 +635,12 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                           color: '#22c55e',
                           padding: '0.5rem 1rem',
                           fontSize: '0.8rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem'
+                          cursor: 'pointer'
                         }}
                         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.3)'; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)'; }}
                       >
-                        📄 PDF
+                        Apri PDF
                       </Button>
                       <Button
                         variant="danger"
@@ -654,13 +648,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                         aria-label="Elimina consenso"
                         style={{
                           padding: '0.5rem 1rem',
-                          fontSize: '0.8rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem'
+                          fontSize: '0.8rem'
                         }}
                       >
-                        🗑️ Elimina
+                        Elimina
                       </Button>
                     </div>
                   </div>

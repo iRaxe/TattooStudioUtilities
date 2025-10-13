@@ -501,7 +501,7 @@ function AppointmentList() {
             }}
           >
             <i className="fas fa-cogs"></i>
-            ⚙️ Impostazioni
+            Impostazioni
           </Button>
 
           <Button
@@ -519,7 +519,7 @@ function AppointmentList() {
             }}
           >
             <i className="fas fa-plus"></i>
-            ➕ Crea Appuntamento
+            Crea appuntamento
           </Button>
 
           <Button
@@ -534,7 +534,7 @@ function AppointmentList() {
             }}
           >
             <i className="fas fa-calendar-alt"></i>
-            📅 Calendario
+            Calendario
           </Button>
 
           <Button
@@ -549,7 +549,7 @@ function AppointmentList() {
             }}
           >
             <i className="fas fa-clock"></i>
-            ⏰ Disponibilità
+            Disponibilità
           </Button>
         </div>
       </div>
@@ -673,7 +673,7 @@ function AppointmentList() {
         flexWrap: 'wrap'
       }}>
         <Button onClick={fetchAppointments} disabled={loading}>
-          {loading ? 'Caricamento...' : '🔍 Applica Filtri'}
+          {loading ? 'Caricamento...' : 'Applica filtri'}
         </Button>
 
         <Button
@@ -687,7 +687,7 @@ function AppointmentList() {
             setDataFineFilter('');
           }}
         >
-          🧹 Cancella Filtri
+          Cancella filtri
         </Button>
 
         <div style={{ position: 'relative' }}>
@@ -695,7 +695,7 @@ function AppointmentList() {
             variant="secondary"
             onClick={() => setShowColumnFilter(!showColumnFilter)}
           >
-            📊 Colonne {showColumnFilter ? '▲' : '▼'}
+            Colonne {showColumnFilter ? '^' : 'v'}
           </Button>
 
           {showColumnFilter && (
@@ -768,8 +768,10 @@ function AppointmentList() {
           padding: '3rem',
           color: '#9ca3af'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
-          Caricamento appuntamenti...
+          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+            Caricamento appuntamenti
+          </div>
+          Attendi qualche istante mentre recuperiamo i dati.
         </div>
       )}
 
@@ -782,7 +784,9 @@ function AppointmentList() {
           borderRadius: '4px',
           border: '1px solid rgba(239, 68, 68, 0.3)'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
+          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+            Si è verificato un errore
+          </div>
           {error}
         </div>
       )}
@@ -799,8 +803,7 @@ function AppointmentList() {
               borderRadius: '4px',
               border: '1px solid rgba(255, 255, 255, 0.1)'
             }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
-              <h4 style={{ color: '#f3f4f6', marginBottom: '0.5rem', fontSize: '1.1rem' }}>
+              <h4 style={{ color: '#f3f4f6', marginBottom: '0.75rem', fontSize: '1.1rem' }}>
                 {searchTerm?.trim() || tatuatoreFilter || stanzaFilter || statoFilter ?
                   'Nessun appuntamento trovato' :
                   'Nessun appuntamento presente'
@@ -941,7 +944,7 @@ function AppointmentList() {
                             )}
                             {appointment.cliente_telefono && (
                               <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
-                                📞 {appointment.cliente_telefono}
+                                Telefono: {appointment.cliente_telefono}
                               </div>
                             )}
                             {!appointment.cliente_nome && !appointment.cliente_telefono && (
@@ -1035,14 +1038,10 @@ function AppointmentList() {
                                 border: '1px solid rgba(59, 130, 246, 0.5)',
                                 borderRadius: '4px',
                                 color: '#60a5fa',
-                                padding: '0.5rem',
+                                padding: '0.5rem 0.75rem',
                                 cursor: 'pointer',
-                                fontSize: '1rem',
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
+                                fontSize: '0.85rem',
+                                fontWeight: 600
                               }}
                               onMouseEnter={(e) => {
                                 e.target.style.background = 'rgba(59, 130, 246, 0.3)';
@@ -1051,7 +1050,7 @@ function AppointmentList() {
                                 e.target.style.background = 'rgba(59, 130, 246, 0.2)';
                               }}
                             >
-                              👁️
+                              Dettagli
                             </button>
                             <button
                               onClick={() => {
@@ -1064,14 +1063,10 @@ function AppointmentList() {
                                 border: '1px solid rgba(34, 197, 94, 0.5)',
                                 borderRadius: '4px',
                                 color: '#4ade80',
-                                padding: '0.5rem',
+                                padding: '0.5rem 0.75rem',
                                 cursor: 'pointer',
-                                fontSize: '1rem',
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
+                                fontSize: '0.85rem',
+                                fontWeight: 600
                               }}
                               onMouseEnter={(e) => {
                                 e.target.style.background = 'rgba(34, 197, 94, 0.3)';
@@ -1080,7 +1075,7 @@ function AppointmentList() {
                                 e.target.style.background = 'rgba(34, 197, 94, 0.2)';
                               }}
                             >
-                              ✏️
+                              Modifica
                             </button>
                             <button
                               onClick={() => handleDeleteAppointment(appointment.id)}
@@ -1090,14 +1085,10 @@ function AppointmentList() {
                                 border: '1px solid rgba(239, 68, 68, 0.5)',
                                 borderRadius: '4px',
                                 color: '#f87171',
-                                padding: '0.5rem',
+                                padding: '0.5rem 0.75rem',
                                 cursor: 'pointer',
-                                fontSize: '1rem',
-                                width: '36px',
-                                height: '36px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
+                                fontSize: '0.85rem',
+                                fontWeight: 600
                               }}
                               onMouseEnter={(e) => {
                                 e.target.style.background = 'rgba(239, 68, 68, 0.3)';
@@ -1106,7 +1097,7 @@ function AppointmentList() {
                                 e.target.style.background = 'rgba(239, 68, 68, 0.2)';
                               }}
                             >
-                              🗑️
+                              Elimina
                             </button>
                           </div>
                         </td>
@@ -1124,7 +1115,7 @@ function AppointmentList() {
       <Modal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        title="➕ Crea Nuovo Appuntamento"
+        title="Crea nuovo appuntamento"
         maxWidth="800px"
       >
         {(() => {
@@ -1151,7 +1142,7 @@ function AppointmentList() {
       <Modal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        title="✏️ Modifica Appuntamento"
+        title="Modifica appuntamento"
         maxWidth="800px"
       >
         {(() => {
@@ -1184,7 +1175,7 @@ function AppointmentList() {
       <Modal
         isOpen={showSettingsModal}
         onClose={handleCloseSettings}
-        title="⚙️ Impostazioni Risorse"
+        title="Impostazioni risorse"
         maxWidth="720px"
       >
         <div style={{
@@ -1218,7 +1209,7 @@ function AppointmentList() {
               fontSize: '0.9rem'
             }}
           >
-            👥 Tatuatori
+            Tatuatori
           </Button>
           <Button
             variant={settingsTab === 'stanze' ? 'primary' : 'ghost'}
@@ -1231,7 +1222,7 @@ function AppointmentList() {
               fontSize: '0.9rem'
             }}
           >
-            🏠 Stanze
+            Stanze
           </Button>
         </div>
 
