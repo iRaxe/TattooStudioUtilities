@@ -141,12 +141,28 @@ async function initSchema() {
       $$ LANGUAGE plpgsql;
     `);
 
-    await client.query(`CREATE TRIGGER trg_customers_updated BEFORE UPDATE ON customers FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
-    await client.query(`CREATE TRIGGER trg_gift_cards_updated BEFORE UPDATE ON gift_cards FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
-    await client.query(`CREATE TRIGGER trg_tatuatori_updated BEFORE UPDATE ON tatuatori FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
-    await client.query(`CREATE TRIGGER trg_stanze_updated BEFORE UPDATE ON stanze FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
-    await client.query(`CREATE TRIGGER trg_appuntamenti_updated BEFORE UPDATE ON appuntamenti FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
-    await client.query(`CREATE TRIGGER trg_consensi_updated BEFORE UPDATE ON consensi FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
+    const triggers = [
+      { name: 'trg_customers_updated', table: 'customers' },
+      { name: 'trg_gift_cards_updated', table: 'gift_cards' },
+      { name: 'trg_tatuatori_updated', table: 'tatuatori' },
+      { name: 'trg_stanze_updated', table: 'stanze' },
+      { name: 'trg_appuntamenti_updated', table: 'appuntamenti' },
+      { name: 'trg_consensi_updated', table: 'consensi' },
+    ];
+
+    for (const { name, table } of triggers) {
+      await client.query(
+        `DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = '${name}') THEN
+            CREATE TRIGGER ${name}
+            BEFORE UPDATE ON ${table}
+            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+          END IF;
+        END;
+        $$;`
+      );
+    }
 
     await client.query('COMMIT');
     return true;
