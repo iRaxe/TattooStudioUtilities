@@ -204,23 +204,20 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
         return {
           key: appointment.stanza_id || 'no_room',
           label: appointment.stanza_nome || 'Stanza non assegnata',
-          accent: 'rgba(59, 130, 246, 0.6)',
-          icon: '🏠'
+          accent: 'rgba(59, 130, 246, 0.6)'
         };
       case 'stato':
         return {
           key: appointment.stato || 'sconosciuto',
           label: (appointment.stato || 'Sconosciuto').replace('_', ' '),
-          accent: getStatoColor(appointment.stato),
-          icon: '📌'
+          accent: getStatoColor(appointment.stato)
         };
       case 'tatuatore':
       default:
         return {
           key: appointment.tatuatore_id || 'no_artist',
           label: appointment.tatuatore_nome || 'Tatuatore non assegnato',
-          accent: 'rgba(249, 115, 22, 0.6)',
-          icon: '🧑‍🎨'
+          accent: 'rgba(249, 115, 22, 0.6)'
         };
     }
   };
@@ -496,10 +493,10 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
         marginBottom: '1.5rem'
       }}>
         {[
-          { label: 'Confermati', value: statusSummary.confermato, color: 'rgba(34, 197, 94, 0.25)', icon: '✅' },
-          { label: 'In corso', value: statusSummary.in_corso, color: 'rgba(245, 158, 11, 0.25)', icon: '⏱️' },
-          { label: 'Completati', value: statusSummary.completato, color: 'rgba(34, 197, 94, 0.15)', icon: '🏁' },
-          { label: 'Cancellati', value: statusSummary.cancellato, color: 'rgba(239, 68, 68, 0.2)', icon: '🛑' }
+          { label: 'Confermati', value: statusSummary.confermato, color: 'rgba(34, 197, 94, 0.25)' },
+          { label: 'In corso', value: statusSummary.in_corso, color: 'rgba(245, 158, 11, 0.25)' },
+          { label: 'Completati', value: statusSummary.completato, color: 'rgba(34, 197, 94, 0.15)' },
+          { label: 'Cancellati', value: statusSummary.cancellato, color: 'rgba(239, 68, 68, 0.2)' }
         ].map((status) => (
           <div
             key={status.label}
@@ -512,15 +509,12 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
               border: '1px solid rgba(255, 255, 255, 0.1)',
               color: '#f3f4f6',
               display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem'
+              flexDirection: 'column',
+              gap: '0.35rem'
             }}
           >
-            <div style={{ fontSize: '1.5rem' }}>{status.icon}</div>
-            <div>
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#e5e7eb' }}>{status.label}</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>{status.value}</div>
-            </div>
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#e5e7eb' }}>{status.label}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>{status.value}</div>
           </div>
         ))}
       </div>
@@ -532,8 +526,14 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
           padding: '3rem',
           color: '#9ca3af'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
-          Caricamento calendario...
+          <div style={{
+            fontSize: '1.5rem',
+            marginBottom: '0.5rem',
+            fontWeight: 600
+          }}>
+            Caricamento calendario
+          </div>
+          Attendi qualche istante mentre recuperiamo gli appuntamenti.
         </div>
       )}
 
@@ -546,7 +546,13 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
           borderRadius: '4px',
           border: '1px solid rgba(239, 68, 68, 0.3)'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
+          <div style={{
+            fontSize: '1.5rem',
+            marginBottom: '0.5rem',
+            fontWeight: 600
+          }}>
+            Si è verificato un errore
+          </div>
           {error}
         </div>
       )}
@@ -560,7 +566,13 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
           borderRadius: '6px',
           border: '1px dashed rgba(255, 255, 255, 0.1)'
         }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🗓️</div>
+          <div style={{
+            fontSize: '1.5rem',
+            marginBottom: '0.5rem',
+            fontWeight: 600
+          }}>
+            Nessun appuntamento disponibile
+          </div>
           Nessun appuntamento nel periodo selezionato. Utilizza i pulsanti sopra per aggiungere una nuova prenotazione.
         </div>
       )}
@@ -679,7 +691,7 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
                             fontSize: '0.85rem',
                             color: '#fbbf24'
                           }}>
-                            <span>{group.meta.icon} {group.meta.label}</span>
+                            <span>{group.meta.label}</span>
                             <span style={{ fontSize: '0.7rem', color: '#d1d5db' }}>{group.appointments.length} appuntamento{group.appointments.length > 1 ? 'i' : ''}</span>
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>

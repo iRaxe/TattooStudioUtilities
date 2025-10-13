@@ -1962,7 +1962,7 @@ function ConsensoTatuaggio() {
       <Container>
         <Card>
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+            <div style={{ fontSize: '1.75rem', marginBottom: '0.75rem', fontWeight: 600 }}>Invio completato</div>
             <Title level={1}>Consenso Inviato con Successo!</Title>
             <p style={{ color: '#9ca3af', fontSize: '1.1rem', marginTop: '1rem' }}>
               Il tuo modulo di consenso per il tatuaggio è stato ricevuto correttamente.
@@ -2264,14 +2264,14 @@ function ConsensoTatuaggio() {
           <div className="flex gap-lg justify-center">
             <Link to="/consenso">
               <Button variant="secondary">
-                ← Indietro
+                Indietro
               </Button>
             </Link>
             <Button
               type="submit"
               disabled={loading || !form.consentInformedTreatment || !form.consentDataProcessing || !form.isAdult}
             >
-              {loading ? '🔄 Invio in corso...' : '📝 Invia Consenso'}
+              {loading ? 'Invio in corso...' : 'Invia consenso'}
             </Button>
           </div>
         </form>
@@ -2375,7 +2375,7 @@ function ConsensoPiercing() {
       <Container>
         <Card>
           <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+            <div style={{ fontSize: '1.75rem', marginBottom: '0.75rem', fontWeight: 600 }}>Invio completato</div>
             <Title level={1}>Consenso Inviato con Successo!</Title>
             <p style={{ color: '#9ca3af', fontSize: '1.1rem', marginTop: '1rem' }}>
               Il tuo modulo di consenso per il piercing è stato ricevuto correttamente.
@@ -2690,14 +2690,14 @@ function ConsensoPiercing() {
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
             <Link to="/consenso">
               <Button variant="secondary">
-                ← Indietro
+                Indietro
               </Button>
             </Link>
             <Button
               type="submit"
               disabled={loading || !form.consentInformedTreatment || !form.consentDataProcessing || !form.isAdult}
             >
-              {loading ? '🔄 Invio in corso...' : '📝 Invia Consenso'}
+              {loading ? 'Invio in corso...' : 'Invia consenso'}
             </Button>
           </div>
         </form>

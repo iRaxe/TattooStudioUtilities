@@ -215,8 +215,10 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
           padding: '3rem',
           color: '#9ca3af'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
-          Verifica disponibilità in corso...
+          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+            Verifica disponibilità in corso
+          </div>
+          Stiamo recuperando gli slot disponibili, attendi qualche istante.
         </div>
       )}
 
@@ -230,7 +232,9 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
           borderRadius: '4px',
           border: '1px solid rgba(239, 68, 68, 0.3)'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
+          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+            Si è verificato un errore
+          </div>
           {error}
         </div>
       )}
@@ -344,7 +348,7 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
                     {formatSlotTime(slot.orario_inizio)}
                   </div>
                   <div style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                    {slot.disponibile ? '✅ Libero' : '❌ Occupato'}
+                    {slot.disponibile ? 'Disponibile' : 'Occupato'}
                   </div>
 
                   {/* Indicatore conflitti */}
@@ -399,8 +403,7 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
           borderRadius: '4px',
           border: '1px solid rgba(255, 255, 255, 0.1)'
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
-          <h4 style={{ color: '#f3f4f6', marginBottom: '0.5rem', fontSize: '1.1rem' }}>
+          <h4 style={{ color: '#f3f4f6', marginBottom: '0.75rem', fontSize: '1.1rem' }}>
             Seleziona parametri
           </h4>
           <p style={{ margin: 0, fontSize: '0.9rem' }}>

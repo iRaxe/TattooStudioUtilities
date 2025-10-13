@@ -465,7 +465,7 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
                       {cliente.first_name} {cliente.last_name}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
-                      📞 {cliente.phone}
+                      Telefono: {cliente.phone}
                     </div>
                   </div>
                 ))}
@@ -604,14 +604,14 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
               fontWeight: '600'
             }}>
               {disponibilita.slots_disponibili > 0 ?
-                `✅ Disponibile (${disponibilita.slots_disponibili} slot liberi)` :
-                '❌ Non disponibile'
+                `Disponibile (${disponibilita.slots_disponibili} slot liberi)` :
+                'Non disponibile'
               }
             </div>
 
             {disponibilita.conflicts && disponibilita.conflicts.length > 0 && (
               <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
-                <div style={{ color: '#f59e0b', fontWeight: '600' }}>⚠️ Conflitti rilevati:</div>
+                <div style={{ color: '#f59e0b', fontWeight: '600' }}>Attenzione: conflitti rilevati</div>
                 {disponibilita.conflicts.map((conflict, index) => (
                   <div key={index} style={{ color: '#f3f4f6', marginTop: '0.25rem' }}>
                     {conflict.tatuatore_nome} in {conflict.stanza_nome} dalle{' '}
@@ -655,7 +655,7 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
             type="submit"
             disabled={loading || !formData.tatuatore_id || !formData.stanza_id || !formData.orario_inizio}
           >
-            {loading ? '💾 Salvataggio...' : appointment ? '💾 Aggiorna' : '💾 Salva'}
+            {loading ? 'Salvataggio in corso...' : appointment ? 'Aggiorna' : 'Salva'}
           </Button>
         </div>
       </form>
