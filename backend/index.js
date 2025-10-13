@@ -53,6 +53,7 @@ const giftCards = new Map(); // id -> card
 const codeIndex = new Map(); // code -> id
 const tokenIndex = new Map(); // token -> id
 const consensi = new Map(); // id -> consenso data
+const ordini = new Map(); // id -> ordine
 
 // Appointment system stores
 const tatuatori = new Map(); // id -> tatuatore
@@ -86,6 +87,439 @@ function isExpired(giftCard) {
 function toISO(dt) { return dt ? new Date(dt).toISOString() : null; }
 function genCode() {
   return Math.random().toString(36).slice(2, 10).toUpperCase();
+}
+
+// Orders helpers
+const ORDER_STATUS_OPTIONS = [
+  { value: 'confirmed', label: 'Confermato' },
+  { value: 'processing', label: 'In lavorazione' },
+  { value: 'completed', label: 'Completato' },
+  { value: 'cancelled', label: 'Annullato' }
+];
+
+const ORDER_TYPE_OPTIONS = [
+  { value: 'standard', label: 'Standard' },
+  { value: 'ritocco', label: 'Ritocco' },
+  { value: 'vip', label: 'VIP' }
+];
+
+const ORDER_ACTIVE_OPTIONS = [
+  { value: 'true', label: 'Attiva' },
+  { value: 'false', label: 'Disattiva' }
+];
+
+const DEFAULT_ORDER_SORTERS = [
+  { field: 'data_ordine', order: 'desc', isDefault: true }
+];
+
+function getOrderStatusLabel(value) {
+  const match = ORDER_STATUS_OPTIONS.find(option => option.value === value);
+  return match ? match.label : value;
+}
+
+function getOrderTypeLabel(value) {
+  const match = ORDER_TYPE_OPTIONS.find(option => option.value === value);
+  return match ? match.label : value;
+}
+
+function getOrderActiveLabel(value) {
+  return value ? 'Attiva' : 'Disattiva';
+}
+
+function normalizeBoolean(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return false;
+    return ['true', '1', 'yes', 'y', 'attiva', 'attivo'].includes(normalized);
+  }
+  return false;
+}
+
+function seedOrders() {
+  if (ordini.size > 0) return;
+
+  const surnames = ['Rossi', 'Bianchi', 'Verdi', 'Neri', 'Russo', 'Ferrari'];
+  const names = ['Alessia', 'Marco', 'Giulia', 'Davide', 'Sara', 'Luca', 'Martina', 'Fabio'];
+  const nowDate = new Date();
+
+  for (let index = 0; index < 40; index++) {
+    const id = uuidv4();
+    const statusIndex = index % ORDER_STATUS_OPTIONS.length;
+    const status = statusIndex === 1 && index % 5 === 0 ? 'processing'
+      : statusIndex === 3 && index % 7 === 0 ? 'cancelled'
+      : statusIndex === 2 && index % 4 === 0 ? 'completed'
+      : 'confirmed';
+    const type = index % 6 === 0 ? 'vip' : index % 4 === 0 ? 'ritocco' : 'standard';
+    const createdAt = new Date(nowDate.getTime() - index * 86400000 - (index % 6) * 3600000);
+    ordini.set(id, {
+      id,
+      numero: `ORD-${(1000 + index).toString().padStart(4, '0')}`,
+      cliente_nome: `${names[index % names.length]} ${surnames[index % surnames.length]}`,
+      stato: status,
+      attivo: status === 'confirmed' || status === 'processing',
+      tipo: type,
+      data_ordine: createdAt,
+      importo: Number((85 + (index % 6) * 17 + (index % 3) * 4).toFixed(2)),
+      valuta: 'EUR',
+      note: type === 'ritocco'
+        ? 'Sessione di ritocco programmata'
+        : type === 'vip'
+          ? 'Pacchetto VIP con orario dedicato'
+          : 'Ordine standard'
+    });
+  }
+}
+
+function buildOrderFilterOptions() {
+  return {
+    stato: ORDER_STATUS_OPTIONS,
+    attivo: ORDER_ACTIVE_OPTIONS,
+    tipo: ORDER_TYPE_OPTIONS
+  };
+}
+
+function parseOrderFilters(rawFilters) {
+  if (!rawFilters) return [];
+
+  let filtersArray = rawFilters;
+  if (typeof rawFilters === 'string') {
+    if (!rawFilters.trim()) return [];
+    try {
+      filtersArray = JSON.parse(rawFilters);
+    } catch (error) {
+      throw new Error('INVALID_ORDER_FILTERS');
+    }
+  }
+
+  if (!Array.isArray(filtersArray)) return [];
+
+  return filtersArray
+    .map(filter => {
+      const field = filter?.field || filter?.id;
+      if (!field) return null;
+      return {
+        field,
+        operator: filter?.operator || 'eq',
+        value: filter?.value,
+        variant: filter?.variant || null,
+        filterId: filter?.filterId || null
+      };
+    })
+    .filter(Boolean);
+}
+
+function ensureDefaultOrderFilters(filters) {
+  const normalized = Array.isArray(filters) ? [...filters] : [];
+  const hasField = (field) => normalized.some(filter => filter.field === field);
+
+  if (!hasField('stato')) {
+    normalized.push({
+      field: 'stato',
+      operator: 'inArray',
+      value: ['confirmed'],
+      variant: 'multiSelect',
+      filterId: 'default-stato',
+      isDefault: true
+    });
+  }
+
+  if (!hasField('attivo')) {
+    normalized.push({
+      field: 'attivo',
+      operator: 'inArray',
+      value: ['true'],
+      variant: 'multiSelect',
+      filterId: 'default-attivo',
+      isDefault: true
+    });
+  }
+
+  if (!hasField('tipo')) {
+    normalized.push({
+      field: 'tipo',
+      operator: 'inArray',
+      value: ['standard'],
+      variant: 'multiSelect',
+      filterId: 'default-tipo',
+      isDefault: true
+    });
+  }
+
+  return normalized;
+}
+
+function matchesOrderFilter(order, filter) {
+  if (!filter || !filter.field) return true;
+  const comparisonValues = Array.isArray(filter.value) ? filter.value : [filter.value];
+  if (!comparisonValues.length) return true;
+
+  const orderValue = order[filter.field];
+
+  if (filter.field === 'attivo') {
+    const orderBoolean = normalizeBoolean(orderValue);
+    if (filter.operator === 'ne' || filter.operator === 'notIn') {
+      return !comparisonValues.some(value => orderBoolean === normalizeBoolean(value));
+    }
+    return comparisonValues.some(value => orderBoolean === normalizeBoolean(value));
+  }
+
+  if (filter.field === 'stato' || filter.field === 'tipo') {
+    const normalizedOrderValue = (orderValue || '').toString().toLowerCase();
+    if (filter.operator === 'ne' || filter.operator === 'notIn') {
+      return !comparisonValues.some(value => normalizedOrderValue === (value || '').toString().toLowerCase());
+    }
+    if (filter.operator === 'contains') {
+      return comparisonValues.some(value => normalizedOrderValue.includes((value || '').toString().toLowerCase()));
+    }
+    return comparisonValues.some(value => normalizedOrderValue === (value || '').toString().toLowerCase());
+  }
+
+  if (filter.field === 'data_ordine' || filter.field === 'created_at') {
+    const orderTimestamp = new Date(orderValue).getTime();
+    return comparisonValues.every(value => {
+      const valueTimestamp = new Date(value).getTime();
+      if (Number.isNaN(valueTimestamp) || Number.isNaN(orderTimestamp)) return true;
+      switch (filter.operator) {
+        case 'gte':
+        case 'afterOrEqual':
+          return orderTimestamp >= valueTimestamp;
+        case 'gt':
+          return orderTimestamp > valueTimestamp;
+        case 'lte':
+        case 'beforeOrEqual':
+          return orderTimestamp <= valueTimestamp;
+        case 'lt':
+          return orderTimestamp < valueTimestamp;
+        default:
+          return orderTimestamp === valueTimestamp;
+      }
+    });
+  }
+
+  const normalizedOrderValue = orderValue !== undefined && orderValue !== null
+    ? orderValue.toString().toLowerCase()
+    : '';
+
+  switch (filter.operator) {
+    case 'contains':
+      return comparisonValues.some(value => normalizedOrderValue.includes((value || '').toString().toLowerCase()));
+    case 'startsWith':
+      return comparisonValues.some(value => normalizedOrderValue.startsWith((value || '').toString().toLowerCase()));
+    case 'endsWith':
+      return comparisonValues.some(value => normalizedOrderValue.endsWith((value || '').toString().toLowerCase()));
+    case 'ne':
+    case 'notIn':
+      return !comparisonValues.some(value => normalizedOrderValue === (value || '').toString().toLowerCase());
+    default:
+      return comparisonValues.some(value => normalizedOrderValue === (value || '').toString().toLowerCase());
+  }
+}
+
+function applyOrderFilters(data, filters) {
+  if (!filters || filters.length === 0) return [...data];
+  return data.filter(order => filters.every(filter => matchesOrderFilter(order, filter)));
+}
+
+function parseOrderSorters(rawSorters) {
+  if (!rawSorters) return [];
+
+  let sortersArray = rawSorters;
+  if (typeof rawSorters === 'string') {
+    if (!rawSorters.trim()) return [];
+    try {
+      sortersArray = JSON.parse(rawSorters);
+    } catch (error) {
+      throw new Error('INVALID_ORDER_SORTERS');
+    }
+  }
+
+  if (!Array.isArray(sortersArray)) return [];
+
+  return sortersArray
+    .map(sorter => {
+      const field = sorter?.field || sorter?.id;
+      if (!field) return null;
+      const order = (sorter?.order || sorter?.direction || 'asc').toString().toLowerCase() === 'desc' ? 'desc' : 'asc';
+      return { field, order };
+    })
+    .filter(Boolean);
+}
+
+function sortOrders(data, sorters) {
+  if (!Array.isArray(data)) return [];
+  if (!sorters || sorters.length === 0) {
+    return [...data].sort((a, b) => new Date(b.data_ordine) - new Date(a.data_ordine));
+  }
+
+  return [...data].sort((a, b) => {
+    for (const sorter of sorters) {
+      const valueA = a[sorter.field];
+      const valueB = b[sorter.field];
+
+      let comparison = 0;
+      if (valueA === valueB) {
+        comparison = 0;
+      } else if (valueA === undefined || valueA === null) {
+        comparison = -1;
+      } else if (valueB === undefined || valueB === null) {
+        comparison = 1;
+      } else if (valueA instanceof Date || valueB instanceof Date || sorter.field === 'data_ordine' || sorter.field === 'created_at') {
+        comparison = new Date(valueA).getTime() - new Date(valueB).getTime();
+      } else if (typeof valueA === 'number' && typeof valueB === 'number') {
+        comparison = valueA - valueB;
+      } else if (typeof valueA === 'boolean' && typeof valueB === 'boolean') {
+        comparison = valueA === valueB ? 0 : valueA ? 1 : -1;
+      } else {
+        comparison = valueA.toString().localeCompare(valueB.toString());
+      }
+
+      if (comparison !== 0) {
+        return sorter.order === 'desc' ? -comparison : comparison;
+      }
+    }
+    return 0;
+  });
+}
+
+function serializeOrder(order) {
+  return {
+    id: order.id,
+    numero: order.numero,
+    cliente_nome: order.cliente_nome,
+    stato: order.stato,
+    stato_label: getOrderStatusLabel(order.stato),
+    attivo: order.attivo,
+    attivo_label: getOrderActiveLabel(order.attivo),
+    tipo: order.tipo,
+    tipo_label: getOrderTypeLabel(order.tipo),
+    data_ordine: toISO(order.data_ordine),
+    importo: order.importo,
+    valuta: order.valuta,
+    note: order.note || null
+  };
+}
+
+function buildOrderSummary(orders) {
+  const summary = {
+    totale: Array.isArray(orders) ? orders.length : 0,
+    attivi: 0,
+    perStato: ORDER_STATUS_OPTIONS.reduce((acc, option) => ({ ...acc, [option.value]: 0 }), {}),
+    perTipo: ORDER_TYPE_OPTIONS.reduce((acc, option) => ({ ...acc, [option.value]: 0 }), {})
+  };
+
+  if (!Array.isArray(orders)) {
+    return summary;
+  }
+
+  for (const order of orders) {
+    if (order?.stato) {
+      if (summary.perStato[order.stato] === undefined) {
+        summary.perStato[order.stato] = 0;
+      }
+      summary.perStato[order.stato] += 1;
+    }
+
+    if (order?.tipo) {
+      if (summary.perTipo[order.tipo] === undefined) {
+        summary.perTipo[order.tipo] = 0;
+      }
+      summary.perTipo[order.tipo] += 1;
+    }
+
+    if (order?.attivo) {
+      summary.attivi += 1;
+    }
+  }
+
+  return summary;
+}
+
+function handleOrdersList(req, res) {
+  try {
+    let parsedFilters = [];
+    let parsedSorters = [];
+
+    try {
+      parsedFilters = parseOrderFilters(req.query.filters || req.query.filter);
+    } catch (error) {
+      if (error.message === 'INVALID_ORDER_FILTERS') {
+        return res.status(400).json({
+          error: 'Parametro filters non valido: atteso JSON array',
+          details: error.message
+        });
+      }
+      throw error;
+    }
+
+    try {
+      parsedSorters = parseOrderSorters(req.query.sorters || req.query.sort);
+    } catch (error) {
+      if (error.message === 'INVALID_ORDER_SORTERS') {
+        return res.status(400).json({
+          error: 'Parametro sorters non valido: atteso JSON array',
+          details: error.message
+        });
+      }
+      throw error;
+    }
+
+    const normalizedFilters = ensureDefaultOrderFilters(parsedFilters);
+    const ordersArray = Array.from(ordini.values());
+    const filteredOrders = applyOrderFilters(ordersArray, normalizedFilters);
+    const summary = buildOrderSummary(filteredOrders);
+
+    const sortersToApply = (parsedSorters.length ? parsedSorters : DEFAULT_ORDER_SORTERS).map(sorter => ({ ...sorter }));
+    const sortedOrders = sortOrders(filteredOrders, sortersToApply);
+
+    const total = sortedOrders.length;
+    const defaultPageSize = parseInt(process.env.ORDERS_PAGE_SIZE || '25', 10);
+    const currentPage = Math.max(parseInt(req.query.current || req.query.page || '1', 10) || 1, 1);
+    const requestedPageSize = parseInt(req.query.pageSize || req.query.perPage || defaultPageSize, 10);
+    const pageSizeValue = Number.isNaN(requestedPageSize)
+      ? defaultPageSize
+      : Math.min(Math.max(requestedPageSize, 1), 100);
+    const startIndex = (currentPage - 1) * pageSizeValue;
+    const paginatedOrders = sortedOrders.slice(startIndex, startIndex + pageSizeValue);
+
+    const appliedFiltersPayload = normalizedFilters.map(filter => ({
+      field: filter.field,
+      operator: filter.operator,
+      value: filter.value,
+      variant: filter.variant || null,
+      filterId: filter.filterId || null,
+      isDefault: !!filter.isDefault
+    }));
+
+    const defaultsAddedPayload = normalizedFilters
+      .filter(filter => filter.isDefault)
+      .map(filter => ({
+        field: filter.field,
+        operator: filter.operator,
+        value: filter.value,
+        variant: filter.variant || null,
+        filterId: filter.filterId || null,
+        isDefault: true
+      }));
+
+    res.json({
+      data: paginatedOrders.map(serializeOrder),
+      total,
+      current: currentPage,
+      pageSize: pageSizeValue,
+      filters: {
+        applied: appliedFiltersPayload,
+        defaultsAdded: defaultsAddedPayload,
+        options: buildOrderFilterOptions()
+      },
+      sorters: sortersToApply,
+      summary
+    });
+  } catch (error) {
+    console.error('Errore nel recupero ordini:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
 }
 
 // Helper functions for appointment system
@@ -1195,6 +1629,9 @@ app.post('/api/admin/gift-cards/complete', requireAdmin, (req, res) => {
 });
 
 // Admin: get all gift cards
+app.get('/api/admin/ordini', requireAdmin, handleOrdersList);
+app.get('/api/admin/orders', requireAdmin, handleOrdersList);
+
 app.get('/api/admin/gift-cards', requireAdmin, (req, res) => {
   // Disable cache to ensure fresh data after customer updates
   res.set({
@@ -2280,6 +2717,7 @@ const PORT = process.env.PORT || 3001;
 
 (async () => {
   await initSchema();
+  seedOrders();
   app.listen(PORT, () => {
     console.log(`Backend listening on port ${PORT}`);
   });
