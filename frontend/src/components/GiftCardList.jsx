@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaLink, FaCheckCircle, FaRedo, FaTrash } from 'react-icons/fa';
+import { ArrowPathIcon, CheckCircleIcon, LinkIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
@@ -484,6 +484,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                       <div className="flex gap-sm flex-wrap">
                         {card.status === 'draft' && card.claim_token && (
                           <button
+                            className="icon-only-button"
                             onClick={() => {
                               const claimUrl = `${window.location.origin}/gift/claim/${card.claim_token}`;
                               navigator.clipboard.writeText(claimUrl);
@@ -497,9 +498,6 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               color: '#fbbf24',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
                               width: '2.5rem',
                               height: '2.5rem',
                               transition: 'background 0.2s ease'
@@ -511,11 +509,12 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               e.currentTarget.style.background = 'rgba(251, 191, 36, 0.2)';
                             }}
                           >
-                            <FaLink size={16} aria-hidden="true" />
+                            <LinkIcon aria-hidden="true" className="icon-only-button__icon" />
                           </button>
                         )}
                         {card.status === 'active' && card.code && (
                           <button
+                            className="icon-only-button"
                             onClick={() => handleMarkAsUsedByCode(card.code)}
                             title="Marca gift card come usata"
                             aria-label="Marca gift card come usata"
@@ -525,9 +524,6 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               color: '#ef4444',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
                               width: '2.5rem',
                               height: '2.5rem',
                               transition: 'background 0.2s ease'
@@ -539,13 +535,14 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
                             }}
                           >
-                            <FaCheckCircle size={16} aria-hidden="true" />
+                            <CheckCircleIcon aria-hidden="true" className="icon-only-button__icon" />
                           </button>
                         )}
                         {(() => {
                           const isExpired = card.expires_at && new Date(card.expires_at) < new Date();
                           return isExpired && (
                             <button
+                              className="icon-only-button"
                               onClick={() => handleRenewGiftCard(card.id)}
                               title="Rinnova scadenza gift card"
                               aria-label="Rinnova scadenza gift card"
@@ -555,9 +552,6 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                                 color: '#22c55e',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
                                 width: '2.5rem',
                                 height: '2.5rem',
                                 transition: 'background 0.2s ease'
@@ -569,12 +563,13 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                                 e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)';
                               }}
                             >
-                              <FaRedo size={16} aria-hidden="true" />
+                              <ArrowPathIcon aria-hidden="true" className="icon-only-button__icon" />
                             </button>
                           );
                         })()}
                         {(card.status === 'draft' || card.status === 'active' || card.status === 'used') && (
                           <button
+                            className="icon-only-button"
                             onClick={() => handleDeleteGiftCard(card.id)}
                             title="Elimina gift card"
                             aria-label="Elimina gift card"
@@ -584,9 +579,6 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               color: '#ef4444',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
                               width: '2.5rem',
                               height: '2.5rem',
                               transition: 'background 0.2s ease'
@@ -598,7 +590,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
                             }}
                           >
-                            <FaTrash size={16} aria-hidden="true" />
+                            <TrashIcon aria-hidden="true" className="icon-only-button__icon" />
                           </button>
                         )}
                       </div>

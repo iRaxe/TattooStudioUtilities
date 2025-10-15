@@ -5,7 +5,18 @@ import { useState, useEffect, useRef } from 'react'
 import QRCode from 'qrcode'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import { FaPaintBrush, FaGem, FaTachometerAlt, FaPlus, FaGift, FaUsers, FaSignOutAlt, FaSearch, FaPen, FaPhone } from 'react-icons/fa'
+import {
+  ArrowRightOnRectangleIcon,
+  GiftIcon,
+  MagnifyingGlassIcon,
+  PaintBrushIcon,
+  PencilSquareIcon,
+  PhoneIcon,
+  PlusIcon,
+  SparklesIcon,
+  Squares2X2Icon,
+  UsersIcon
+} from '@heroicons/react/24/solid'
 
 
 // Import new components
@@ -314,7 +325,7 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
                 setIsMobileMenuOpen(false)
               }}
             >
-              <FaTachometerAlt style={{ marginRight: '0.5rem' }} /> Dashboard
+              <Squares2X2Icon style={{ marginRight: '0.5rem' }} /> Dashboard
             </button>
             <button 
               className={`bm-item menu-item ${activeAdminTab === 'create' ? 'menu-item-admin' : ''}`}
@@ -323,7 +334,7 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
                 setIsMobileMenuOpen(false)
               }}
             >
-              <FaPlus style={{ marginRight: '0.5rem' }} /> Crea Gift Card
+              <PlusIcon style={{ marginRight: '0.5rem' }} /> Crea Gift Card
             </button>
             <button 
               className={`bm-item menu-item ${activeAdminTab === 'giftcards' ? 'menu-item-admin' : ''}`}
@@ -332,7 +343,7 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
                 setIsMobileMenuOpen(false)
               }}
             >
-              <FaGift style={{ marginRight: '0.5rem' }} /> Elenco Gift Card
+              <GiftIcon style={{ marginRight: '0.5rem' }} /> Elenco Gift Card
             </button>
             <button
               className={`bm-item menu-item ${activeAdminTab === 'customers' ? 'menu-item-admin' : ''}`}
@@ -341,7 +352,7 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
                 setIsMobileMenuOpen(false)
               }}
             >
-              <FaUsers style={{ marginRight: '0.5rem' }} /> Elenco Clienti
+              <UsersIcon style={{ marginRight: '0.5rem' }} /> Elenco Clienti
             </button>
             <button
               className={`bm-item menu-item ${activeAdminTab === 'appointments' ? 'menu-item-admin' : ''}`}
@@ -350,7 +361,7 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
                 setIsMobileMenuOpen(false)
               }}
             >
-              <FaPaintBrush style={{ marginRight: '0.5rem' }} /> Appuntamenti
+              <PaintBrushIcon style={{ marginRight: '0.5rem' }} /> Appuntamenti
             </button>
             <button
               className="bm-item menu-item menu-item-admin"
@@ -359,22 +370,22 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
                 setIsMobileMenuOpen(false)
               }}
             >
-              <FaSignOutAlt style={{ marginRight: '0.5rem' }} /> Logout
+              <ArrowRightOnRectangleIcon style={{ marginRight: '0.5rem' }} /> Logout
             </button>
           </div>
         ) : (
           <div>
             <Link to="/verify" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
-              <FaSearch style={{ marginRight: '0.5rem' }} /> Verifica Gift Card
+              <MagnifyingGlassIcon style={{ marginRight: '0.5rem' }} /> Verifica Gift Card
             </Link>
             <Link to="/consenso" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
-              <FaPen style={{ marginRight: '0.5rem' }} /> Consenso Online
+              <PencilSquareIcon style={{ marginRight: '0.5rem' }} /> Consenso Online
             </Link>
             <Link to="/contattaci" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
-              <FaPhone style={{ marginRight: '0.5rem' }} /> Contattaci
+              <PhoneIcon style={{ marginRight: '0.5rem' }} /> Contattaci
             </Link>
             <Link to="/admin" className="bm-item menu-item menu-item-admin" onClick={() => setIsMobileMenuOpen(false)}>
-              <FaTachometerAlt style={{ marginRight: '0.5rem' }} /> Admin Panel
+              <Squares2X2Icon style={{ marginRight: '0.5rem' }} /> Admin Panel
             </Link>
           </div>
         )}
@@ -1096,7 +1107,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                 borderRadius: '4px'
               }}
             >
-              <FaTachometerAlt style={{ marginRight: '0.5rem' }} /> Dashboard
+              <Squares2X2Icon style={{ marginRight: '0.5rem' }} /> Dashboard
             </Button>
             <Button
               variant={activeTab === 'create' ? 'primary' : 'ghost'}
@@ -1110,7 +1121,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                 borderRadius: '4px'
               }}
             >
-              <FaPlus style={{ marginRight: '0.5rem' }} /> Crea Gift Card
+              <PlusIcon style={{ marginRight: '0.5rem' }} /> Crea Gift Card
             </Button>
             <Button
               variant={activeTab === 'giftcards' ? 'primary' : 'ghost'}
@@ -1127,7 +1138,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                 borderRadius: '4px'
               }}
             >
-              <FaGift style={{ marginRight: '0.5rem' }} /> Elenco Gift Card
+              <GiftIcon style={{ marginRight: '0.5rem' }} /> Elenco Gift Card
             </Button>
             <Button
               variant={activeTab === 'customers' ? 'primary' : 'ghost'}
@@ -1144,7 +1155,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                 borderRadius: '4px'
               }}
             >
-              <FaUsers style={{ marginRight: '0.5rem' }} /> Elenco Clienti
+              <UsersIcon style={{ marginRight: '0.5rem' }} /> Elenco Clienti
             </Button>
             <Button
               variant={activeTab === 'appointments' ? 'primary' : 'ghost'}
@@ -1158,7 +1169,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                 borderRadius: '4px'
               }}
             >
-              <FaPaintBrush style={{ marginRight: '0.5rem' }} /> Appuntamenti
+              <PaintBrushIcon style={{ marginRight: '0.5rem' }} /> Appuntamenti
             </Button>
           </div>
         </div>
@@ -1814,7 +1825,7 @@ function ConsensoOnline() {
             }}
             >
               <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}>
-                <FaPaintBrush />
+                <PaintBrushIcon />
               </div>
               <h3 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
                 Consenso per Tatuaggio
@@ -1851,7 +1862,7 @@ function ConsensoOnline() {
             }}
             >
               <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}>
-                <FaGem />
+                <SparklesIcon />
               </div>
               <h3 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
                 Consenso per Piercing

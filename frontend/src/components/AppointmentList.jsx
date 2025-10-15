@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
-import { FaEye, FaPen, FaTrash } from 'react-icons/fa';
+import { EyeIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -949,7 +949,7 @@ function AppointmentList() {
                                     setShowEditModal(true);
                                   }}
                                 >
-                                  <FaEye aria-hidden="true" />
+                                  <EyeIcon aria-hidden="true" className="row-action__icon" />
                                 </button>
                                 <button
                                   type="button"
@@ -960,7 +960,7 @@ function AppointmentList() {
                                     setShowEditModal(true);
                                   }}
                                 >
-                                  <FaPen aria-hidden="true" />
+                                  <PencilSquareIcon aria-hidden="true" className="row-action__icon" />
                                 </button>
                                 <button
                                   type="button"
@@ -968,7 +968,7 @@ function AppointmentList() {
                                   aria-label="Elimina appuntamento"
                                   onClick={() => handleDeleteAppointment(appointment.id)}
                                 >
-                                  <FaTrash aria-hidden="true" />
+                                  <TrashIcon aria-hidden="true" className="row-action__icon" />
                                 </button>
                               </div>
                             </td>

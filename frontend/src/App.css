@@ -2611,7 +2611,16 @@ html {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  line-height: 0;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.row-action__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: inherit;
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .row-action:hover {
@@ -2766,5 +2775,20 @@ html {
   .row-action {
     width: 2.5rem;
   }
+}
+
+.icon-only-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.icon-only-button__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: inherit;
+  pointer-events: none;
+  flex-shrink: 0;
 }
 

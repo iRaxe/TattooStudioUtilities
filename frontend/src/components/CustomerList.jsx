@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaEye, FaPen, FaFileSignature } from 'react-icons/fa';
+import { DocumentCheckIcon, EyeIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -499,6 +499,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                           alignItems: 'center'
                         }}>
                           <button
+                            className="icon-only-button"
                             onClick={() => handleShowCustomerModal(customer)}
                             title="Dettagli cliente"
                             aria-label="Dettagli cliente"
@@ -508,9 +509,6 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               borderRadius: '4px',
                               color: '#4ade80',
                               cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
                               width: '2.5rem',
                               height: '2.5rem',
                               transition: 'background 0.2s ease'
@@ -522,9 +520,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)';
                             }}
                           >
-                            <FaEye size={16} aria-hidden="true" />
+                            <EyeIcon aria-hidden="true" className="icon-only-button__icon" />
                           </button>
                           <button
+                            className="icon-only-button"
                             onClick={() => handleEditCustomer(customer)}
                             title="Modifica cliente"
                             aria-label="Modifica cliente"
@@ -534,9 +533,6 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               borderRadius: '4px',
                               color: '#f3f4f6',
                               cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
                               width: '2.5rem',
                               height: '2.5rem',
                               transition: 'background 0.2s ease'
@@ -548,9 +544,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               e.currentTarget.style.background = 'rgba(24, 24, 27, 0.85)';
                             }}
                           >
-                            <FaPen size={16} aria-hidden="true" />
+                            <PencilSquareIcon aria-hidden="true" className="icon-only-button__icon" />
                           </button>
                           <button
+                            className="icon-only-button"
                             onClick={() => openConsentsModalForCustomer(customer)}
                             title="Visualizza consensi"
                             aria-label="Visualizza consensi"
@@ -560,9 +557,6 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               borderRadius: '4px',
                               color: '#a855f7',
                               cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
                               width: '2.5rem',
                               height: '2.5rem',
                               transition: 'background 0.2s ease'
@@ -574,7 +568,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               e.currentTarget.style.background = 'rgba(168, 85, 247, 0.2)';
                             }}
                           >
-                            <FaFileSignature size={16} aria-hidden="true" />
+                            <DocumentCheckIcon aria-hidden="true" className="icon-only-button__icon" />
                           </button>
                         </div>
                       ) : (
