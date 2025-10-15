@@ -1,8 +1,15 @@
 // Centralized cookie utilities
 export const setCookie = (name, value, days = 7) => {
   const expires = new Date();
-  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict;Secure=${window.location.protocol === 'https:'}`;
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+
+  let cookieString = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+
+  if (window.location.protocol === 'https:') {
+    cookieString += ';Secure';
+  }
+
+  document.cookie = cookieString;
 };
 
 export const setCookieWithOptions = (name, value, options = {}) => {
