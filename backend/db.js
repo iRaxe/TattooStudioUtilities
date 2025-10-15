@@ -146,6 +146,13 @@ async function initSchema() {
       $$ LANGUAGE plpgsql;
     `);
 
+    await client.query('DROP TRIGGER IF EXISTS trg_customers_updated ON customers');
+    await client.query('DROP TRIGGER IF EXISTS trg_gift_cards_updated ON gift_cards');
+    await client.query('DROP TRIGGER IF EXISTS trg_tatuatori_updated ON tatuatori');
+    await client.query('DROP TRIGGER IF EXISTS trg_stanze_updated ON stanze');
+    await client.query('DROP TRIGGER IF EXISTS trg_appuntamenti_updated ON appuntamenti');
+    await client.query('DROP TRIGGER IF EXISTS trg_consensi_updated ON consensi');
+
     await client.query(`CREATE TRIGGER trg_customers_updated BEFORE UPDATE ON customers FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
     await client.query(`CREATE TRIGGER trg_gift_cards_updated BEFORE UPDATE ON gift_cards FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
     await client.query(`CREATE TRIGGER trg_tatuatori_updated BEFORE UPDATE ON tatuatori FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
