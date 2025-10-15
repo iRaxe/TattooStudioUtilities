@@ -145,11 +145,22 @@ async function initSchema() {
     await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS customer_id uuid');
     await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS payload jsonb');
     await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS type text');
+    await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS submitted_at timestamptz');
+    await client.query('ALTER TABLE consensi ALTER COLUMN submitted_at SET DEFAULT now()');
     await client.query(`
       UPDATE consensi
       SET type = payload->>'type'
       WHERE (type IS NULL OR type = '')
         AND payload ? 'type';
+    `);
+    await client.query(`
+      UPDATE consensi
+      SET submitted_at = COALESCE(
+        submitted_at,
+        NULLIF(payload->>'submittedAt', '')::timestamptz,
+        NOW()
+      )
+      WHERE submitted_at IS NULL;
     `);
     await client.query(`
       DO $$

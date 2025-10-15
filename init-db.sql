@@ -94,10 +94,19 @@ CREATE TABLE IF NOT EXISTS consensi (
 );
 
 ALTER TABLE consensi ADD COLUMN IF NOT EXISTS type TEXT;
+ALTER TABLE consensi ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
+ALTER TABLE consensi ALTER COLUMN submitted_at SET DEFAULT NOW();
 UPDATE consensi
 SET type = payload->>'type'
 WHERE (type IS NULL OR type = '')
   AND payload ? 'type';
+UPDATE consensi
+SET submitted_at = COALESCE(
+    submitted_at,
+    NULLIF(payload->>'submittedAt', '')::TIMESTAMPTZ,
+    NOW()
+)
+WHERE submitted_at IS NULL;
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
