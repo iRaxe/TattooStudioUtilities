@@ -140,6 +140,38 @@ async function initSchema() {
         updated_at timestamptz NOT NULL DEFAULT now()
       );
     `);
+    await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS phone text');
+    await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS gift_card_id uuid');
+    await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS customer_id uuid');
+    await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS payload jsonb');
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM information_schema.table_constraints
+          WHERE table_name = 'consensi' AND constraint_type = 'FOREIGN KEY' AND constraint_name = 'consensi_customer_id_fkey'
+        ) THEN
+          ALTER TABLE consensi
+            ADD CONSTRAINT consensi_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL;
+        END IF;
+      END;
+      $$;
+    `);
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM information_schema.table_constraints
+          WHERE table_name = 'consensi' AND constraint_type = 'FOREIGN KEY' AND constraint_name = 'consensi_gift_card_id_fkey'
+        ) THEN
+          ALTER TABLE consensi
+            ADD CONSTRAINT consensi_gift_card_id_fkey FOREIGN KEY (gift_card_id) REFERENCES gift_cards(id) ON DELETE SET NULL;
+        END IF;
+      END;
+      $$;
+    `);
 
     await client.query('CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone)');
     await client.query(`
