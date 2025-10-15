@@ -17,13 +17,13 @@ function Dashboard({ stats }) {
             marginBottom: '2rem'
           }} className="dashboard-stats-grid">
             <div style={{
-              background: 'rgba(59, 130, 246, 0.1)',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
+              background: 'rgba(24, 24, 27, 0.85)',
+              border: '1px solid rgba(75, 85, 99, 0.5)',
               borderRadius: '4px',
               padding: '1.5rem',
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#3b82f6', marginBottom: '0.5rem' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '0.5rem' }}>
                 {stats.total}
               </div>
               <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Gift Card Totali</div>

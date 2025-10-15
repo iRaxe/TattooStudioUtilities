@@ -438,17 +438,17 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                           style={{
                             background: 'none',
                             border: 'none',
-                            color: '#60a5fa',
+                            color: '#f3f4f6',
                             cursor: 'pointer',
                             textDecoration: 'underline',
                             fontSize: '0.9rem',
                             padding: 0
                           }}
                           onMouseEnter={(e) => {
-                            e.target.style.color = '#93c5fd';
+                            e.target.style.color = '#fbbf24';
                           }}
                           onMouseLeave={(e) => {
-                            e.target.style.color = '#60a5fa';
+                            e.target.style.color = '#f3f4f6';
                           }}
                         >
                           {card.customer_name}

@@ -526,10 +526,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                             onClick={() => handleEditCustomer(customer)}
                             title="Modifica cliente"
                             style={{
-                              background: 'rgba(59, 130, 246, 0.2)',
-                              border: '1px solid rgba(59, 130, 246, 0.5)',
+                              background: 'rgba(24, 24, 27, 0.85)',
+                              border: '1px solid rgba(75, 85, 99, 0.5)',
                               borderRadius: '4px',
-                              color: '#60a5fa',
+                              color: '#f3f4f6',
                               padding: '0.5rem 0.75rem',
                               cursor: 'pointer',
                               fontSize: '0.85rem',
@@ -539,10 +539,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                               justifyContent: 'center'
                             }}
                             onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(59, 130, 246, 0.3)';
+                              e.target.style.background = 'rgba(17, 17, 17, 0.9)';
                             }}
                             onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(59, 130, 246, 0.2)';
+                              e.target.style.background = 'rgba(24, 24, 27, 0.85)';
                             }}
                           >
                             Modifica

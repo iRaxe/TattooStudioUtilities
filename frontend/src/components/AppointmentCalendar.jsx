@@ -204,7 +204,7 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
         return {
           key: appointment.stanza_id || 'no_room',
           label: appointment.stanza_nome || 'Stanza non assegnata',
-          accent: 'rgba(59, 130, 246, 0.6)'
+          accent: 'rgba(24, 24, 27, 0.85)'
         };
       case 'stato':
         return {
@@ -333,7 +333,7 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
           padding: '1rem'
         }}>
           <div style={{ color: '#9ca3af', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Tatuatori coinvolti</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: '700', color: '#38bdf8' }}>{uniqueTatuatori}</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: '700', color: '#fbbf24' }}>{uniqueTatuatori}</div>
           <div style={{ color: '#9ca3af', fontSize: '0.8rem' }}>Risorse umane in agenda</div>
         </div>
         <div style={{
@@ -343,7 +343,7 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
           padding: '1rem'
         }}>
           <div style={{ color: '#9ca3af', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Stanze occupate</div>
-          <div style={{ fontSize: '1.8rem', fontWeight: '700', color: '#a855f7' }}>{uniqueStanze}</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: '700', color: '#fbbf24' }}>{uniqueStanze}</div>
           <div style={{ color: '#9ca3af', fontSize: '0.8rem' }}>Spazi prenotati</div>
         </div>
         <div style={{

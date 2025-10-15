@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -114,7 +114,7 @@ function AppointmentList() {
 
         // Controlla errori CORS e permessi
         if (response.status === 0) {
-          console.error('[DEBUG] ERRORE CORS: La richiesta è stata bloccata dal browser');
+          console.error('[DEBUG] ERRORE CORS: La richiesta Ã¨ stata bloccata dal browser');
         } else if (response.status === 401) {
           console.error('[DEBUG] ERRORE AUTENTICAZIONE: Token non valido o mancante');
         } else if (response.status === 403) {
@@ -170,7 +170,7 @@ function AppointmentList() {
 
         // Controlla errori CORS e permessi
         if (response.status === 0) {
-          console.error('[DEBUG] ERRORE CORS: La richiesta è stata bloccata dal browser');
+          console.error('[DEBUG] ERRORE CORS: La richiesta Ã¨ stata bloccata dal browser');
         } else if (response.status === 401) {
           console.error('[DEBUG] ERRORE AUTENTICAZIONE: Token non valido o mancante');
         } else if (response.status === 403) {
@@ -443,8 +443,42 @@ function AppointmentList() {
     }
   };
 
-  // Stato per la vista corrente
+  const viewTabs = [
+    { id: 'list', label: 'Lista', icon: 'fa-list' },
+    { id: 'calendar', label: 'Calendario', icon: 'fa-calendar-alt' },
+    { id: 'availability', label: 'Disponibilità', icon: 'fa-clock' }
+  ];
+
+  const summaryStats = useMemo(() => {
+    const now = new Date();
+    const total = appointments.length;
+    const upcoming = appointments.filter((appointment) => {
+      if (!appointment.orario_inizio) return false;
+      return new Date(appointment.orario_inizio) >= now;
+    }).length;
+
+    const byStatus = appointments.reduce((acc, appointment) => {
+      const key = appointment.stato || 'sconosciuto';
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      total,
+      upcoming,
+      confirmed: byStatus.confermato || 0,
+      cancelled: byStatus.cancellato || 0
+    };
+  }, [appointments]);
+
   const [currentView, setCurrentView] = useState('list'); // 'list', 'calendar', 'availability'
+  const [filtersOpen, setFiltersOpen] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setFiltersOpen(window.innerWidth >= 992);
+    }
+  }, []);
 
   // Stati per modali
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -464,17 +498,9 @@ function AppointmentList() {
   const [updatingStanzaNoOverbookingId, setUpdatingStanzaNoOverbookingId] = useState(null);
 
   return (
-    <div>
-      {/* Header con azioni principali */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '2rem',
-        flexWrap: 'wrap',
-        gap: '1rem'
-      }}>
-        <div>
+    <div className="appointments-page">
+      <header className="appointments-header">
+        <div className="appointments-header__text">
           <h3 className="section-title">
             <i className="fas fa-calendar-alt"></i> Gestione Appuntamenti
           </h3>
@@ -482,634 +508,428 @@ function AppointmentList() {
             Gestisci tutti gli appuntamenti con filtri avanzati e viste multiple
           </p>
         </div>
-
-        {/* Azioni principali */}
-        <div style={{
-          display: 'flex',
-          gap: '0.75rem',
-          flexWrap: 'wrap'
-        }}>
+        <div className="appointments-header__actions">
           <Button
             variant="secondary"
             onClick={handleOpenSettings}
-            style={{
-              fontSize: '0.9rem',
-              padding: '0.75rem 1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
+            className="appointments-action-btn"
           >
             <i className="fas fa-cogs"></i>
             Impostazioni
           </Button>
-
           <Button
             onClick={() => setShowCreateModal(true)}
-            style={{
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              padding: '0.75rem 1.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
+            className="appointments-action-btn appointments-action-btn--primary"
           >
             <i className="fas fa-plus"></i>
             Crea appuntamento
           </Button>
-
-          <Button
-            variant={currentView === 'calendar' ? 'primary' : 'secondary'}
-            onClick={() => setCurrentView('calendar')}
-            style={{
-              fontSize: '0.9rem',
-              padding: '0.75rem 1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <i className="fas fa-calendar-alt"></i>
-            Calendario
-          </Button>
-
-          <Button
-            variant={currentView === 'availability' ? 'primary' : 'secondary'}
-            onClick={() => setCurrentView('availability')}
-            style={{
-              fontSize: '0.9rem',
-              padding: '0.75rem 1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <i className="fas fa-clock"></i>
-            Disponibilità
-          </Button>
         </div>
-      </div>
+      </header>
 
-      {/* Filtri */}
-      <div style={{
-        display: 'grid',
-        gap: '1rem',
-        marginBottom: '1.5rem',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
-      }}>
-        <Input
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Cerca per cliente, tatuatore, stanza..."
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            padding: '0.75rem',
-            color: '#f3f4f6',
-            fontSize: '0.9rem'
-          }}
-        />
+      <section className="appointments-metrics" aria-label="Statistiche appuntamenti">
+        <div className="appointments-metric-card">
+          <span className="appointments-metric-label">Totale</span>
+          <span className="appointments-metric-value">{summaryStats.total}</span>
+        </div>
+        <div className="appointments-metric-card">
+          <span className="appointments-metric-label">In arrivo</span>
+          <span className="appointments-metric-value">{summaryStats.upcoming}</span>
+        </div>
+        <div className="appointments-metric-card">
+          <span className="appointments-metric-label">Confermati</span>
+          <span className="appointments-metric-value">{summaryStats.confirmed}</span>
+        </div>
+        <div className="appointments-metric-card">
+          <span className="appointments-metric-label">Cancellati</span>
+          <span className="appointments-metric-value">{summaryStats.cancelled}</span>
+        </div>
+      </section>
 
-        <select
-          value={tatuatoreFilter}
-          onChange={(e) => setTatuatoreFilter(e.target.value)}
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            padding: '0.75rem',
-            color: '#f3f4f6',
-            fontSize: '0.9rem'
-          }}
-        >
-          <option value="">Tutti i tatuatori</option>
-          {tatuatori.map(tatuatore => (
-            <option key={tatuatore.id} value={tatuatore.id}>
-              {tatuatore.nome} {tatuatore.attivo ? '' : '(Disattivo)'}
-            </option>
+      <div className="appointments-toolbar">
+        <div className="appointments-view-tabs" role="tablist">
+          {viewTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`appointments-view-tab ${currentView === tab.id ? 'is-active' : ''}`}
+              onClick={() => setCurrentView(tab.id)}
+              role="tab"
+              aria-selected={currentView === tab.id}
+            >
+              <i className={`fas ${tab.icon}`} aria-hidden="true"></i>
+              <span>{tab.label}</span>
+            </button>
           ))}
-        </select>
-
-        <select
-          value={stanzaFilter}
-          onChange={(e) => setStanzaFilter(e.target.value)}
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            padding: '0.75rem',
-            color: '#f3f4f6',
-            fontSize: '0.9rem'
-          }}
-        >
-          <option value="">Tutte le stanze</option>
-          {stanze.map(stanza => (
-            <option key={stanza.id} value={stanza.id}>
-              {stanza.nome} {stanza.attivo ? '' : '(Disattiva)'}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={statoFilter}
-          onChange={(e) => setStatoFilter(e.target.value)}
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            padding: '0.75rem',
-            color: '#f3f4f6',
-            fontSize: '0.9rem'
-          }}
-        >
-          <option value="">Tutti gli stati</option>
-          <option value="confermato">Confermato</option>
-          <option value="in_corso">In Corso</option>
-          <option value="completato">Completato</option>
-          <option value="cancellato">Cancellato</option>
-        </select>
-
-        <Input
-          type="date"
-          value={dataInizioFilter}
-          onChange={(e) => setDataInizioFilter(e.target.value)}
-          placeholder="Data inizio"
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            padding: '0.75rem',
-            color: '#f3f4f6',
-            fontSize: '0.9rem'
-          }}
-        />
-
-        <Input
-          type="date"
-          value={dataFineFilter}
-          onChange={(e) => setDataFineFilter(e.target.value)}
-          placeholder="Data fine"
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '4px',
-            padding: '0.75rem',
-            color: '#f3f4f6',
-            fontSize: '0.9rem'
-          }}
-        />
-      </div>
-
-      {/* Pulsanti azioni filtri */}
-      <div style={{
-        display: 'flex',
-        gap: '1rem',
-        marginBottom: '1.5rem',
-        flexWrap: 'wrap'
-      }}>
-        <Button onClick={fetchAppointments} disabled={loading}>
-          {loading ? 'Caricamento...' : 'Applica filtri'}
-        </Button>
-
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setSearchTerm('');
-            setTatuatoreFilter('');
-            setStanzaFilter('');
-            setStatoFilter('');
-            setDataInizioFilter('');
-            setDataFineFilter('');
-          }}
-        >
-          Cancella filtri
-        </Button>
-
-        <div style={{ position: 'relative' }}>
+        </div>
+        <div className="appointments-toolbar__actions">
           <Button
             variant="secondary"
-            onClick={() => setShowColumnFilter(!showColumnFilter)}
+            onClick={fetchAppointments}
+            className="appointments-toolbar__action hide-desktop"
+            disabled={loading}
           >
-            Colonne {showColumnFilter ? '^' : 'v'}
+            <i className="fas fa-sync-alt"></i>
+            Aggiorna
           </Button>
-
-          {showColumnFilter && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              background: 'rgba(0, 0, 0, 0.9)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '4px',
-              marginTop: '0.25rem',
-              zIndex: 1000,
-              backdropFilter: 'blur(10px)',
-              minWidth: '200px'
-            }}>
-              {[
-                { key: 'tatuatore', label: 'Tatuatore' },
-                { key: 'stanza', label: 'Stanza' },
-                { key: 'cliente', label: 'Cliente' },
-                { key: 'dataOra', label: 'Data e Ora' },
-                { key: 'durata', label: 'Durata' },
-                { key: 'stato', label: 'Stato' },
-                { key: 'note', label: 'Note' },
-                { key: 'azioni', label: 'Azioni' }
-              ].map(column => (
-                <label
-                  key={column.key}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0.5rem 0.75rem',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    color: '#ffffff',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = 'transparent';
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={visibleColumns[column.key]}
-                    onChange={(e) => {
-                      setVisibleColumns(prev => ({
-                        ...prev,
-                        [column.key]: e.target.checked
-                      }));
-                    }}
-                    style={{
-                      marginRight: '0.5rem',
-                      accentColor: '#fbbf24'
-                    }}
-                  />
-                  {column.label}
-                </label>
-              ))}
-            </div>
-          )}
+          <Button
+            variant="secondary"
+            onClick={handleOpenSettings}
+            className="appointments-toolbar__action hide-mobile"
+          >
+            <i className="fas fa-cogs"></i>
+            Impostazioni
+          </Button>
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="appointments-toolbar__action hide-mobile appointments-action-btn--primary"
+          >
+            <i className="fas fa-plus"></i>
+            Nuovo
+          </Button>
         </div>
       </div>
 
-      {/* Loading e Error states */}
-      {loading && (
-        <div style={{
-          textAlign: 'center',
-          padding: '3rem',
-          color: '#9ca3af'
-        }}>
-          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-            Caricamento appuntamenti
-          </div>
-          Attendi qualche istante mentre recuperiamo i dati.
-        </div>
-      )}
+      <div className="appointments-content">
+        {currentView === 'list' && (
+          <>
+            <section className="appointments-filter-card">
+              <button
+                type="button"
+                className="appointments-filter-toggle"
+                onClick={() => setFiltersOpen(prev => !prev)}
+                aria-expanded={filtersOpen}
+              >
+                <div>
+                  <i className="fas fa-sliders-h" aria-hidden="true"></i>
+                  <span>Filtri</span>
+                </div>
+                <i className={`fas ${filtersOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+              </button>
 
-      {error && (
-        <div style={{
-          textAlign: 'center',
-          padding: '3rem',
-          color: '#ef4444',
-          background: 'rgba(239, 68, 68, 0.1)',
-          borderRadius: '4px',
-          border: '1px solid rgba(239, 68, 68, 0.3)'
-        }}>
-          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontWeight: 600 }}>
-            Si è verificato un errore
-          </div>
-          {error}
-        </div>
-      )}
+              {filtersOpen && (
+                <div className="appointments-filters-grid">
+                  <div className="filter-field">
+                    <label>Ricerca libera</label>
+                    <Input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Cliente, tatuatore, note..."
+                      className="filter-input"
+                    />
+                  </div>
+                  <div className="filter-field">
+                    <label>Tatuatore</label>
+                    <select
+                      value={tatuatoreFilter}
+                      onChange={(e) => setTatuatoreFilter(e.target.value)}
+                      className="filter-select"
+                    >
+                      <option value="">Tutti i tatuatori</option>
+                      {tatuatori.map(tatuatore => (
+                        <option key={tatuatore.id} value={tatuatore.id}>
+                          {tatuatore.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="filter-field">
+                    <label>Stanza</label>
+                    <select
+                      value={stanzaFilter}
+                      onChange={(e) => setStanzaFilter(e.target.value)}
+                      className="filter-select"
+                    >
+                      <option value="">Tutte le stanze</option>
+                      {stanze.map(stanza => (
+                        <option key={stanza.id} value={stanza.id}>
+                          {stanza.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="filter-field">
+                    <label>Stato</label>
+                    <select
+                      value={statoFilter}
+                      onChange={(e) => setStatoFilter(e.target.value)}
+                      className="filter-select"
+                    >
+                      <option value="">Tutti gli stati</option>
+                      <option value="confermato">Confermato</option>
+                      <option value="in_corso">In Corso</option>
+                      <option value="completato">Completato</option>
+                      <option value="cancellato">Cancellato</option>
+                    </select>
+                  </div>
+                  <div className="filter-field">
+                    <label>Dal</label>
+                    <Input
+                      type="date"
+                      value={dataInizioFilter}
+                      onChange={(e) => setDataInizioFilter(e.target.value)}
+                      className="filter-input"
+                    />
+                  </div>
+                  <div className="filter-field">
+                    <label>Al</label>
+                    <Input
+                      type="date"
+                      value={dataFineFilter}
+                      onChange={(e) => setDataFineFilter(e.target.value)}
+                      className="filter-input"
+                    />
+                  </div>
+                </div>
+              )}
 
-      {/* Tabella appuntamenti */}
-      {!loading && !error && (
-        <>
-          {filteredAppointments.length === 0 ? (
-            <div style={{
-              textAlign: 'center',
-              padding: '3rem',
-              color: '#9ca3af',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '4px',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}>
-              <h4 style={{ color: '#f3f4f6', marginBottom: '0.75rem', fontSize: '1.1rem' }}>
-                {searchTerm?.trim() || tatuatoreFilter || stanzaFilter || statoFilter ?
-                  'Nessun appuntamento trovato' :
-                  'Nessun appuntamento presente'
-                }
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                {searchTerm?.trim() || tatuatoreFilter || stanzaFilter || statoFilter ?
-                  'Prova a modificare i filtri di ricerca' :
-                  'Gli appuntamenti appariranno qui dopo averne creati di nuovi'
-                }
-              </p>
-            </div>
-          ) : (
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '4px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              overflow: 'hidden'
-            }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse'
-              }}>
-                <thead>
-                  <tr style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                  }}>
-                    {visibleColumns.tatuatore && (
-                      <th style={{
-                        padding: '1rem',
-                        textAlign: 'left',
-                        fontWeight: '600',
-                        color: '#fbbf24',
-                        fontSize: '0.9rem'
-                      }}>Tatuatore</th>
-                    )}
-                    {visibleColumns.stanza && (
-                      <th style={{
-                        padding: '1rem',
-                        textAlign: 'left',
-                        fontWeight: '600',
-                        color: '#fbbf24',
-                        fontSize: '0.9rem'
-                      }}>Stanza</th>
-                    )}
-                    {visibleColumns.cliente && (
-                      <th style={{
-                        padding: '1rem',
-                        textAlign: 'left',
-                        fontWeight: '600',
-                        color: '#fbbf24',
-                        fontSize: '0.9rem'
-                      }}>Cliente</th>
-                    )}
-                    {visibleColumns.dataOra && (
-                      <th style={{
-                        padding: '1rem',
-                        textAlign: 'left',
-                        fontWeight: '600',
-                        color: '#fbbf24',
-                        fontSize: '0.9rem'
-                      }}>Data e Ora</th>
-                    )}
-                    {visibleColumns.durata && (
-                      <th style={{
-                        padding: '1rem',
-                        textAlign: 'center',
-                        fontWeight: '600',
-                        color: '#fbbf24',
-                        fontSize: '0.9rem'
-                      }}>Durata</th>
-                    )}
-                    {visibleColumns.stato && (
-                      <th style={{
-                        padding: '1rem',
-                        textAlign: 'center',
-                        fontWeight: '600',
-                        color: '#fbbf24',
-                        fontSize: '0.9rem'
-                      }}>Stato</th>
-                    )}
-                    {visibleColumns.note && (
-                      <th style={{
-                        padding: '1rem',
-                        textAlign: 'left',
-                        fontWeight: '600',
-                        color: '#fbbf24',
-                        fontSize: '0.9rem'
-                      }}>Note</th>
-                    )}
-                    {visibleColumns.azioni && (
-                      <th style={{
-                        padding: '1rem',
-                        textAlign: 'center',
-                        fontWeight: '600',
-                        color: '#fbbf24',
-                        fontSize: '0.9rem'
-                      }}>Azioni</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAppointments.map((appointment, index) => (
-                    <tr key={appointment.id} style={{
-                      borderBottom: index < filteredAppointments.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'
-                    }}>
-                      {visibleColumns.tatuatore && (
-                        <td style={{
-                          padding: '1rem',
-                          color: '#f3f4f6'
-                        }}>
-                          <div style={{ fontWeight: '500' }}>
-                            {appointment.tatuatore_nome || 'Sconosciuto'}
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.stanza && (
-                        <td style={{
-                          padding: '1rem',
-                          color: '#f3f4f6'
-                        }}>
-                          <div style={{ fontWeight: '500' }}>
-                            {appointment.stanza_nome || 'Sconosciuta'}
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.cliente && (
-                        <td style={{
-                          padding: '1rem',
-                          color: '#f3f4f6'
-                        }}>
-                          <div>
-                            {appointment.cliente_nome && (
-                              <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
-                                {appointment.cliente_nome}
-                              </div>
-                            )}
-                            {appointment.cliente_telefono && (
-                              <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
-                                Telefono: {appointment.cliente_telefono}
-                              </div>
-                            )}
-                            {!appointment.cliente_nome && !appointment.cliente_telefono && (
-                              <span style={{ color: '#6b7280' }}>Senza cliente</span>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.dataOra && (
-                        <td style={{
-                          padding: '1rem',
-                          color: '#f3f4f6'
-                        }}>
-                          <div>
-                            <div style={{ fontWeight: '500' }}>
-                              {new Date(appointment.orario_inizio).toLocaleDateString('it-IT')}
-                            </div>
-                            <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
-                              {new Date(appointment.orario_inizio).toLocaleTimeString('it-IT', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.durata && (
-                        <td style={{
-                          padding: '1rem',
-                          textAlign: 'center',
-                          color: '#f3f4f6'
-                        }}>
-                          {appointment.durata_minuti} min
-                        </td>
-                      )}
-                      {visibleColumns.stato && (
-                        <td style={{
-                          padding: '1rem',
-                          textAlign: 'center'
-                        }}>
-                          <span style={{
-                            background: getStatoColor(appointment.stato),
-                            color: 'white',
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.8rem',
-                            fontWeight: '500'
-                          }}>
-                            {getStatoLabel(appointment.stato)}
-                          </span>
-                        </td>
-                      )}
-                      {visibleColumns.note && (
-                        <td style={{
-                          padding: '1rem',
-                          color: '#9ca3af',
-                          fontSize: '0.9rem',
-                          maxWidth: '200px'
-                        }}>
-                          {appointment.note ? (
-                            <div style={{
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}>
-                              {appointment.note}
-                            </div>
-                          ) : (
-                            <span style={{ color: '#6b7280' }}>Nessuna nota</span>
+              <div className="appointments-filter-actions">
+                <Button onClick={fetchAppointments} disabled={loading}>
+                  {loading ? 'Caricamento...' : 'Applica filtri'}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setTatuatoreFilter('');
+                    setStanzaFilter('');
+                    setStatoFilter('');
+                    setDataInizioFilter('');
+                    setDataFineFilter('');
+                  }}
+                >
+                  Cancella filtri
+                </Button>
+                <div className="appointments-column-picker">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setShowColumnFilter(!showColumnFilter)}
+                  >
+                    Colonne <i className={`fas ${showColumnFilter ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+                  </Button>
+                  {showColumnFilter && (
+                    <div className="appointments-column-picker__menu">
+                      {[
+                        { key: 'tatuatore', label: 'Tatuatore' },
+                        { key: 'stanza', label: 'Stanza' },
+                        { key: 'cliente', label: 'Cliente' },
+                        { key: 'dataOra', label: 'Data e Ora' },
+                        { key: 'durata', label: 'Durata' },
+                        { key: 'stato', label: 'Stato' },
+                        { key: 'note', label: 'Note' },
+                        { key: 'azioni', label: 'Azioni' }
+                      ].map(column => (
+                        <label key={column.key}>
+                          <input
+                            type="checkbox"
+                            checked={visibleColumns[column.key]}
+                            onChange={(e) => {
+                              setVisibleColumns(prev => ({
+                                ...prev,
+                                [column.key]: e.target.checked
+                              }));
+                            }}
+                          />
+                          <span>{column.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {loading && (
+              <div className="appointments-state appointments-state--loading">
+                <h4>Caricamento appuntamenti</h4>
+                <p>Attendi qualche istante mentre recuperiamo i dati.</p>
+              </div>
+            )}
+
+            {!loading && error && (
+              <div className="appointments-state appointments-state--error">
+                <h4>Si è verificato un errore</h4>
+                <p>{error}</p>
+              </div>
+            )}
+
+            {!loading && !error && (
+              <div className="appointments-table-wrapper">
+                {filteredAppointments.length === 0 ? (
+                  <div className="appointments-empty-state">
+                    <h4>
+                      {searchTerm?.trim() || tatuatoreFilter || stanzaFilter || statoFilter
+                        ? 'Nessun appuntamento trovato'
+                        : 'Nessun appuntamento presente'}
+                    </h4>
+                    <p>
+                      {searchTerm?.trim() || tatuatoreFilter || stanzaFilter || statoFilter
+                        ? 'Prova a modificare i filtri di ricerca'
+                        : 'Gli appuntamenti appariranno qui dopo averne creati di nuovi'}
+                    </p>
+                  </div>
+                ) : (
+                  <table className="appointments-table">
+                    <thead>
+                      <tr>
+                        {visibleColumns.tatuatore && <th scope="col">Tatuatore</th>}
+                        {visibleColumns.stanza && <th scope="col">Stanza</th>}
+                        {visibleColumns.cliente && <th scope="col">Cliente</th>}
+                        {visibleColumns.dataOra && <th scope="col">Data e Ora</th>}
+                        {visibleColumns.durata && <th scope="col">Durata</th>}
+                        {visibleColumns.stato && <th scope="col">Stato</th>}
+                        {visibleColumns.note && <th scope="col">Note</th>}
+                        {visibleColumns.azioni && <th scope="col" className="text-center">Azioni</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredAppointments.map((appointment) => (
+                        <tr key={appointment.id}>
+                          {visibleColumns.tatuatore && (
+                            <td data-title="Tatuatore">
+                              <span className="cell-strong">{appointment.tatuatore_nome || 'Sconosciuto'}</span>
+                            </td>
                           )}
-                        </td>
-                      )}
-                      {visibleColumns.azioni && (
-                        <td style={{
-                          padding: '1rem',
-                          textAlign: 'center'
-                        }}>
-                          <div style={{
-                            display: 'flex',
-                            gap: '0.5rem',
-                            justifyContent: 'center'
-                          }}>
-                            <button
-                              onClick={() => {
-                                setEditingAppointment(appointment);
-                                setShowEditModal(true);
-                              }}
-                              title="Visualizza dettagli"
-                              style={{
-                                background: 'rgba(59, 130, 246, 0.2)',
-                                border: '1px solid rgba(59, 130, 246, 0.5)',
-                                borderRadius: '4px',
-                                color: '#60a5fa',
-                                padding: '0.5rem 0.75rem',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: 600
-                              }}
-                              onMouseEnter={(e) => {
-                                e.target.style.background = 'rgba(59, 130, 246, 0.3)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.target.style.background = 'rgba(59, 130, 246, 0.2)';
-                              }}
-                            >
-                              Dettagli
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingAppointment(appointment);
-                                setShowEditModal(true);
-                              }}
-                              title="Modifica appuntamento"
-                              style={{
-                                background: 'rgba(34, 197, 94, 0.2)',
-                                border: '1px solid rgba(34, 197, 94, 0.5)',
-                                borderRadius: '4px',
-                                color: '#4ade80',
-                                padding: '0.5rem 0.75rem',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: 600
-                              }}
-                              onMouseEnter={(e) => {
-                                e.target.style.background = 'rgba(34, 197, 94, 0.3)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.target.style.background = 'rgba(34, 197, 94, 0.2)';
-                              }}
-                            >
-                              Modifica
-                            </button>
-                            <button
-                              onClick={() => handleDeleteAppointment(appointment.id)}
-                              title="Elimina appuntamento"
-                              style={{
-                                background: 'rgba(239, 68, 68, 0.2)',
-                                border: '1px solid rgba(239, 68, 68, 0.5)',
-                                borderRadius: '4px',
-                                color: '#f87171',
-                                padding: '0.5rem 0.75rem',
-                                cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: 600
-                              }}
-                              onMouseEnter={(e) => {
-                                e.target.style.background = 'rgba(239, 68, 68, 0.3)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.target.style.background = 'rgba(239, 68, 68, 0.2)';
-                              }}
-                            >
-                              Elimina
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
-      )}
+                          {visibleColumns.stanza && (
+                            <td data-title="Stanza">
+                              <span className="cell-strong">{appointment.stanza_nome || 'Sconosciuta'}</span>
+                            </td>
+                          )}
+                          {visibleColumns.cliente && (
+                            <td data-title="Cliente">
+                              <div className="cell-stack">
+                                {appointment.cliente_nome ? (
+                                  <span className="cell-strong">{appointment.cliente_nome}</span>
+                                ) : (
+                                  <span className="cell-muted">Senza cliente</span>
+                                )}
+                                {appointment.cliente_telefono && (
+                                  <span className="cell-subtitle">Telefono: {appointment.cliente_telefono}</span>
+                                )}
+                              </div>
+                            </td>
+                          )}
+                          {visibleColumns.dataOra && (
+                            <td data-title="Data e Ora">
+                              <div className="cell-stack">
+                                <span className="cell-strong">
+                                  {new Date(appointment.orario_inizio).toLocaleDateString('it-IT')}
+                                </span>
+                                <span className="cell-subtitle">
+                                  {new Date(appointment.orario_inizio).toLocaleTimeString('it-IT', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            </td>
+                          )}
+                          {visibleColumns.durata && (
+                            <td data-title="Durata">
+                              {appointment.durata_minuti} min
+                            </td>
+                          )}
+                          {visibleColumns.stato && (
+                            <td data-title="Stato">
+                              <span
+                                className="status-badge"
+                                style={{ backgroundColor: getStatoColor(appointment.stato) }}
+                              >
+                                {getStatoLabel(appointment.stato)}
+                              </span>
+                            </td>
+                          )}
+                          {visibleColumns.note && (
+                            <td data-title="Note">
+                              {appointment.note ? (
+                                <span className="cell-note" title={appointment.note}>
+                                  {appointment.note}
+                                </span>
+                              ) : (
+                                <span className="cell-muted">Nessuna nota</span>
+                              )}
+                            </td>
+                          )}
+                          {visibleColumns.azioni && (
+                            <td data-title="Azioni">
+                              <div className="appointments-row-actions">
+                                <button
+                                  type="button"
+                                  className="row-action row-action--view"
+                                  onClick={() => {
+                                    setEditingAppointment(appointment);
+                                    setShowEditModal(true);
+                                  }}
+                                >
+                                  Dettagli
+                                </button>
+                                <button
+                                  type="button"
+                                  className="row-action row-action--edit"
+                                  onClick={() => {
+                                    setEditingAppointment(appointment);
+                                    setShowEditModal(true);
+                                  }}
+                                >
+                                  Modifica
+                                </button>
+                                <button
+                                  type="button"
+                                  className="row-action row-action--delete"
+                                  onClick={() => handleDeleteAppointment(appointment.id)}
+                                >
+                                  Elimina
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {currentView === 'calendar' && (
+          <div className="appointments-calendar-wrapper">
+            <AppointmentCalendar
+              tatuatori={tatuatori}
+              stanze={stanze}
+              onAppointmentClick={(appointment) => {
+                setEditingAppointment(appointment);
+                setShowEditModal(true);
+              }}
+            />
+          </div>
+        )}
+
+        {currentView === 'availability' && (
+          <div className="appointments-availability-wrapper">
+            <AvailabilityChecker
+              tatuatori={tatuatori}
+              stanze={stanze}
+              onSlotSelect={(orario_inizio, durata_minuti) => {
+                const newAppointment = {
+                  orario_inizio,
+                  durata_minuti,
+                  tatuatore_id: '',
+                  stanza_id: '',
+                  cliente_telefono: '',
+                  cliente_nome: '',
+                  note: '',
+                  stato: 'confermato'
+                };
+                setEditingAppointment(newAppointment);
+                setShowCreateModal(true);
+                setCurrentView('list');
+              }}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Modale Creazione Appuntamento */}
       <Modal
@@ -1188,7 +1008,7 @@ function AppointmentList() {
             Aggiungi e gestisci tatuatori e stanze per poter assegnare correttamente gli appuntamenti.
           </p>
           <p style={{ margin: 0 }}>
-            Ricorda che per creare un nuovo appuntamento è necessario avere almeno un tatuatore e una stanza attivi.
+            Ricorda che per creare un nuovo appuntamento Ã¨ necessario avere almeno un tatuatore e una stanza attivi.
           </p>
         </div>
 
@@ -1453,8 +1273,8 @@ function AppointmentList() {
                               {stanza.attivo ? 'Attiva' : 'Disattivata'}
                             </span>
                             <span style={{
-                              background: stanza.no_overbooking ? 'rgba(59, 130, 246, 0.15)' : 'rgba(99, 102, 241, 0.1)',
-                              color: stanza.no_overbooking ? '#93c5fd' : '#818cf8',
+                              background: stanza.no_overbooking ? 'rgba(24, 24, 27, 0.85)' : 'rgba(55, 65, 81, 0.45)',
+                              color: stanza.no_overbooking ? '#f3f4f6' : '#d1d5db',
                               padding: '0.25rem 0.6rem',
                               borderRadius: '9999px',
                               fontSize: '0.8rem',
@@ -1502,48 +1322,9 @@ function AppointmentList() {
           </div>
         )}
       </Modal>
-
-      {/* Vista Calendario */}
-      {currentView === 'calendar' && (
-        <div style={{ marginTop: '2rem' }}>
-          <AppointmentCalendar
-            tatuatori={tatuatori}
-            stanze={stanze}
-            onAppointmentClick={(appointment) => {
-              setEditingAppointment(appointment);
-              setShowEditModal(true);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Vista Disponibilità */}
-      {currentView === 'availability' && (
-        <div style={{ marginTop: '2rem' }}>
-          <AvailabilityChecker
-            tatuatori={tatuatori}
-            stanze={stanze}
-            onSlotSelect={(orario_inizio, durata_minuti) => {
-              // Pre-compila form con slot selezionato
-              const newAppointment = {
-                orario_inizio,
-                durata_minuti,
-                tatuatore_id: '', // Da selezionare
-                stanza_id: '', // Da selezionare
-                cliente_telefono: '',
-                cliente_nome: '',
-                note: '',
-                stato: 'confermato'
-              };
-              setEditingAppointment(newAppointment);
-              setShowCreateModal(true);
-              setCurrentView('list'); // Torna alla lista dopo selezione
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }
 
 export default AppointmentList;
+

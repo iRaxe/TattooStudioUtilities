@@ -269,7 +269,7 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
               padding: '1rem',
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#3b82f6', marginBottom: '0.5rem' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24', marginBottom: '0.5rem' }}>
                 {disponibilita.total_slots}
               </div>
               <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Slot Totali</div>
