@@ -1303,7 +1303,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                     style={{
                       width: '100%',
                       padding: '0.75rem',
-                      backgroundColor: '#374151',
+                      backgroundColor: '#000000',
                       border: '1px solid #4b5563',
                       borderRadius: '4px',
                       color: '#f9fafb',
@@ -1320,7 +1320,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                     style={{
                       width: '100%',
                       padding: '0.75rem',
-                      backgroundColor: '#374151',
+                      backgroundColor: '#000000',
                       border: '1px solid #4b5563',
                       borderRadius: '4px',
                       color: '#f9fafb',
@@ -1338,7 +1338,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: '#374151',
+                    backgroundColor: '#000000',
                     border: '1px solid #4b5563',
                     borderRadius: '4px',
                     color: '#f9fafb',
@@ -1355,7 +1355,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: '#374151',
+                    backgroundColor: '#000000',
                     border: '1px solid #4b5563',
                     borderRadius: '4px',
                     color: '#f9fafb',
@@ -1372,7 +1372,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: '#374151',
+                    backgroundColor: '#000000',
                     border: '1px solid #4b5563',
                     borderRadius: '4px',
                     color: '#f9fafb',
@@ -1389,7 +1389,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: '#374151',
+                    backgroundColor: '#000000',
                     border: '1px solid #4b5563',
                     borderRadius: '4px',
                     color: '#f9fafb',
@@ -1406,7 +1406,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: '#374151',
+                    backgroundColor: '#000000',
                     border: '1px solid #4b5563',
                     borderRadius: '4px',
                     color: '#f9fafb',
@@ -1423,7 +1423,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: '#374151',
+                    backgroundColor: '#000000',
                     border: '1px solid #4b5563',
                     borderRadius: '4px',
                     color: '#f9fafb',
@@ -1443,7 +1443,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                 onClick={() => setEditingCustomer(null)}
                 style={{
                   padding: '0.75rem 1.5rem',
-                  backgroundColor: '#374151',
+                  backgroundColor: '#000000',
                   border: '1px solid #4b5563',
                   borderRadius: '4px',
                   color: '#9ca3af',

@@ -114,7 +114,7 @@ function AppointmentList() {
 
         // Controlla errori CORS e permessi
         if (response.status === 0) {
-          console.error('[DEBUG] ERRORE CORS: La richiesta Ã¨ stata bloccata dal browser');
+          console.error('[DEBUG] ERRORE CORS: La richiesta è stata bloccata dal browser');
         } else if (response.status === 401) {
           console.error('[DEBUG] ERRORE AUTENTICAZIONE: Token non valido o mancante');
         } else if (response.status === 403) {
@@ -170,7 +170,7 @@ function AppointmentList() {
 
         // Controlla errori CORS e permessi
         if (response.status === 0) {
-          console.error('[DEBUG] ERRORE CORS: La richiesta Ã¨ stata bloccata dal browser');
+          console.error('[DEBUG] ERRORE CORS: La richiesta è stata bloccata dal browser');
         } else if (response.status === 401) {
           console.error('[DEBUG] ERRORE AUTENTICAZIONE: Token non valido o mancante');
         } else if (response.status === 403) {
@@ -1008,7 +1008,7 @@ function AppointmentList() {
             Aggiungi e gestisci tatuatori e stanze per poter assegnare correttamente gli appuntamenti.
           </p>
           <p style={{ margin: 0 }}>
-            Ricorda che per creare un nuovo appuntamento Ã¨ necessario avere almeno un tatuatore e una stanza attivi.
+            Ricorda che per creare un nuovo appuntamento è necessario avere almeno un tatuatore e una stanza attivi.
           </p>
         </div>
 
@@ -1102,7 +1102,7 @@ function AppointmentList() {
                     <div
                       key={tatuatore.id}
                       style={{
-                        background: 'rgba(17, 24, 39, 0.6)',
+                        background: 'rgba(0, 0, 0, 0.6)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '6px',
                         padding: '1rem'
@@ -1235,7 +1235,7 @@ function AppointmentList() {
                     <div
                       key={stanza.id}
                       style={{
-                        background: 'rgba(17, 24, 39, 0.6)',
+                        background: 'rgba(0, 0, 0, 0.6)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '6px',
                         padding: '1rem'
@@ -1273,7 +1273,7 @@ function AppointmentList() {
                               {stanza.attivo ? 'Attiva' : 'Disattivata'}
                             </span>
                             <span style={{
-                              background: stanza.no_overbooking ? 'rgba(24, 24, 27, 0.85)' : 'rgba(55, 65, 81, 0.45)',
+                              background: stanza.no_overbooking ? 'rgba(24, 24, 27, 0.85)' : 'rgba(0, 0, 0, 0.45)',
                               color: stanza.no_overbooking ? '#f3f4f6' : '#d1d5db',
                               padding: '0.25rem 0.6rem',
                               borderRadius: '9999px',

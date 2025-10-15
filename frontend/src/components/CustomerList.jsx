@@ -607,7 +607,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
               <div className="flex-col gap-lg">
                 {consents.map(c => (
                   <div key={c.id} className="consenso-item" style={{
-                    background: 'rgba(55, 65, 81, 0.5)',
+                    background: 'rgba(0, 0, 0, 0.5)',
                     border: '1px solid #4b5563',
                     borderRadius: '4px',
                     padding: '1rem',

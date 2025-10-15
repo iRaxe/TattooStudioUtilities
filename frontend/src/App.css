@@ -1695,7 +1695,7 @@ button.nav-link-admin:hover {
 }
 
 .alert-info {
-  background: rgba(17, 24, 39, 0.75);
+  background: rgba(0, 0, 0, 0.75);
   border: 1px solid rgba(148, 163, 184, 0.35);
   color: #e5e7eb;
 }
@@ -2333,7 +2333,7 @@ html {
 }
 
 .appointments-filter-card {
-  background: rgba(17, 24, 39, 0.6);
+  background: rgba(0, 0, 0, 0.6);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1.25rem;
@@ -2455,7 +2455,7 @@ html {
 }
 
 .appointments-column-picker__menu label:hover {
-  background: rgba(55, 65, 81, 0.35);
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .appointments-column-picker__menu input {
@@ -2496,7 +2496,7 @@ html {
 }
 
 .appointments-table-wrapper {
-  background: rgba(17, 24, 39, 0.55);
+  background: rgba(0, 0, 0, 0.55);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   overflow-x: auto;
@@ -2636,7 +2636,7 @@ html {
 .appointments-calendar-wrapper,
 .appointments-availability-wrapper {
   margin-top: 1rem;
-  background: rgba(17, 24, 39, 0.55);
+  background: rgba(0, 0, 0, 0.55);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1.5rem;
@@ -2707,7 +2707,7 @@ html {
   .appointments-table tbody tr {
     display: flex;
     flex-direction: column;
-    background: rgba(17, 24, 39, 0.75);
+    background: rgba(0, 0, 0, 0.75);
     border-radius: 12px;
     padding: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.08);

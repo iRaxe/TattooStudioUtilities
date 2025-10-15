@@ -34,7 +34,7 @@ const Modal = ({
     >
       <div 
         style={{
-          backgroundColor: '#1f2937',
+          backgroundColor: '#000000',
           border: '1px solid #374151',
           borderRadius: '4px',
           padding: '2rem',

@@ -669,7 +669,7 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
                         <div
                           key={group.meta.key}
                           style={{
-                            background: 'rgba(17, 24, 39, 0.65)',
+                            background: 'rgba(0, 0, 0, 0.65)',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
                             borderLeft: `4px solid ${group.meta.accent}`,
                             borderRadius: '4px',
