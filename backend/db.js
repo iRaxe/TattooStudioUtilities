@@ -45,6 +45,11 @@ async function initSchema() {
       );
     `);
 
+    await client.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS birth_place text`);
+    await client.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS fiscal_code text`);
+    await client.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS address text`);
+    await client.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS city text`);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS gift_cards (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

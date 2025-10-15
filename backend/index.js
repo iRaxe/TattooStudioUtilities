@@ -760,20 +760,31 @@ app.post(
     }
     const id = uuidv4();
     const claim_token = uuidv4();
+    const code = await generateUniqueCode();
     const createdAt = now();
     const calculatedExpiresAt = monthsFromDate(createdAt, GIFT_CARD_VALIDITY_MONTHS);
     const claim_token_expires_at = minutesFromNow(CLAIM_TOKEN_TTL_MINUTES);
     const { rows } = await query(
-      `INSERT INTO gift_cards (id, status, amount, currency, expires_at, notes, claim_token, claim_token_expires_at, created_at, updated_at)
-       VALUES ($1, 'draft', $2, $3, $4, $5, $6, $7, NOW(), NOW())
-       RETURNING id, amount, claim_token, expires_at, claim_token_expires_at`,
-      [id, amount, currency, expires_at ? new Date(expires_at) : calculatedExpiresAt, notes, claim_token, claim_token_expires_at]
+      `INSERT INTO gift_cards (id, status, amount, currency, expires_at, notes, code, claim_token, claim_token_expires_at, created_at, updated_at)
+       VALUES ($1, 'draft', $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+       RETURNING id, amount, code, claim_token, expires_at, claim_token_expires_at`,
+      [
+        id,
+        amount,
+        currency,
+        expires_at ? new Date(expires_at) : calculatedExpiresAt,
+        notes,
+        code,
+        claim_token,
+        claim_token_expires_at,
+      ]
     );
     const draft = rows[0];
     const claim_url = `${PUBLIC_BASE_URL}/gift/claim/${draft.claim_token}`;
     res.status(201).json({
       draft_id: draft.id,
       amount: Number(draft.amount),
+      code: draft.code,
       claim_token: draft.claim_token,
       expires_at: toISO(draft.expires_at),
       claim_url,
