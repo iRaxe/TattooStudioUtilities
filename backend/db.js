@@ -76,6 +76,20 @@ async function initSchema() {
       );
     `);
 
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS claim_token_expires_at timestamptz');
+    await client.query(
+      'ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS claimed_by_customer_id uuid REFERENCES customers(id) ON DELETE SET NULL'
+    );
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS code text UNIQUE');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS first_name text');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS last_name text');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS email text');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS phone text');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS birth_date date');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS dedication text');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS consents jsonb');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS used_at timestamptz');
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS tatuatori (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -145,6 +159,13 @@ async function initSchema() {
       END;
       $$ LANGUAGE plpgsql;
     `);
+
+    await client.query('DROP TRIGGER IF EXISTS trg_customers_updated ON customers');
+    await client.query('DROP TRIGGER IF EXISTS trg_gift_cards_updated ON gift_cards');
+    await client.query('DROP TRIGGER IF EXISTS trg_tatuatori_updated ON tatuatori');
+    await client.query('DROP TRIGGER IF EXISTS trg_stanze_updated ON stanze');
+    await client.query('DROP TRIGGER IF EXISTS trg_appuntamenti_updated ON appuntamenti');
+    await client.query('DROP TRIGGER IF EXISTS trg_consensi_updated ON consensi');
 
     await client.query(`CREATE TRIGGER trg_customers_updated BEFORE UPDATE ON customers FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
     await client.query(`CREATE TRIGGER trg_gift_cards_updated BEFORE UPDATE ON gift_cards FOR EACH ROW EXECUTE FUNCTION set_updated_at()`);
