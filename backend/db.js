@@ -144,6 +144,13 @@ async function initSchema() {
     await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS gift_card_id uuid');
     await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS customer_id uuid');
     await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS payload jsonb');
+    await client.query('ALTER TABLE consensi ADD COLUMN IF NOT EXISTS type text');
+    await client.query(`
+      UPDATE consensi
+      SET type = payload->>'type'
+      WHERE (type IS NULL OR type = '')
+        AND payload ? 'type';
+    `);
     await client.query(`
       DO $$
       BEGIN

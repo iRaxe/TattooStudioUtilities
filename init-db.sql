@@ -93,6 +93,12 @@ CREATE TABLE IF NOT EXISTS consensi (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE consensi ADD COLUMN IF NOT EXISTS type TEXT;
+UPDATE consensi
+SET type = payload->>'type'
+WHERE (type IS NULL OR type = '')
+  AND payload ? 'type';
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
 CREATE INDEX IF NOT EXISTS idx_gift_cards_status ON gift_cards(status);

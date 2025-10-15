@@ -1422,6 +1422,17 @@ async function saveConsent(client, { type, payload, phone }) {
   return rows[0];
 }
 
+function resolveConsentType(row) {
+  if (!row) {
+    return null;
+  }
+  if (row.type) {
+    return row.type;
+  }
+  const payload = row.payload || {};
+  return payload.type || payload.formType || payload.consensoType || payload.consentType || null;
+}
+
 async function attachConsentToCustomer(client, consentBody) {
   if (!consentBody.phone) {
     return { customerId: null, giftCardId: null };
@@ -1510,20 +1521,24 @@ app.get(
   requireAdmin,
   asyncHandler(async (req, res) => {
     const { rows } = await query('SELECT * FROM consensi ORDER BY created_at DESC');
-    res.json({
-      consensi: rows.map((row) => ({
+    const consents = rows.map((row) => {
+      const type = resolveConsentType(row);
+      return {
         id: row.id,
-        type: row.type,
+        type,
         phone: row.phone,
         payload: row.payload,
         submittedAt: toISO(row.submitted_at),
         createdAt: toISO(row.created_at),
         customerId: row.customer_id,
         giftCardId: row.gift_card_id,
-      })),
-      total: rows.length,
-      tatuaggi: rows.filter((row) => row.type === 'tatuaggio').length,
-      piercing: rows.filter((row) => row.type === 'piercing').length,
+      };
+    });
+    res.json({
+      consensi: consents,
+      total: consents.length,
+      tatuaggi: consents.filter((row) => row.type === 'tatuaggio').length,
+      piercing: consents.filter((row) => row.type === 'piercing').length,
     });
   })
 );
@@ -1538,9 +1553,10 @@ app.get(
       return res.status(404).json({ error: 'Consenso non trovato' });
     }
     const consenso = rows[0];
+    const type = resolveConsentType(consenso);
     res.json({
       id: consenso.id,
-      type: consenso.type,
+      type,
       phone: consenso.phone,
       payload: consenso.payload,
       submittedAt: toISO(consenso.submitted_at),
@@ -1557,21 +1573,25 @@ app.get(
   asyncHandler(async (req, res) => {
     const { phone } = req.params;
     const { rows } = await query(
-      `SELECT id, type, submitted_at, created_at, customer_id, gift_card_id
+      `SELECT id, type, payload, submitted_at, created_at, customer_id, gift_card_id
        FROM consensi WHERE phone = $1 ORDER BY created_at DESC`,
       [phone]
     );
-    res.json({
-      phone,
-      consents: rows.map((row) => ({
+    const consents = rows.map((row) => {
+      const type = resolveConsentType(row);
+      return {
         id: row.id,
-        type: row.type,
+        type,
         submittedAt: toISO(row.submitted_at),
         createdAt: toISO(row.created_at),
         customerId: row.customer_id,
         giftCardId: row.gift_card_id,
-      })),
-      total: rows.length,
+      };
+    });
+    res.json({
+      phone,
+      consents,
+      total: consents.length,
     });
   })
 );
@@ -1581,14 +1601,20 @@ app.delete(
   requireAdmin,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { rows } = await query('DELETE FROM consensi WHERE id = $1 RETURNING id, type, phone', [id]);
+    const { rows } = await query('DELETE FROM consensi WHERE id = $1 RETURNING id, type, phone, payload', [id]);
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Consenso non trovato' });
     }
+    const deleted = rows[0];
+    const type = resolveConsentType(deleted);
     res.json({
       success: true,
       message: 'Consenso eliminato con successo',
-      deletedConsent: rows[0],
+      deletedConsent: {
+        id: deleted.id,
+        type,
+        phone: deleted.phone,
+      },
     });
   })
 );
