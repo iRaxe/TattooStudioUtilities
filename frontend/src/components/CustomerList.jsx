@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FaEye, FaPen, FaFileSignature } from 'react-icons/fa';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -500,77 +501,80 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                           <button
                             onClick={() => handleShowCustomerModal(customer)}
                             title="Dettagli cliente"
+                            aria-label="Dettagli cliente"
                             style={{
                               background: 'rgba(34, 197, 94, 0.2)',
                               border: '1px solid rgba(34, 197, 94, 0.5)',
                               borderRadius: '4px',
                               color: '#4ade80',
-                              padding: '0.5rem 0.75rem',
                               cursor: 'pointer',
-                              fontSize: '0.85rem',
-                              fontWeight: 600,
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
+                              justifyContent: 'center',
+                              width: '2.5rem',
+                              height: '2.5rem',
+                              transition: 'background 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(34, 197, 94, 0.3)';
+                              e.currentTarget.style.background = 'rgba(34, 197, 94, 0.3)';
                             }}
                             onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(34, 197, 94, 0.2)';
+                              e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)';
                             }}
                           >
-                            Vedi
+                            <FaEye size={16} aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => handleEditCustomer(customer)}
                             title="Modifica cliente"
+                            aria-label="Modifica cliente"
                             style={{
                               background: 'rgba(24, 24, 27, 0.85)',
                               border: '1px solid rgba(75, 85, 99, 0.5)',
                               borderRadius: '4px',
                               color: '#f3f4f6',
-                              padding: '0.5rem 0.75rem',
                               cursor: 'pointer',
-                              fontSize: '0.85rem',
-                              fontWeight: 600,
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
+                              justifyContent: 'center',
+                              width: '2.5rem',
+                              height: '2.5rem',
+                              transition: 'background 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(17, 17, 17, 0.9)';
+                              e.currentTarget.style.background = 'rgba(17, 17, 17, 0.9)';
                             }}
                             onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(24, 24, 27, 0.85)';
+                              e.currentTarget.style.background = 'rgba(24, 24, 27, 0.85)';
                             }}
                           >
-                            Modifica
+                            <FaPen size={16} aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => openConsentsModalForCustomer(customer)}
                             title="Visualizza consensi"
+                            aria-label="Visualizza consensi"
                             style={{
                               background: 'rgba(168, 85, 247, 0.2)',
                               border: '1px solid rgba(168, 85, 247, 0.5)',
                               borderRadius: '4px',
                               color: '#a855f7',
-                              padding: '0.5rem 0.75rem',
                               cursor: 'pointer',
-                              fontSize: '0.85rem',
-                              fontWeight: 600,
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
+                              justifyContent: 'center',
+                              width: '2.5rem',
+                              height: '2.5rem',
+                              transition: 'background 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(168, 85, 247, 0.3)';
+                              e.currentTarget.style.background = 'rgba(168, 85, 247, 0.3)';
                             }}
                             onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(168, 85, 247, 0.2)';
+                              e.currentTarget.style.background = 'rgba(168, 85, 247, 0.2)';
                             }}
                           >
-                            Consensi
+                            <FaFileSignature size={16} aria-hidden="true" />
                           </button>
                         </div>
                       ) : (

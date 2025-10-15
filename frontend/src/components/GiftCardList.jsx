@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaLink, FaCheckCircle, FaRedo, FaTrash } from 'react-icons/fa';
 
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
@@ -489,48 +490,56 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                               alert(`Link copiato negli appunti!\n\n${claimUrl}`);
                             }}
                             title="Copia link gift card"
+                            aria-label="Copia link gift card"
                             style={{
                               background: 'rgba(251, 191, 36, 0.2)',
                               border: '1px solid rgba(251, 191, 36, 0.5)',
                               color: '#fbbf24',
-                              padding: '0.5rem 0.75rem',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              fontSize: '0.85rem',
-                              fontWeight: 600
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '2.5rem',
+                              height: '2.5rem',
+                              transition: 'background 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(251, 191, 36, 0.3)';
+                              e.currentTarget.style.background = 'rgba(251, 191, 36, 0.3)';
                             }}
                             onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(251, 191, 36, 0.2)';
+                              e.currentTarget.style.background = 'rgba(251, 191, 36, 0.2)';
                             }}
                           >
-                            Copia link
+                            <FaLink size={16} aria-hidden="true" />
                           </button>
                         )}
                         {card.status === 'active' && card.code && (
                           <button
                             onClick={() => handleMarkAsUsedByCode(card.code)}
                             title="Marca gift card come usata"
+                            aria-label="Marca gift card come usata"
                             style={{
                               background: 'rgba(239, 68, 68, 0.2)',
                               border: '1px solid rgba(239, 68, 68, 0.5)',
                               color: '#ef4444',
-                              padding: '0.5rem 0.75rem',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              fontSize: '0.85rem',
-                              fontWeight: 600
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '2.5rem',
+                              height: '2.5rem',
+                              transition: 'background 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(239, 68, 68, 0.3)';
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
                             }}
                             onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(239, 68, 68, 0.2)';
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
                             }}
                           >
-                            Marca usata
+                            <FaCheckCircle size={16} aria-hidden="true" />
                           </button>
                         )}
                         {(() => {
@@ -539,24 +548,28 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                             <button
                               onClick={() => handleRenewGiftCard(card.id)}
                               title="Rinnova scadenza gift card"
+                              aria-label="Rinnova scadenza gift card"
                               style={{
                                 background: 'rgba(34, 197, 94, 0.2)',
                                 border: '1px solid rgba(34, 197, 94, 0.5)',
                                 color: '#22c55e',
-                                padding: '0.5rem 0.75rem',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
-                                fontSize: '0.85rem',
-                                fontWeight: 600
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '2.5rem',
+                                height: '2.5rem',
+                                transition: 'background 0.2s ease'
                               }}
                               onMouseEnter={(e) => {
-                                e.target.style.background = 'rgba(34, 197, 94, 0.3)';
+                                e.currentTarget.style.background = 'rgba(34, 197, 94, 0.3)';
                               }}
                               onMouseLeave={(e) => {
-                                e.target.style.background = 'rgba(34, 197, 94, 0.2)';
+                                e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)';
                               }}
                             >
-                              Rinnova
+                              <FaRedo size={16} aria-hidden="true" />
                             </button>
                           );
                         })()}
@@ -564,24 +577,28 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                           <button
                             onClick={() => handleDeleteGiftCard(card.id)}
                             title="Elimina gift card"
+                            aria-label="Elimina gift card"
                             style={{
                               background: 'rgba(239, 68, 68, 0.2)',
                               border: '1px solid rgba(239, 68, 68, 0.5)',
                               color: '#ef4444',
-                              padding: '0.5rem 0.75rem',
                               borderRadius: '4px',
                               cursor: 'pointer',
-                              fontSize: '0.85rem',
-                              fontWeight: 600
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '2.5rem',
+                              height: '2.5rem',
+                              transition: 'background 0.2s ease'
                             }}
                             onMouseEnter={(e) => {
-                              e.target.style.background = 'rgba(239, 68, 68, 0.3)';
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
                             }}
                             onMouseLeave={(e) => {
-                              e.target.style.background = 'rgba(239, 68, 68, 0.2)';
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
                             }}
                           >
-                            Elimina
+                            <FaTrash size={16} aria-hidden="true" />
                           </button>
                         )}
                       </div>

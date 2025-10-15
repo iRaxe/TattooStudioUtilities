@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
+import { FaEye, FaPen, FaTrash } from 'react-icons/fa';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -274,6 +275,48 @@ function AppointmentList() {
     }
   };
 
+  const handleDeleteTatuatore = async (id) => {
+    const target = tatuatori.find((t) => t.id === id);
+    const label = target?.nome ? ` "${target.nome}"` : '';
+    const confirmed = window.confirm(
+      `Sei sicuro di voler eliminare il tatuatore${label}? Questa azione non puo' essere annullata.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingTatuatoreId(id);
+      setTatuatoriFeedback(null);
+      const token = getCookie('adminToken');
+      const response = await fetch(`/api/admin/tatuatori/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const responseData = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Errore nell\'eliminazione del tatuatore');
+      }
+
+      setTatuatori((prev) => prev.filter((t) => t.id !== id));
+      setTatuatoriFeedback({
+        type: 'success',
+        message: responseData.message || `Tatuatore${label} eliminato con successo.`
+      });
+    } catch (error) {
+      console.error('Errore eliminazione tatuatore:', error);
+      setTatuatoriFeedback({
+        type: 'danger',
+        message: error.message || 'Errore nell\'eliminazione del tatuatore.'
+      });
+    } finally {
+      setDeletingTatuatoreId(null);
+    }
+  };
+
   const handleCreateStanza = async () => {
     const nome = newStanzaNome.trim();
 
@@ -380,6 +423,48 @@ function AppointmentList() {
       setStanzeFeedback({ type: 'danger', message: error.message || 'Errore nell\'aggiornamento della stanza.' });
     } finally {
       setUpdatingStanzaNoOverbookingId(null);
+    }
+  };
+
+  const handleDeleteStanza = async (id) => {
+    const target = stanze.find((stanza) => stanza.id === id);
+    const label = target?.nome ? ` "${target.nome}"` : '';
+    const confirmed = window.confirm(
+      `Sei sicuro di voler eliminare la stanza${label}? Questa azione non puo' essere annullata.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingStanzaId(id);
+      setStanzeFeedback(null);
+      const token = getCookie('adminToken');
+      const response = await fetch(`/api/admin/stanze/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const responseData = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Errore nell\'eliminazione della stanza');
+      }
+
+      setStanze((prev) => prev.filter((stanzaItem) => stanzaItem.id !== id));
+      setStanzeFeedback({
+        type: 'success',
+        message: responseData.message || `Stanza${label} eliminata con successo.`
+      });
+    } catch (error) {
+      console.error('Errore eliminazione stanza:', error);
+      setStanzeFeedback({
+        type: 'danger',
+        message: error.message || 'Errore nell\'eliminazione della stanza.'
+      });
+    } finally {
+      setDeletingStanzaId(null);
     }
   };
 
@@ -496,6 +581,8 @@ function AppointmentList() {
   const [updatingTatuatoreId, setUpdatingTatuatoreId] = useState(null);
   const [updatingStanzaId, setUpdatingStanzaId] = useState(null);
   const [updatingStanzaNoOverbookingId, setUpdatingStanzaNoOverbookingId] = useState(null);
+  const [deletingTatuatoreId, setDeletingTatuatoreId] = useState(null);
+  const [deletingStanzaId, setDeletingStanzaId] = useState(null);
 
   return (
     <div className="appointments-page">
@@ -856,29 +943,32 @@ function AppointmentList() {
                                 <button
                                   type="button"
                                   className="row-action row-action--view"
+                                  aria-label="Dettagli appuntamento"
                                   onClick={() => {
                                     setEditingAppointment(appointment);
                                     setShowEditModal(true);
                                   }}
                                 >
-                                  Dettagli
+                                  <FaEye aria-hidden="true" />
                                 </button>
                                 <button
                                   type="button"
                                   className="row-action row-action--edit"
+                                  aria-label="Modifica appuntamento"
                                   onClick={() => {
                                     setEditingAppointment(appointment);
                                     setShowEditModal(true);
                                   }}
                                 >
-                                  Modifica
+                                  <FaPen aria-hidden="true" />
                                 </button>
                                 <button
                                   type="button"
                                   className="row-action row-action--delete"
+                                  aria-label="Elimina appuntamento"
                                   onClick={() => handleDeleteAppointment(appointment.id)}
                                 >
-                                  Elimina
+                                  <FaTrash aria-hidden="true" />
                                 </button>
                               </div>
                             </td>
@@ -1144,18 +1234,36 @@ function AppointmentList() {
 
                         <div style={{
                           display: 'flex',
-                          gap: '0.5rem'
+                          gap: '0.5rem',
+                          flexWrap: 'wrap'
                         }}>
                           <Button
                             variant="secondary"
                             onClick={() => handleToggleTatuatore(tatuatore.id, tatuatore.attivo)}
-                            disabled={updatingTatuatoreId === tatuatore.id}
+                            disabled={
+                              updatingTatuatoreId === tatuatore.id ||
+                              deletingTatuatoreId === tatuatore.id
+                            }
                             style={{
                               padding: '0.5rem 1rem',
                               fontSize: '0.85rem'
                             }}
                           >
                             {updatingTatuatoreId === tatuatore.id ? 'Aggiornamento...' : tatuatore.attivo ? 'Disattiva' : 'Attiva'}
+                          </Button>
+                          <Button
+                            variant="danger"
+                            onClick={() => handleDeleteTatuatore(tatuatore.id)}
+                            disabled={
+                              deletingTatuatoreId === tatuatore.id ||
+                              updatingTatuatoreId === tatuatore.id
+                            }
+                            style={{
+                              padding: '0.5rem 1rem',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            {deletingTatuatoreId === tatuatore.id ? 'Eliminazione...' : 'Elimina'}
                           </Button>
                         </div>
                       </div>
@@ -1293,7 +1401,10 @@ function AppointmentList() {
                           <Button
                             variant="secondary"
                             onClick={() => handleToggleStanzaAttiva(stanza.id, stanza.attivo)}
-                            disabled={updatingStanzaId === stanza.id}
+                            disabled={
+                              updatingStanzaId === stanza.id ||
+                              deletingStanzaId === stanza.id
+                            }
                             style={{
                               padding: '0.5rem 1rem',
                               fontSize: '0.85rem'
@@ -1304,13 +1415,31 @@ function AppointmentList() {
                           <Button
                             variant="ghost"
                             onClick={() => handleToggleStanzaNoOverbooking(stanza.id, stanza.no_overbooking)}
-                            disabled={updatingStanzaNoOverbookingId === stanza.id}
+                            disabled={
+                              updatingStanzaNoOverbookingId === stanza.id ||
+                              deletingStanzaId === stanza.id
+                            }
                             style={{
                               padding: '0.5rem 1rem',
                               fontSize: '0.85rem'
                             }}
                           >
                             {updatingStanzaNoOverbookingId === stanza.id ? 'Aggiornamento...' : stanza.no_overbooking ? 'Permetti overbooking' : 'Blocca overbooking'}
+                          </Button>
+                          <Button
+                            variant="danger"
+                            onClick={() => handleDeleteStanza(stanza.id)}
+                            disabled={
+                              deletingStanzaId === stanza.id ||
+                              updatingStanzaId === stanza.id ||
+                              updatingStanzaNoOverbookingId === stanza.id
+                            }
+                            style={{
+                              padding: '0.5rem 1rem',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            {deletingStanzaId === stanza.id ? 'Eliminazione...' : 'Elimina'}
                           </Button>
                         </div>
                       </div>
@@ -1327,4 +1456,6 @@ function AppointmentList() {
 }
 
 export default AppointmentList;
+
+
 
