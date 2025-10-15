@@ -142,6 +142,15 @@ async function initSchema() {
     `);
 
     await client.query('CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone)');
+    await client.query(`
+      DO $$
+      BEGIN
+        ALTER TABLE customers ADD CONSTRAINT customers_phone_unique UNIQUE (phone);
+      EXCEPTION
+        WHEN duplicate_object THEN NULL;
+      END;
+      $$;
+    `);
     await client.query('CREATE INDEX IF NOT EXISTS idx_gift_cards_status ON gift_cards(status)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_gift_cards_code ON gift_cards(code)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_gift_cards_claim_token ON gift_cards(claim_token)');

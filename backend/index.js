@@ -15,6 +15,17 @@ if (!pool) {
 
 const app = express();
 
+const TRUST_PROXY = process.env.TRUST_PROXY ?? '1';
+const proxySetting = (() => {
+  if (TRUST_PROXY === 'true') return true;
+  if (TRUST_PROXY === 'false') return false;
+  const parsed = Number(TRUST_PROXY);
+  if (!Number.isNaN(parsed)) return parsed;
+  return TRUST_PROXY;
+})();
+// Honor X-Forwarded-* headers when behind reverse proxies (e.g. production load balancers)
+app.set('trust proxy', proxySetting);
+
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
