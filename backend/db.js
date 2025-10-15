@@ -177,9 +177,14 @@ async function initSchema() {
     await client.query(`
       DO $$
       BEGIN
-        ALTER TABLE customers ADD CONSTRAINT customers_phone_unique UNIQUE (phone);
-      EXCEPTION
-        WHEN duplicate_object THEN NULL;
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conrelid = 'customers'::regclass
+            AND conname = 'customers_phone_unique'
+        ) THEN
+          ALTER TABLE customers ADD CONSTRAINT customers_phone_unique UNIQUE (phone);
+        END IF;
       END;
       $$;
     `);
