@@ -1474,52 +1474,134 @@ async function saveConsent(client, { type, payload, phone }) {
     payloadWithNames.fullName = nameParts.fullName;
   }
 
+  const fallbackStreetNumber = [payloadWithNames.residenceStreet, payloadWithNames.residenceNumber]
+    .map((value) => (value || '').trim())
+    .filter(Boolean)
+    .join(' ');
+  const fallbackCity = (payloadWithNames.residenceCity || payloadWithNames.city || '').trim() || null;
+  const fallbackProvince = (payloadWithNames.residenceProvince || payloadWithNames.province || payloadWithNames.birthProvince || '').trim() || null;
+  const fallbackAddress = payloadWithNames.address || fallbackStreetNumber || null;
+  const fallbackResidence =
+    payloadWithNames.residence ||
+    (fallbackAddress && fallbackCity
+      ? `${fallbackAddress}, ${fallbackCity}${fallbackProvince ? ` (${fallbackProvince})` : ''}`
+      : fallbackAddress || fallbackCity || null);
+
+  if (!payloadWithNames.address && fallbackAddress) {
+    payloadWithNames.address = fallbackAddress;
+  }
+  if (!payloadWithNames.residence && fallbackResidence) {
+    payloadWithNames.residence = fallbackResidence;
+  }
+  if (!payloadWithNames.city && fallbackCity) {
+    payloadWithNames.city = fallbackCity;
+  }
+  if (!payloadWithNames.residenceCity && fallbackCity) {
+    payloadWithNames.residenceCity = fallbackCity;
+  }
+  if (!payloadWithNames.province && fallbackProvince) {
+    payloadWithNames.province = fallbackProvince;
+  }
+  if (!payloadWithNames.residenceProvince && fallbackProvince) {
+    payloadWithNames.residenceProvince = fallbackProvince;
+  }
+
+  const minorData = { ...(payloadWithNames.minor || {}) };
+  const minorStreetNumber = [minorData.residenceStreet, minorData.residenceNumber]
+    .map((value) => (value || '').trim())
+    .filter(Boolean)
+    .join(' ');
+  const minorCity = (minorData.residenceCity || minorData.city || payloadWithNames.minorResidenceCity || '').trim() || null;
+  const minorProvince =
+    (minorData.residenceProvince ||
+      minorData.province ||
+      payloadWithNames.minorResidenceProvince ||
+      minorData.birthProvince ||
+      payloadWithNames.minorBirthProvince ||
+      '').trim() || null;
+  const minorAddress = minorData.address || minorData.residenceAddress || minorStreetNumber || null;
+  const minorResidence =
+    minorData.residence ||
+    (minorAddress && minorCity
+      ? `${minorAddress}, ${minorCity}${minorProvince ? ` (${minorProvince})` : ''}`
+      : minorAddress || minorCity || null);
+  if (!minorData.address && minorAddress) {
+    minorData.address = minorAddress;
+  }
+  if (!minorData.residence && minorResidence) {
+    minorData.residence = minorResidence;
+  }
+  if (!minorData.city && minorCity) {
+    minorData.city = minorCity;
+  }
+  if (!minorData.residenceCity && minorCity) {
+    minorData.residenceCity = minorCity;
+  }
+  if (!minorData.province && minorProvince) {
+    minorData.province = minorProvince;
+  }
+  if (!minorData.residenceProvince && minorProvince) {
+    minorData.residenceProvince = minorProvince;
+  }
+  if (Object.keys(minorData).length > 0) {
+    payloadWithNames.minor = minorData;
+  }
+
   const insertColumns = ['id', 'type', 'phone', 'payload', 'submitted_at'];
   const values = [uuidv4(), type, phone || null, payloadWithNames, payloadWithNames.submittedAt ? new Date(payloadWithNames.submittedAt) : now()];
   const placeholders = ['$1', '$2', '$3', '$4', '$5'];
   let placeholderIndex = placeholders.length;
+  const optionalColumnValues = {
+    first_name: nameParts.firstName || null,
+    last_name: nameParts.lastName || null,
+    full_name: nameParts.fullName || null,
+    email: payloadWithNames.email || payloadWithNames.emailAddress || null,
+    birth_date: payloadWithNames.birthDate || null,
+    birth_place: payloadWithNames.birthPlace || null,
+    residence: payloadWithNames.residence || null,
+    address: payloadWithNames.address || null,
+    residence_address: payloadWithNames.address || null,
+    residence_street: payloadWithNames.residenceStreet || null,
+    residence_number: payloadWithNames.residenceNumber || null,
+    city: payloadWithNames.city || null,
+    province: payloadWithNames.province || null,
+    residence_city: payloadWithNames.residenceCity || null,
+    residence_province: payloadWithNames.residenceProvince || null,
+    phone_number: payloadWithNames.phoneNumber || phone || null,
+    document_type: payloadWithNames.documentType || null,
+    document_number: payloadWithNames.documentNumber || null,
+    document_issuer: payloadWithNames.documentIssuer || null,
+    requested_work: payloadWithNames.requestedWork || null,
+    artist_name: payloadWithNames.artistName || null,
+    appointment_date: payloadWithNames.appointmentDate || null,
+    acknowledge_informed: typeof payloadWithNames.acknowledgeInformed === 'boolean' ? payloadWithNames.acknowledgeInformed : null,
+    confirm_health: typeof payloadWithNames.confirmHealth === 'boolean' ? payloadWithNames.confirmHealth : null,
+    release_liability:
+      typeof payloadWithNames.releaseLiability === 'boolean' ? payloadWithNames.releaseLiability : null,
+    consent_publication:
+      typeof payloadWithNames.consentPublication === 'boolean' ? payloadWithNames.consentPublication : null,
+    accept_privacy: typeof payloadWithNames.acceptPrivacy === 'boolean' ? payloadWithNames.acceptPrivacy : null,
+    is_minor_client: typeof payloadWithNames.isMinorClient === 'boolean' ? payloadWithNames.isMinorClient : null,
+    signature: payloadWithNames.signature || null,
+    minor_name: minorData.name || payloadWithNames.minorName || null,
+    minor_birth_date: minorData.birthDate || payloadWithNames.minorBirthDate || null,
+    minor_birth_city: minorData.birthCity || payloadWithNames.minorBirthCity || null,
+    minor_birth_province: minorData.birthProvince || payloadWithNames.minorBirthProvince || null,
+    minor_residence: minorData.residence || null,
+    minor_residence_address: minorData.address || null,
+    minor_residence_city: minorData.residenceCity || null,
+    minor_residence_province: minorData.residenceProvince || null,
+  };
 
-  if (columns.includes('first_name')) {
-    insertColumns.push('first_name');
+  Object.entries(optionalColumnValues).forEach(([column, value]) => {
+    if (!columns.includes(column)) {
+      return;
+    }
     placeholderIndex += 1;
-    values.push(nameParts.firstName || null);
+    insertColumns.push(column);
+    values.push(value ?? null);
     placeholders.push(`$${placeholderIndex}`);
-  }
-
-  if (columns.includes('last_name')) {
-    insertColumns.push('last_name');
-    placeholderIndex += 1;
-    values.push(nameParts.lastName || null);
-    placeholders.push(`$${placeholderIndex}`);
-  }
-
-  if (columns.includes('full_name')) {
-    insertColumns.push('full_name');
-    placeholderIndex += 1;
-    values.push(nameParts.fullName || null);
-    placeholders.push(`$${placeholderIndex}`);
-  }
-
-  if (columns.includes('email')) {
-    insertColumns.push('email');
-    placeholderIndex += 1;
-    values.push(payloadWithNames.email || payloadWithNames.emailAddress || null);
-    placeholders.push(`$${placeholderIndex}`);
-  }
-
-  if (columns.includes('birth_date')) {
-    insertColumns.push('birth_date');
-    placeholderIndex += 1;
-    values.push(payloadWithNames.birthDate || null);
-    placeholders.push(`$${placeholderIndex}`);
-  }
-
-  if (columns.includes('birth_place')) {
-    insertColumns.push('birth_place');
-    placeholderIndex += 1;
-    values.push(payloadWithNames.birthPlace || null);
-    placeholders.push(`$${placeholderIndex}`);
-  }
+  });
 
   const { rows } = await client.query(
     `INSERT INTO consensi (${insertColumns.join(', ')}, created_at, updated_at)
