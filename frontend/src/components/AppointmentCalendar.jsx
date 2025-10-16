@@ -427,9 +427,9 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
               onChange={(e) => setGroupMode(e.target.value)}
               style={{
                 padding: '0.5rem',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '4px',
+                backgroundColor: '#000000',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '6px',
                 color: '#f3f4f6',
                 fontSize: '0.9rem'
               }}
@@ -447,9 +447,9 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
               onChange={(e) => setTatuatoreFilter(e.target.value)}
               style={{
                 padding: '0.5rem',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '4px',
+                backgroundColor: '#000000',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '6px',
                 color: '#f3f4f6',
                 fontSize: '0.9rem'
               }}
@@ -467,9 +467,9 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
               onChange={(e) => setStanzaFilter(e.target.value)}
               style={{
                 padding: '0.5rem',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '4px',
+                backgroundColor: '#000000',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '6px',
                 color: '#f3f4f6',
                 fontSize: '0.9rem'
               }}

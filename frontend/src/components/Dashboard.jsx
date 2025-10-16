@@ -10,12 +10,16 @@ function Dashboard({ stats }) {
       {stats && (
         <>
           {/* KPI Cards */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: '1rem',
-            marginBottom: '2rem'
-          }} className="dashboard-stats-grid">
+          <div
+            className="dashboard-stats-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '1rem',
+              marginBottom: '2rem',
+              width: '100%'
+            }}
+          >
             <div style={{
               background: 'rgba(24, 24, 27, 0.85)',
               border: '1px solid rgba(75, 85, 99, 0.5)',

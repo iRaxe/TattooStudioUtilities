@@ -41,6 +41,15 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const selectStyles = {
+    width: '100%',
+    padding: '0.75rem',
+    backgroundColor: '#000000',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '6px',
+    color: '#f3f4f6',
+    fontSize: '0.9rem'
+  };
 
   // Log per verificare se il componente viene montato
   useEffect(() => {
@@ -353,15 +362,7 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
                   <select
                     value={formData.tatuatore_id}
                     onChange={(e) => handleInputChange('tatuatore_id', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '4px',
-                      color: '#f3f4f6',
-                      fontSize: '0.9rem'
-                    }}
+                    style={selectStyles}
                     disabled={loading}
                   >
                     <option value="">Seleziona tatuatore...</option>
@@ -391,15 +392,7 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
                   <select
                     value={formData.stanza_id}
                     onChange={(e) => handleInputChange('stanza_id', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '4px',
-                      color: '#f3f4f6',
-                      fontSize: '0.9rem'
-                    }}
+                    style={selectStyles}
                     disabled={loading}
                   >
                     <option value="">Seleziona stanza...</option>
@@ -509,15 +502,7 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
             <select
               value={formData.durata_minuti}
               onChange={(e) => handleInputChange('durata_minuti', parseInt(e.target.value))}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '4px',
-                color: '#f3f4f6',
-                fontSize: '0.9rem'
-              }}
+              style={selectStyles}
               disabled={loading}
             >
               <option value={15}>15 minuti</option>
@@ -539,15 +524,7 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
               <select
                 value={formData.stato}
                 onChange={(e) => handleInputChange('stato', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '4px',
-                  color: '#f3f4f6',
-                  fontSize: '0.9rem'
-                }}
+                style={selectStyles}
                 disabled={loading}
               >
                 <option value="confermato">Confermato</option>

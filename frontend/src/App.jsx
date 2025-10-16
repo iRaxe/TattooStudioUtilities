@@ -608,8 +608,12 @@ function AdminLogin({ onLoggedIn, onAuthChange }) {
       }
 
       if (response.ok) {
+        if (!data?.token) {
+          setError('Risposta del server senza token. Riprova.')
+          return
+        }
         setCookie('adminToken', data.token, 7)
-        onLoggedIn()
+        onLoggedIn?.(data.token)
         onAuthChange?.(true)
       } else {
         setError(data.message || 'Credenziali non valide')
@@ -664,7 +668,8 @@ function AdminLogin({ onLoggedIn, onAuthChange }) {
 }
 
 function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: externalOnTabChange, onLogout: externalOnLogout }) {
-  const [isAuth, setIsAuth] = useState(false)
+  const [authToken, setAuthToken] = useState(() => getCookie('adminToken'))
+  const [isAuth, setIsAuth] = useState(() => !!getCookie('adminToken'))
   const [activeTab, setActiveTab] = useState('dashboard')
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
@@ -711,18 +716,33 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
   }, [externalActiveTab])
 
   useEffect(() => {
-    const token = getCookie('adminToken')
-    if (token) {
+    const cookieToken = getCookie('adminToken')
+
+    if (cookieToken && cookieToken !== authToken) {
+      setAuthToken(cookieToken)
       setIsAuth(true)
       onAuthChange?.(true)
-      fetchDraftCards()
-      fetchAllGiftCards()
-      fetchStats()
-      fetchCustomers()
-      fetchTatuatori()
-      fetchStanze()
     }
-  }, [onAuthChange])
+
+    if (!cookieToken && authToken) {
+      setAuthToken(null)
+      setIsAuth(false)
+      onAuthChange?.(false)
+    }
+  }, [authToken, onAuthChange])
+
+  useEffect(() => {
+    if (!authToken) {
+      return
+    }
+
+    fetchDraftCards()
+    fetchAllGiftCards()
+    fetchStats()
+    fetchCustomers()
+    fetchTatuatori()
+    fetchStanze()
+  }, [authToken])
 
   // Chiudi dropdown quando si clicca fuori
   useEffect(() => {
@@ -738,9 +758,15 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
     }
   }, [showColumnDropdown])
 
+  const resolveToken = () => authToken || getCookie('adminToken')
+
   const fetchDraftCards = async () => {
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        console.warn('Missing admin token while fetching drafts')
+        return
+      }
       const response = await fetch('/api/admin/gift-cards/drafts', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -758,7 +784,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
 
   const fetchAllGiftCards = async () => {
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        console.warn('Missing admin token while fetching gift cards')
+        return
+      }
       const response = await fetch('/api/admin/gift-cards', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -776,7 +806,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
 
   const fetchStats = async () => {
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        console.warn('Missing admin token while fetching stats')
+        return
+      }
       const response = await fetch('/api/admin/gift-cards/stats', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -794,7 +828,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
 
   const fetchCustomers = async () => {
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        console.warn('Missing admin token while fetching customers')
+        return
+      }
       const response = await fetch('/api/admin/customers', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -812,7 +850,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
 
   const fetchTatuatori = async () => {
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        console.warn('Missing admin token while fetching tatuatori')
+        return
+      }
       const response = await fetch('/api/admin/tatuatori', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -830,7 +872,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
 
   const fetchStanze = async () => {
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        console.warn('Missing admin token while fetching stanze')
+        return
+      }
       const response = await fetch('/api/admin/stanze', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -858,7 +904,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
     setError('')
 
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        setError('Token amministratore mancante. Effettua di nuovo il login.')
+        return
+      }
       const response = await fetch('/api/admin/gift-cards/drafts', {
         method: 'POST',
         headers: {
@@ -903,7 +953,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
     if (!confirmed) return
 
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        alert('Sessione amministratore scaduta. Effettua nuovamente il login.')
+        return
+      }
       const response = await fetch('/api/admin/gift-cards/mark-used', {
         method: 'POST',
         headers: {
@@ -933,7 +987,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
     if (!confirmed) return
 
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        alert('Sessione amministratore scaduta. Effettua nuovamente il login.')
+        return
+      }
       const response = await fetch(`/api/admin/gift-cards/${id}`, {
         method: 'DELETE',
         headers: {
@@ -960,7 +1018,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
     if (!confirmed) return
 
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        alert('Sessione amministratore scaduta. Effettua nuovamente il login.')
+        return
+      }
       const response = await fetch(`/api/admin/gift-cards/${id}/renew`, {
         method: 'PUT',
         headers: {
@@ -1004,7 +1066,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
     }
 
     try {
-      const token = getCookie('adminToken')
+      const token = resolveToken()
+      if (!token) {
+        alert('Sessione amministratore scaduta. Effettua nuovamente il login.')
+        return
+      }
       const response = await fetch(`/api/admin/customers/${editingCustomer.phone}`, {
         method: 'PUT',
         headers: {
@@ -1040,9 +1106,10 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
       externalOnLogout()
     } else {
       deleteCookie('adminToken')
-      setIsAuth(false)
-      onAuthChange?.(false)
     }
+    setAuthToken(null)
+    setIsAuth(false)
+    onAuthChange?.(false)
   }
 
   // Funzione per cambiare tab che notifica anche il componente esterno
@@ -1055,73 +1122,42 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
     return (
       <Container>
         <Card>
-          <AdminLogin onLoggedIn={() => {
-            setIsAuth(true)
-            // Carica i dati dopo il login
-            setTimeout(() => {
-              fetchDraftCards()
-              fetchAllGiftCards()
-              fetchStats()
-              fetchCustomers()
-              fetchTatuatori()
-              fetchStanze()
-            }, 100)
-          }} onAuthChange={onAuthChange} />
+          <AdminLogin
+            onLoggedIn={(token) => {
+              setAuthToken(token)
+              setIsAuth(true)
+              onAuthChange?.(true)
+            }}
+            onAuthChange={onAuthChange}
+          />
         </Card>
       </Container>
     )
   }
 
   return (
-    <Container>
-      <div style={{
-        display: 'flex',
-        gap: '2rem',
-        alignItems: 'flex-start',
-        width: '100%'
-      }}>
+    <Container className="admin-panel">
+      <div className="admin-layout">
         {/* Sidebar Navigation */}
-        <div className="admin-sidebar" style={{
-          width: '250px',
-          flexShrink: 0,
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '4px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '1.5rem',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem'
-          }}>
+        <aside className="admin-sidebar">
+          <div className="admin-nav">
             <Button
               variant={activeTab === 'dashboard' ? 'primary' : 'ghost'}
               onClick={() => handleTabChange('dashboard')}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                padding: '0.75rem 1rem',
-                borderRadius: '4px'
-              }}
+              type="button"
+              className="admin-nav-btn"
             >
-              <Squares2X2Icon style={{ marginRight: '0.5rem' }} /> Dashboard
+              <Squares2X2Icon className="admin-nav-icon" aria-hidden="true" />
+              <span className="admin-nav-label">Dashboard</span>
             </Button>
             <Button
               variant={activeTab === 'create' ? 'primary' : 'ghost'}
               onClick={() => handleTabChange('create')}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                padding: '0.75rem 1rem',
-                borderRadius: '4px'
-              }}
+              type="button"
+              className="admin-nav-btn"
             >
-              <PlusIcon style={{ marginRight: '0.5rem' }} /> Crea Gift Card
+              <PlusIcon className="admin-nav-icon" aria-hidden="true" />
+              <span className="admin-nav-label">Crea Gift Card</span>
             </Button>
             <Button
               variant={activeTab === 'giftcards' ? 'primary' : 'ghost'}
@@ -1129,16 +1165,11 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                 handleTabChange('giftcards')
                 fetchAllGiftCards()
               }}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                padding: '0.75rem 1rem',
-                borderRadius: '4px'
-              }}
+              type="button"
+              className="admin-nav-btn"
             >
-              <GiftIcon style={{ marginRight: '0.5rem' }} /> Elenco Gift Card
+              <GiftIcon className="admin-nav-icon" aria-hidden="true" />
+              <span className="admin-nav-label">Elenco Gift Card</span>
             </Button>
             <Button
               variant={activeTab === 'customers' ? 'primary' : 'ghost'}
@@ -1146,43 +1177,26 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
                 handleTabChange('customers')
                 fetchCustomers()
               }}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                padding: '0.75rem 1rem',
-                borderRadius: '4px'
-              }}
+              type="button"
+              className="admin-nav-btn"
             >
-              <UsersIcon style={{ marginRight: '0.5rem' }} /> Elenco Clienti
+              <UsersIcon className="admin-nav-icon" aria-hidden="true" />
+              <span className="admin-nav-label">Elenco Clienti</span>
             </Button>
             <Button
               variant={activeTab === 'appointments' ? 'primary' : 'ghost'}
               onClick={() => handleTabChange('appointments')}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                padding: '0.75rem 1rem',
-                borderRadius: '4px'
-              }}
+              type="button"
+              className="admin-nav-btn"
             >
-              <PaintBrushIcon style={{ marginRight: '0.5rem' }} /> Appuntamenti
+              <PaintBrushIcon className="admin-nav-icon" aria-hidden="true" />
+              <span className="admin-nav-label">Appuntamenti</span>
             </Button>
           </div>
-        </div>
+        </aside>
         
         {/* Main Content */}
-        <div style={{
-          flex: 1,
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '4px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '2rem',
-          backdropFilter: 'blur(10px)'
-        }}>
+        <section className="admin-content">
         
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
@@ -1244,7 +1258,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
           </div>
         )}
         
-        </div>
+        </section>
       </div>
 
       {/* Modal per visualizzare dettagli cliente */}
@@ -1304,7 +1318,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
               display: 'grid',
               gap: '1rem'
             }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
                 <div>
                   <label style={{ color: '#9ca3af', fontSize: '0.9rem', display: 'block', marginBottom: '0.5rem' }}>Nome *</label>
                   <Input

@@ -12,6 +12,15 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
   const [disponibilita, setDisponibilita] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const selectStyles = {
+    width: '100%',
+    padding: '0.75rem',
+    backgroundColor: '#000000',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '6px',
+    color: '#f3f4f6',
+    fontSize: '0.9rem'
+  };
 
   // Carica disponibilità quando cambiano i parametri
   useEffect(() => {
@@ -132,15 +141,7 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
           <select
             value={tatuatoreId}
             onChange={(e) => setTatuatoreId(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '4px',
-              color: '#f3f4f6',
-              fontSize: '0.9rem'
-            }}
+            style={selectStyles}
             disabled={loading}
           >
             <option value="">Seleziona tatuatore...</option>
@@ -159,15 +160,7 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
           <select
             value={stanzaId}
             onChange={(e) => setStanzaId(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '4px',
-              color: '#f3f4f6',
-              fontSize: '0.9rem'
-            }}
+            style={selectStyles}
             disabled={loading}
           >
             <option value="">Seleziona stanza...</option>
@@ -187,15 +180,7 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
           <select
             value={durataMinuti}
             onChange={(e) => setDurataMinuti(parseInt(e.target.value))}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '4px',
-              color: '#f3f4f6',
-              fontSize: '0.9rem'
-            }}
+            style={selectStyles}
             disabled={loading}
           >
             <option value={15}>15 minuti</option>

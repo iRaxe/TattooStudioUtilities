@@ -276,80 +276,119 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
           )}
         </div>
       ) : (
-        <div className="gift-card-list-container" style={{
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '4px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          overflow: 'hidden'
-        }}>
-          <table className="gift-card-table">
+        <div
+          className="gift-card-list-container admin-table-wrapper"
+          style={{
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '4px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            overflowX: 'auto',
+            overflowY: 'hidden'
+          }}
+        >
+          <table className="gift-card-table admin-table">
             <thead>
               <tr style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
                 {visibleColumns.amount && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Importo</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Importo
+                  </th>
                 )}
                 {visibleColumns.status && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Stato</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Stato
+                  </th>
                 )}
                 {visibleColumns.code && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Codice</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Codice
+                  </th>
                 )}
                 {visibleColumns.customer && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Cliente</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Cliente
+                  </th>
                 )}
                 {visibleColumns.created && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Creata</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Creata
+                  </th>
                 )}
                 {visibleColumns.expires && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Scadenza</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Scadenza
+                  </th>
                 )}
                 {visibleColumns.actions && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Azioni</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Azioni
+                  </th>
                 )}
               </tr>
             </thead>
@@ -359,14 +398,14 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                   borderBottom: index < filteredCards.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'
                 }}>
                   {visibleColumns.amount && (
-                    <td style={{
+                    <td data-label="Importo" style={{
                       padding: '1rem',
                       fontWeight: '600',
                       color: '#fbbf24'
                     }}>€{card.amount}</td>
                   )}
                   {visibleColumns.status && (
-                    <td style={{
+                    <td data-label="Stato" style={{
                       padding: '1rem'
                     }}>
                       <span style={{
@@ -394,7 +433,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                     </td>
                   )}
                   {visibleColumns.code && (
-                    <td style={{
+                    <td data-label="Codice" style={{
                       padding: '1rem',
                       fontFamily: 'monospace',
                       fontSize: '0.9rem',
@@ -404,7 +443,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                     </td>
                   )}
                   {visibleColumns.customer && (
-                    <td style={{
+                    <td data-label="Cliente" style={{
                       padding: '1rem',
                       fontSize: '0.9rem',
                       color: '#e5e7eb'
@@ -412,6 +451,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                       {card.customer_name && card.customer_name !== 'N/A' ? (
                         <Button
                           variant="secondary"
+                          type="button"
                           onClick={() => {
                             // Trova il cliente corrispondente nella lista clienti
                             const customer = customers.find(c => 
@@ -460,7 +500,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                     </td>
                   )}
                   {visibleColumns.created && (
-                    <td style={{
+                    <td data-label="Creata" style={{
                       padding: '1rem',
                       fontSize: '0.9rem',
                       color: '#e5e7eb'
@@ -469,7 +509,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                     </td>
                   )}
                   {visibleColumns.expires && (
-                    <td style={{
+                    <td data-label="Scadenza" style={{
                       padding: '1rem',
                       fontSize: '0.9rem',
                       color: card.expires_at && new Date(card.expires_at) < new Date() ? '#ef4444' : '#e5e7eb'
@@ -478,9 +518,13 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                     </td>
                   )}
                   {visibleColumns.actions && (
-                    <td style={{
-                      padding: '1rem'
-                    }}>
+                    <td
+                      className="admin-table-actions"
+                      data-label="Azioni"
+                      style={{
+                        padding: '1rem'
+                      }}
+                    >
                       <div className="flex gap-sm flex-wrap">
                         {card.status === 'draft' && card.claim_token && (
                           <button

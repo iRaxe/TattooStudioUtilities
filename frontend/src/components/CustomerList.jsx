@@ -267,101 +267,153 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
           )}
         </div>
       ) : (
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.05)',
-          borderRadius: '4px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          overflow: 'hidden'
-        }}>
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse'
-          }}>
+        <div
+          className="admin-table-wrapper"
+          style={{
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '4px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            overflowX: 'auto',
+            overflowY: 'hidden'
+          }}
+        >
+          <table
+            className="admin-table"
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse'
+            }}
+          >
             <thead>
               <tr style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
                 {visibleCustomerColumns.name && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Cliente</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Cliente
+                  </th>
                 )}
                 {visibleCustomerColumns.contacts && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Contatti</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Contatti
+                  </th>
                 )}
                 {visibleCustomerColumns.total && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Totale</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Totale
+                  </th>
                 )}
                 {visibleCustomerColumns.active && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Attive</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Attive
+                  </th>
                 )}
                 {visibleCustomerColumns.used && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Usate</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Usate
+                  </th>
                 )}
                 {visibleCustomerColumns.expired && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Scadute</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Scadute
+                  </th>
                 )}
                 {visibleCustomerColumns.amount && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Importo Totale</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Importo Totale
+                  </th>
                 )}
                 {visibleCustomerColumns.lastPurchase && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'left',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Ultimo Acquisto</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'left',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Ultimo Acquisto
+                  </th>
                 )}
                 {visibleCustomerColumns.consents && (
-                  <th style={{
-                    padding: '1rem',
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    color: '#fbbf24',
-                    fontSize: '0.9rem'
-                  }}>Azioni</th>
+                  <th
+                    scope="col"
+                    style={{
+                      padding: '1rem',
+                      textAlign: 'center',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Azioni
+                  </th>
                 )}
               </tr>
             </thead>
@@ -371,7 +423,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                   borderBottom: index < filteredCustomers.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'
                 }}>
                   {visibleCustomerColumns.name && (
-                    <td style={{
+                    <td data-label="Cliente" style={{
                       padding: '1rem',
                       color: '#f3f4f6'
                     }}>
@@ -383,7 +435,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     </td>
                   )}
                   {visibleCustomerColumns.contacts && (
-                    <td style={{
+                    <td data-label="Contatti" style={{
                       padding: '1rem',
                       color: '#9ca3af',
                       fontSize: '0.9rem'
@@ -423,7 +475,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     </td>
                   )}
                   {visibleCustomerColumns.total && (
-                    <td style={{
+                    <td data-label="Totale" style={{
                       padding: '1rem',
                       textAlign: 'center',
                       color: '#f3f4f6',
@@ -433,7 +485,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     </td>
                   )}
                   {visibleCustomerColumns.active && (
-                    <td style={{
+                    <td data-label="Attive" style={{
                       padding: '1rem',
                       textAlign: 'center',
                       color: '#10b981'
@@ -442,7 +494,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     </td>
                   )}
                   {visibleCustomerColumns.used && (
-                    <td style={{
+                    <td data-label="Usate" style={{
                       padding: '1rem',
                       textAlign: 'center',
                       color: '#6b7280'
@@ -451,7 +503,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     </td>
                   )}
                   {visibleCustomerColumns.expired && (
-                    <td style={{
+                    <td data-label="Scadute" style={{
                       padding: '1rem',
                       textAlign: 'center',
                       color: '#ef4444'
@@ -460,7 +512,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     </td>
                   )}
                   {visibleCustomerColumns.amount && (
-                    <td style={{
+                    <td data-label="Importo Totale" style={{
                       padding: '1rem',
                       textAlign: 'center',
                       color: '#fbbf24',
@@ -470,7 +522,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     </td>
                   )}
                   {visibleCustomerColumns.lastPurchase && (
-                    <td style={{
+                    <td data-label="Ultimo Acquisto" style={{
                       padding: '1rem',
                       color: '#9ca3af',
                       fontSize: '0.9rem'
@@ -485,12 +537,16 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                     </td>
                   )}
                   {visibleCustomerColumns.consents && (
-                    <td style={{
-                      padding: '1rem',
-                      textAlign: 'center',
-                      color: '#9ca3af',
-                      fontSize: '0.9rem'
-                    }}>
+                    <td
+                      className="admin-table-actions"
+                      data-label="Azioni"
+                      style={{
+                        padding: '1rem',
+                        textAlign: 'center',
+                        color: '#9ca3af',
+                        fontSize: '0.9rem'
+                      }}
+                    >
                       {customer.phone ? (
                         <div style={{
                           display: 'flex',

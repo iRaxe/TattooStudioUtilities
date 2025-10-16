@@ -38,6 +38,13 @@ function AppointmentList() {
     note: true,
     azioni: true
   });
+  const [filtersOpen, setFiltersOpen] = useState(true);
+
+  useEffect(() => {
+    if (!filtersOpen) {
+      setShowColumnFilter(false);
+    }
+  }, [filtersOpen]);
 
   // Carica dati iniziali
   useEffect(() => {
@@ -557,7 +564,6 @@ function AppointmentList() {
   }, [appointments]);
 
   const [currentView, setCurrentView] = useState('list'); // 'list', 'calendar', 'availability'
-  const [filtersOpen, setFiltersOpen] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -594,23 +600,6 @@ function AppointmentList() {
           <p className="section-description">
             Gestisci tutti gli appuntamenti con filtri avanzati e viste multiple
           </p>
-        </div>
-        <div className="appointments-header__actions">
-          <Button
-            variant="secondary"
-            onClick={handleOpenSettings}
-            className="appointments-action-btn"
-          >
-            <i className="fas fa-cogs"></i>
-            Impostazioni
-          </Button>
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="appointments-action-btn appointments-action-btn--primary"
-          >
-            <i className="fas fa-plus"></i>
-            Crea appuntamento
-          </Button>
         </div>
       </header>
 
@@ -770,60 +759,62 @@ function AppointmentList() {
                 </div>
               )}
 
-              <div className="appointments-filter-actions">
-                <Button onClick={fetchAppointments} disabled={loading}>
-                  {loading ? 'Caricamento...' : 'Applica filtri'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setTatuatoreFilter('');
-                    setStanzaFilter('');
-                    setStatoFilter('');
-                    setDataInizioFilter('');
-                    setDataFineFilter('');
-                  }}
-                >
-                  Cancella filtri
-                </Button>
-                <div className="appointments-column-picker">
+              {filtersOpen && (
+                <div className="appointments-filter-actions">
+                  <Button onClick={fetchAppointments} disabled={loading}>
+                    {loading ? 'Caricamento...' : 'Applica filtri'}
+                  </Button>
                   <Button
                     variant="secondary"
-                    onClick={() => setShowColumnFilter(!showColumnFilter)}
+                    onClick={() => {
+                      setSearchTerm('');
+                      setTatuatoreFilter('');
+                      setStanzaFilter('');
+                      setStatoFilter('');
+                      setDataInizioFilter('');
+                      setDataFineFilter('');
+                    }}
                   >
-                    Colonne <i className={`fas ${showColumnFilter ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+                    Cancella filtri
                   </Button>
-                  {showColumnFilter && (
-                    <div className="appointments-column-picker__menu">
-                      {[
-                        { key: 'tatuatore', label: 'Tatuatore' },
-                        { key: 'stanza', label: 'Stanza' },
-                        { key: 'cliente', label: 'Cliente' },
-                        { key: 'dataOra', label: 'Data e Ora' },
-                        { key: 'durata', label: 'Durata' },
-                        { key: 'stato', label: 'Stato' },
-                        { key: 'note', label: 'Note' },
-                        { key: 'azioni', label: 'Azioni' }
-                      ].map(column => (
-                        <label key={column.key}>
-                          <input
-                            type="checkbox"
-                            checked={visibleColumns[column.key]}
-                            onChange={(e) => {
-                              setVisibleColumns(prev => ({
-                                ...prev,
-                                [column.key]: e.target.checked
-                              }));
-                            }}
-                          />
-                          <span>{column.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
+                  <div className="appointments-column-picker">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowColumnFilter(!showColumnFilter)}
+                    >
+                      Colonne <i className={`fas ${showColumnFilter ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+                    </Button>
+                    {showColumnFilter && (
+                      <div className="appointments-column-picker__menu">
+                        {[
+                          { key: 'tatuatore', label: 'Tatuatore' },
+                          { key: 'stanza', label: 'Stanza' },
+                          { key: 'cliente', label: 'Cliente' },
+                          { key: 'dataOra', label: 'Data e Ora' },
+                          { key: 'durata', label: 'Durata' },
+                          { key: 'stato', label: 'Stato' },
+                          { key: 'note', label: 'Note' },
+                          { key: 'azioni', label: 'Azioni' }
+                        ].map(column => (
+                          <label key={column.key}>
+                            <input
+                              type="checkbox"
+                              checked={visibleColumns[column.key]}
+                              onChange={(e) => {
+                                setVisibleColumns(prev => ({
+                                  ...prev,
+                                  [column.key]: e.target.checked
+                                }));
+                              }}
+                            />
+                            <span>{column.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </section>
 
             {loading && (
