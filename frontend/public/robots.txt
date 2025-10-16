@@ -1,0 +1,8 @@
+# robots.txt per T'ink Studio
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /gift/claim/
+Disallow: /gift/landing/
+
+Sitemap: https://www.tinkstudio.it/sitemap.xml

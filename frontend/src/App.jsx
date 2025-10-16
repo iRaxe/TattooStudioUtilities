@@ -42,6 +42,186 @@ import { copyToClipboard, shareLink } from './utils/clipboard'
 import Button from './components/common/Button'
 import Alert from './components/common/Alert'
 
+const BRAND_NAME = "T'ink Studio"
+const SITE_BASE_URL = 'https://www.tinkstudio.it'
+const DEFAULT_OG_IMAGE = `${SITE_BASE_URL}/LogoScritta.svg`
+
+const DEFAULT_SEO = {
+  title: BRAND_NAME,
+  description: "Gestisci gift card, consensi digitali, tatuaggi, trucco permanente e piercing con la piattaforma T'ink Studio.",
+  keywords: "tink studio, gift card tatuaggi, trucco permanente, piercing grumo nevano, consenso tatuaggio online",
+  ogType: 'website',
+  ogImage: DEFAULT_OG_IMAGE,
+  robots: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+  header: null
+}
+
+const ROUTE_SEO_RULES = [
+  {
+    match: (path) => path === '/',
+    data: {
+      title: 'Gift Card Digitali e Servizi Tattoo',
+      description: "Acquista e gestisci gift card, consensi e servizi digitali da T'ink Studio a Grumo Nevano.",
+      keywords: "gift card tink studio, studio tatuaggi grumo nevano, servizi tattoo digitali",
+      header: 'Gift Card Tink Studio'
+    }
+  },
+  {
+    match: (path) => path === '/verify',
+    data: {
+      title: 'Verifica Gift Card',
+      description: 'Controlla in tempo reale la validita e il saldo delle gift card T\'ink Studio.',
+      keywords: 'verifica gift card tink studio, controllo saldo gift card tatuaggi',
+      header: 'Verifica Gift Card'
+    }
+  },
+  {
+    match: (path) => path === '/consenso',
+    data: {
+      title: 'Consenso Online',
+      description: 'Compila e gestisci i moduli di consenso per tatuaggi, trucco permanente e piercing direttamente online.',
+      keywords: 'consenso tattoo online, modulo consenso trucco permanente, consenso piercing digitale',
+      header: 'Consenso Online'
+    }
+  },
+  {
+    match: (path) => path === '/consenso/tatuaggio',
+    data: {
+      title: 'Consenso Tatuaggio',
+      description: 'Scarica e invia il modulo di consenso informato per tatuaggi professionali T\'ink Studio.',
+      keywords: 'consenso tatuaggio tink studio, modulo tattoo online',
+      header: 'Consenso Tatuaggio',
+      ogType: 'article'
+    }
+  },
+  {
+    match: (path) => path === '/consenso/trucco-permanente',
+    data: {
+      title: 'Consenso Trucco Permanente',
+      description: 'Completa il modulo di consenso per i trattamenti di trucco permanente presso T\'ink Studio.',
+      keywords: 'consenso trucco permanente, modulo trucco permanente online',
+      header: 'Consenso Trucco Permanente',
+      ogType: 'article'
+    }
+  },
+  {
+    match: (path) => path === '/consenso/piercing',
+    data: {
+      title: 'Consenso Piercing',
+      description: 'Compila il consenso informato per piercing professionali presso T\'ink Studio.',
+      keywords: 'consenso piercing online, modulo consenso piercing tink studio',
+      header: 'Consenso Piercing',
+      ogType: 'article'
+    }
+  },
+  {
+    match: (path) =>
+      path.startsWith('/consenso/') &&
+      path !== '/consenso/tatuaggio' &&
+      path !== '/consenso/trucco-permanente' &&
+      path !== '/consenso/piercing',
+    data: {
+      title: 'Modulo di Consenso',
+      description: 'Gestisci i moduli di consenso digitali di T\'ink Studio per i tuoi trattamenti personalizzati.',
+      header: 'Modulo di Consenso',
+      ogType: 'article'
+    }
+  },
+  {
+    match: (path) => path === '/cura-del-tatuaggio',
+    data: {
+      title: 'Cura del Tatuaggio',
+      description: 'Segui le linee guida T\'ink Studio per la cura del tatuaggio e garantisci una guarigione perfetta.',
+      keywords: 'cura tatuaggio tink studio, consigli guarigione tattoo',
+      header: 'Cura del Tatuaggio',
+      ogType: 'article'
+    }
+  },
+  {
+    match: (path) => path === '/contattaci',
+    data: {
+      title: 'Contattaci',
+      description: 'Contatta T\'ink Studio per informazioni su tatuaggi, trucco permanente, piercing e gift card.',
+      keywords: 'contatti tink studio, prenotazione tatuaggi grumo nevano',
+      header: "Contattaci - T'ink Tattoo Studio"
+    }
+  },
+  {
+    match: (path) => path === '/admin',
+    data: {
+      title: 'Area Riservata Admin',
+      description: 'Accedi al pannello amministratore T\'ink Studio per gestire gift card, appuntamenti e consensi digitali.',
+      robots: 'noindex, nofollow',
+      header: 'Pannello Amministratore'
+    }
+  },
+  {
+    match: (path) => path.startsWith('/gift/claim/'),
+    data: {
+      title: 'Personalizza Gift Card',
+      description: 'Riscatta e personalizza la tua gift card T\'ink Studio con messaggi dedicati e preferenze.',
+      keywords: 'personalizza gift card tink studio',
+      header: 'Personalizza la tua Gift Card',
+      ogType: 'article'
+    }
+  },
+  {
+    match: (path) => path.startsWith('/gift/landing/'),
+    data: {
+      title: 'Gift Card T\'ink Studio',
+      description: 'Scopri i dettagli della tua gift card digitale T\'ink Studio e condividila con chi vuoi.',
+      header: 'Gift Card T\'ink Studio',
+      ogType: 'article'
+    }
+  }
+]
+
+const resolveSeo = (path) => {
+  const rule = ROUTE_SEO_RULES.find((entry) => entry.match(path))
+  return {
+    ...DEFAULT_SEO,
+    ...(rule ? rule.data : {})
+  }
+}
+
+const updateMetaTag = (attribute, name, content) => {
+  if (!content) {
+    return
+  }
+
+  const selector = attribute === 'property' ? `meta[property="${name}"]` : `meta[name="${name}"]`
+  let element = document.head.querySelector(selector)
+  if (!element) {
+    element = document.createElement('meta')
+    element.setAttribute(attribute, name)
+    document.head.appendChild(element)
+  }
+  element.setAttribute('content', content)
+}
+
+const updateCanonicalLink = (href) => {
+  if (!href) {
+    return
+  }
+
+  let link = document.head.querySelector('link[rel="canonical"]')
+  if (!link) {
+    link = document.createElement('link')
+    link.setAttribute('rel', 'canonical')
+    document.head.appendChild(link)
+  }
+  link.setAttribute('href', href)
+}
+
+const buildCanonicalUrl = (path) => {
+  if (!path || path === '/') {
+    return `${SITE_BASE_URL}/`
+  }
+
+  const sanitized = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path
+  return `${SITE_BASE_URL}${sanitized}`
+}
+
 
 
 // Delete Consent Function
@@ -2169,6 +2349,36 @@ function AppContent() {
     setIsAdminLoggedIn(!!token)
   }, [])
 
+  useEffect(() => {
+    const seo = resolveSeo(location.pathname)
+    const baseTitle = seo.title || BRAND_NAME
+    const normalizedTitle = baseTitle.includes(BRAND_NAME) ? baseTitle : `${baseTitle} | ${BRAND_NAME}`
+    document.title = normalizedTitle
+    document.documentElement.setAttribute('lang', 'it')
+
+    const description = seo.description || DEFAULT_SEO.description
+    const keywords = seo.keywords || DEFAULT_SEO.keywords
+    const robots = seo.robots || DEFAULT_SEO.robots
+    const ogImage = seo.ogImage || DEFAULT_SEO.ogImage
+    const canonicalUrl = seo.canonical || buildCanonicalUrl(location.pathname)
+    const ogUrl = seo.ogUrl || canonicalUrl
+    const ogType = seo.ogType || DEFAULT_SEO.ogType
+
+    updateMetaTag('name', 'description', description)
+    updateMetaTag('name', 'keywords', keywords)
+    updateMetaTag('name', 'robots', robots)
+    updateMetaTag('property', 'og:title', seo.ogTitle || normalizedTitle)
+    updateMetaTag('property', 'og:description', seo.ogDescription || description)
+    updateMetaTag('property', 'og:type', ogType)
+    updateMetaTag('property', 'og:url', ogUrl)
+    updateMetaTag('property', 'og:image', ogImage)
+    updateMetaTag('name', 'twitter:title', seo.twitterTitle || normalizedTitle)
+    updateMetaTag('name', 'twitter:description', seo.twitterDescription || description)
+    updateMetaTag('name', 'twitter:image', seo.twitterImage || ogImage)
+
+    updateCanonicalLink(canonicalUrl)
+  }, [location.pathname])
+
   const handleLogout = () => {
     deleteCookie('adminToken')
     setIsAdminLoggedIn(false)
@@ -2182,30 +2392,8 @@ function AppContent() {
 
   // Determina il titolo della pagina basato sulla route
   const getPageTitle = () => {
-    switch (location.pathname) {
-      case '/':
-        return 'Gift Card Tink Studio'
-      case '/verify':
-        return 'Verifica Gift Card'
-      case '/consenso':
-        return 'Consenso Online - Trucco Permanente, Tatuaggi e Piercing'
-      case '/consenso/trucco-permanente':
-        return 'Consenso Trucco Permanente'
-      case '/cura-del-tatuaggio':
-        return 'Cura del Tatuaggio'
-      case '/contattaci':
-        return 'Contattaci - T\'ink Tattoo Studio'
-      case '/admin':
-        return 'Pannello Amministratore'
-      default:
-        if (location.pathname.startsWith('/gift/claim/')) {
-          return 'Personalizza la tua Gift Card'
-        }
-        if (location.pathname.startsWith('/consenso/')) {
-          return 'Modulo di Consenso'
-        }
-        return null
-    }
+    const seo = resolveSeo(location.pathname)
+    return seo.header
   }
 
   // Hide header on gift card landing page
@@ -2252,19 +2440,21 @@ function AppContent() {
           </div>
         </Header>
       )}
-      <Routes>
-<Route path="/" element={<Home />} />
-<Route path="/verify" element={<Verify />} />
-<Route path="/cura-del-tatuaggio" element={<TattooAftercare />} />
-<Route path="/contattaci" element={<Contattaci />} />
-<Route path="/consenso" element={<ConsensoOnline />} />
-<Route path="/consenso/tatuaggio" element={<TattooConsentForm />} />
-<Route path="/consenso/trucco-permanente" element={<PermanentMakeupConsentForm />} />
-<Route path="/consenso/piercing" element={<ConsensoPiercing />} />
-<Route path="/admin" element={<AdminPanel onAuthChange={setIsAdminLoggedIn} activeTab={adminActiveTab} onTabChange={handleAdminTabChange} onLogout={handleLogout} />} />
-<Route path="/gift/claim/:token" element={<ClaimPage />} />
-<Route path="/gift/landing/:token" element={<GiftCardLanding />} />
-      </Routes>
+      <main id="main-content" className="app-main" role="main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/verify" element={<Verify />} />
+          <Route path="/cura-del-tatuaggio" element={<TattooAftercare />} />
+          <Route path="/contattaci" element={<Contattaci />} />
+          <Route path="/consenso" element={<ConsensoOnline />} />
+          <Route path="/consenso/tatuaggio" element={<TattooConsentForm />} />
+          <Route path="/consenso/trucco-permanente" element={<PermanentMakeupConsentForm />} />
+          <Route path="/consenso/piercing" element={<ConsensoPiercing />} />
+          <Route path="/admin" element={<AdminPanel onAuthChange={setIsAdminLoggedIn} activeTab={adminActiveTab} onTabChange={handleAdminTabChange} onLogout={handleLogout} />} />
+          <Route path="/gift/claim/:token" element={<ClaimPage />} />
+          <Route path="/gift/landing/:token" element={<GiftCardLanding />} />
+        </Routes>
+      </main>
       {showHeader && <Footer />}
     </div>
   )
