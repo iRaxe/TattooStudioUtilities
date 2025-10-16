@@ -1009,6 +1009,7 @@ select::-ms-expand {
 .admin-table td {
   padding: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: middle;
 }
 
 .admin-table th {
@@ -1022,7 +1023,6 @@ select::-ms-expand {
 .admin-table td {
   font-size: 0.9rem;
   color: #e5e7eb;
-  vertical-align: top;
 }
 
 .admin-table tbody tr:last-child td {
@@ -2797,6 +2797,7 @@ html {
   text-align: left;
   font-size: 0.9rem;
   color: #f3f4f6;
+  vertical-align: middle;
 }
 
 .appointments-table thead th {

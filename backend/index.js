@@ -82,6 +82,54 @@ const monthsFromDate = (date, months) => {
 const toISO = (value) => (value ? new Date(value).toISOString() : null);
 const genCode = () => Math.random().toString(36).slice(2, 10).toUpperCase();
 
+let consensiColumnsCache = null;
+async function ensureConsensiColumns(client) {
+  if (consensiColumnsCache) {
+    return consensiColumnsCache;
+  }
+  const { rows } = await client.query(
+    `
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_name = 'consensi'
+    `
+  );
+  consensiColumnsCache = rows.map((row) => row.column_name);
+  return consensiColumnsCache;
+}
+
+function deriveNameParts(payload = {}) {
+  const explicitFirst = payload.firstName || payload.first_name || null;
+  const explicitLast = payload.lastName || payload.last_name || null;
+  const explicitFull = payload.fullName || payload.full_name || null;
+
+  if (explicitFirst && explicitLast) {
+    return {
+      firstName: explicitFirst,
+      lastName: explicitLast,
+      fullName: explicitFull || `${explicitFirst} ${explicitLast}`.trim(),
+    };
+  }
+
+  if (explicitFull) {
+    const parts = explicitFull.trim().split(/\s+/).filter(Boolean);
+    const [first = '', ...rest] = parts;
+    const last = rest.length > 0 ? rest.join(' ') : first;
+    return {
+      firstName: explicitFirst || first,
+      lastName: explicitLast || last,
+      fullName: explicitFull,
+    };
+  }
+
+  return {
+    firstName: explicitFirst || null,
+    lastName: explicitLast || null,
+    fullName: explicitFull || null,
+  };
+}
+
 async function withTransaction(callback) {
   const client = await pool.connect();
   try {
@@ -1413,11 +1461,64 @@ app.post(
   })
 );
 async function saveConsent(client, { type, payload, phone }) {
+  const columns = await ensureConsensiColumns(client);
+  const nameParts = deriveNameParts(payload);
+  const payloadWithNames = { ...payload };
+  if (nameParts.firstName && !payloadWithNames.firstName) {
+    payloadWithNames.firstName = nameParts.firstName;
+  }
+  if (nameParts.lastName && !payloadWithNames.lastName) {
+    payloadWithNames.lastName = nameParts.lastName;
+  }
+  if (nameParts.fullName && !payloadWithNames.fullName) {
+    payloadWithNames.fullName = nameParts.fullName;
+  }
+
+  const insertColumns = ['id', 'type', 'phone', 'payload', 'submitted_at'];
+  const values = [uuidv4(), type, phone || null, payloadWithNames, payloadWithNames.submittedAt ? new Date(payloadWithNames.submittedAt) : now()];
+  const placeholders = ['$1', '$2', '$3', '$4', '$5'];
+  let placeholderIndex = placeholders.length;
+
+  if (columns.includes('first_name')) {
+    insertColumns.push('first_name');
+    placeholderIndex += 1;
+    values.push(nameParts.firstName || null);
+    placeholders.push(`$${placeholderIndex}`);
+  }
+
+  if (columns.includes('last_name')) {
+    insertColumns.push('last_name');
+    placeholderIndex += 1;
+    values.push(nameParts.lastName || null);
+    placeholders.push(`$${placeholderIndex}`);
+  }
+
+  if (columns.includes('full_name')) {
+    insertColumns.push('full_name');
+    placeholderIndex += 1;
+    values.push(nameParts.fullName || null);
+    placeholders.push(`$${placeholderIndex}`);
+  }
+
+  if (columns.includes('email')) {
+    insertColumns.push('email');
+    placeholderIndex += 1;
+    values.push(payloadWithNames.email || payloadWithNames.emailAddress || null);
+    placeholders.push(`$${placeholderIndex}`);
+  }
+
+  if (columns.includes('birth_date')) {
+    insertColumns.push('birth_date');
+    placeholderIndex += 1;
+    values.push(payloadWithNames.birthDate || null);
+    placeholders.push(`$${placeholderIndex}`);
+  }
+
   const { rows } = await client.query(
-    `INSERT INTO consensi (id, type, phone, payload, submitted_at, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+    `INSERT INTO consensi (${insertColumns.join(', ')}, created_at, updated_at)
+     VALUES (${placeholders.join(', ')}, NOW(), NOW())
      RETURNING id, created_at`,
-    [uuidv4(), type, phone || null, payload, payload.submittedAt ? new Date(payload.submittedAt) : now()]
+    values
   );
   return rows[0];
 }

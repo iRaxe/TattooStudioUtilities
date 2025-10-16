@@ -550,9 +550,10 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
                       {customer.phone ? (
                         <div style={{
                           display: 'flex',
-                          flexDirection: 'column',
                           gap: '0.5rem',
-                          alignItems: 'center'
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexWrap: 'nowrap'
                         }}>
                           <button
                             className="icon-only-button"
