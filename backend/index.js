@@ -130,6 +130,17 @@ function deriveNameParts(payload = {}) {
   };
 }
 
+function coerceToDate(value) {
+  if (!value) {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date;
+}
+
 async function withTransaction(callback) {
   const client = await pool.connect();
   try {
@@ -1547,6 +1558,20 @@ async function saveConsent(client, { type, payload, phone }) {
     payloadWithNames.minor = minorData;
   }
 
+  const documentIssuedRaw =
+    payloadWithNames.documentIssuedDate ||
+    payloadWithNames.document_issue_date ||
+    payloadWithNames.documentIssueDate ||
+    payloadWithNames.documentIssuedAt ||
+    payloadWithNames.documentDateIssued ||
+    payloadWithNames.documentIssued;
+  const resolvedDocumentIssuedDate =
+    coerceToDate(documentIssuedRaw) ||
+    coerceToDate(payloadWithNames.submittedAt) ||
+    coerceToDate(payloadWithNames.appointmentDate) ||
+    coerceToDate(payloadWithNames.birthDate) ||
+    new Date();
+
   const insertColumns = ['id', 'type', 'phone', 'payload', 'submitted_at'];
   const values = [uuidv4(), type, phone || null, payloadWithNames, payloadWithNames.submittedAt ? new Date(payloadWithNames.submittedAt) : now()];
   const placeholders = ['$1', '$2', '$3', '$4', '$5'];
@@ -1573,6 +1598,7 @@ async function saveConsent(client, { type, payload, phone }) {
     document_issuer: payloadWithNames.documentIssuer || null,
     document_issued_by: payloadWithNames.documentIssuedBy || payloadWithNames.documentIssuer || payloadWithNames.document_issued_by || null,
     document_issue_authority: payloadWithNames.documentIssuer || payloadWithNames.documentIssuedBy || null,
+    document_issued_date: resolvedDocumentIssuedDate,
     requested_work: payloadWithNames.requestedWork || null,
     artist_name: payloadWithNames.artistName || null,
     appointment_date: payloadWithNames.appointmentDate || null,
