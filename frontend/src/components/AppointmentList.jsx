@@ -1,5 +1,18 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
-import { CalendarDaysIcon, EyeIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
+import {
+  AdjustmentsHorizontalIcon,
+  ArrowPathIcon,
+  CalendarDaysIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  EyeIcon,
+  ListBulletIcon,
+  PencilSquareIcon,
+  PlusIcon,
+  TrashIcon
+} from '@heroicons/react/24/solid';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -655,9 +668,9 @@ function AppointmentList() {
   };
 
   const viewTabs = [
-    { id: 'list', label: 'Lista', icon: 'fa-list' },
-    { id: 'calendar', label: 'Calendario', icon: 'fa-calendar-alt' },
-    { id: 'availability', label: 'Disponibilità', icon: 'fa-clock' }
+    { id: 'list', label: 'Lista', icon: ListBulletIcon },
+    { id: 'calendar', label: 'Calendario', icon: CalendarDaysIcon },
+    { id: 'availability', label: 'Disponibilità', icon: ClockIcon }
   ];
 
   const summaryStats = useMemo(() => {
@@ -716,7 +729,7 @@ function AppointmentList() {
       <header className="appointments-header">
         <div className="appointments-header__text">
           <h3 className="section-title">
-            <i className="fas fa-calendar-alt"></i> Gestione Appuntamenti
+            <CalendarDaysIcon className="section-title-icon" aria-hidden="true" /> Gestione Appuntamenti
           </h3>
           <p className="section-description">
             Gestisci tutti gli appuntamenti con filtri avanzati e viste multiple
@@ -745,19 +758,22 @@ function AppointmentList() {
 
       <div className="appointments-toolbar">
         <div className="appointments-view-tabs" role="tablist">
-          {viewTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`appointments-view-tab ${currentView === tab.id ? 'is-active' : ''}`}
-              onClick={() => setCurrentView(tab.id)}
-              role="tab"
-              aria-selected={currentView === tab.id}
-            >
-              <i className={`fas ${tab.icon}`} aria-hidden="true"></i>
-              <span>{tab.label}</span>
-            </button>
-          ))}
+          {viewTabs.map((tab) => {
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={`appointments-view-tab ${currentView === tab.id ? 'is-active' : ''}`}
+                onClick={() => setCurrentView(tab.id)}
+                role="tab"
+                aria-selected={currentView === tab.id}
+              >
+                <TabIcon className="icon-inline icon-no-margin" aria-hidden="true" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
         <div className="appointments-toolbar__actions">
           <Button
@@ -766,7 +782,7 @@ function AppointmentList() {
             className="appointments-toolbar__action hide-desktop"
             disabled={loading}
           >
-            <i className="fas fa-sync-alt"></i>
+            <ArrowPathIcon className="icon-inline icon-no-margin" aria-hidden="true" />
             Aggiorna
           </Button>
           <Button
@@ -774,14 +790,14 @@ function AppointmentList() {
             onClick={handleOpenSettings}
             className="appointments-toolbar__action hide-mobile"
           >
-            <i className="fas fa-cogs"></i>
+            <Cog6ToothIcon className="icon-inline icon-no-margin" aria-hidden="true" />
             Impostazioni
           </Button>
           <Button
             onClick={() => setShowCreateModal(true)}
             className="appointments-toolbar__action hide-mobile appointments-action-btn--primary"
           >
-            <i className="fas fa-plus"></i>
+            <PlusIcon className="icon-inline icon-no-margin" aria-hidden="true" />
             Nuovo
           </Button>
         </div>
@@ -798,10 +814,14 @@ function AppointmentList() {
                 aria-expanded={filtersOpen}
               >
                 <div>
-                  <i className="fas fa-sliders-h" aria-hidden="true"></i>
+                  <AdjustmentsHorizontalIcon className="icon-inline icon-no-margin" aria-hidden="true" />
                   <span>Filtri</span>
                 </div>
-                <i className={`fas ${filtersOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+                {filtersOpen ? (
+                  <ChevronUpIcon className="icon-inline icon-no-margin" aria-hidden="true" />
+                ) : (
+                  <ChevronDownIcon className="icon-inline icon-no-margin" aria-hidden="true" />
+                )}
               </button>
 
               {filtersOpen && (
@@ -903,7 +923,12 @@ function AppointmentList() {
                       variant="secondary"
                       onClick={() => setShowColumnFilter(!showColumnFilter)}
                     >
-                      Colonne <i className={`fas ${showColumnFilter ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"></i>
+                      Colonne{' '}
+                      {showColumnFilter ? (
+                        <ChevronUpIcon className="icon-inline icon-no-margin" aria-hidden="true" />
+                      ) : (
+                        <ChevronDownIcon className="icon-inline icon-no-margin" aria-hidden="true" />
+                      )}
                     </Button>
                     {showColumnFilter && (
                       <div className="appointments-column-picker__menu">

@@ -478,27 +478,33 @@ select::-ms-expand {
 }
 
 /* Icon styles for various elements */
-.claim-error-title i,
-.claim-loading-spinner i,
-.claim-success-title i,
-.claim-disclaimer-icon i {
+.claim-error-title .icon-inline,
+.claim-loading-spinner .icon-inline,
+.claim-success-title .icon-inline,
+.claim-disclaimer-icon .icon-inline {
   margin-right: 0.5rem;
 }
 
-.claim-error-title i {
+.claim-error-title .icon-inline {
   color: #ef4444;
 }
 
-.claim-loading-spinner i {
-  color: #fbbf24;
-  font-size: 1.5rem;
-}
-
-.claim-success-title i {
+.claim-loading-spinner .icon-inline,
+.claim-loading-spinner .icon-spin {
   color: #fbbf24;
 }
 
-.claim-disclaimer-icon i {
+.claim-loading-spinner .icon-inline,
+.claim-loading-spinner .icon-spin {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.claim-success-title .icon-inline {
+  color: #fbbf24;
+}
+
+.claim-disclaimer-icon .icon-inline {
   color: #fbbf24;
 }
 
@@ -796,8 +802,42 @@ select::-ms-expand {
   font-size: 1.25rem;
 }
 
-.section-title i {
+.section-title-icon {
+  width: 1.25em;
+  height: 1.25em;
   margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.icon-inline {
+  width: 1.25em;
+  height: 1.25em;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.icon-no-margin {
+  margin-right: 0;
+}
+
+.icon-spin {
+  animation: icon-spin 1s linear infinite;
+}
+
+@keyframes icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.page-loading,
+.admin-loading {
+  color: #9ca3af;
+  padding: 2rem;
+  text-align: center;
 }
 
 .section-description {
@@ -2541,8 +2581,9 @@ html {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
-.appointments-view-tab i {
-  font-size: 0.85rem;
+.appointments-view-tab .icon-inline {
+  width: 1rem;
+  height: 1rem;
 }
 
 .appointments-toolbar__actions {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
 import { getCookie } from '../utils/cookies';
 import Button from './common/Button';
 
@@ -368,7 +369,7 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
       }}>
         <div>
           <h3 className="section-title">
-            <i className="fas fa-calendar-alt"></i> Calendario Appuntamenti
+            <CalendarDaysIcon className="section-title-icon" aria-hidden="true" /> Calendario Appuntamenti
           </h3>
           <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: 0 }}>
             {formatDateRange()}
@@ -386,8 +387,9 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
               variant="secondary"
               onClick={() => navigateDate(-1)}
               style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+              aria-label="Giorno precedente"
             >
-              <i className="fas fa-chevron-left"></i>
+              <ChevronLeftIcon className="icon-inline icon-no-margin" aria-hidden="true" />
             </Button>
             <Button onClick={goToToday} variant="secondary">
               Oggi
@@ -396,8 +398,9 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
               variant="secondary"
               onClick={() => navigateDate(1)}
               style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+              aria-label="Giorno successivo"
             >
-              <i className="fas fa-chevron-right"></i>
+              <ChevronRightIcon className="icon-inline icon-no-margin" aria-hidden="true" />
             </Button>
           </div>
 
@@ -760,8 +763,9 @@ function AppointmentCalendar({ onSlotClick, onAppointmentClick, tatuatori, stanz
         borderRadius: '4px',
         border: '1px solid rgba(255, 255, 255, 0.1)'
       }}>
-        <h4 style={{ color: '#fbbf24', marginBottom: '1rem', fontSize: '1rem' }}>
-          <i className="fas fa-info-circle"></i> Legenda
+        <h4 style={{ color: '#fbbf24', marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <InformationCircleIcon aria-hidden="true" className="icon-inline icon-no-margin" />
+          Legenda
         </h4>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

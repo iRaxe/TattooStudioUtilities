@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ClockIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
 import { getCookie } from '../utils/cookies';
 import Button from './common/Button';
 import Input from './common/Input';
@@ -108,7 +109,7 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
   return (
     <div>
       <h3 className="section-title">
-        <i className="fas fa-clock"></i> Verifica Disponibilità
+        <ClockIcon className="section-title-icon" aria-hidden="true" /> Verifica Disponibilità
       </h3>
       <p className="section-description">
         Controlla la disponibilità in tempo reale e seleziona slot per creare appuntamenti
@@ -365,8 +366,9 @@ function AvailabilityChecker({ onSlotSelect, tatuatori, stanze }) {
               borderRadius: '4px',
               border: '1px solid rgba(255, 255, 255, 0.05)'
             }}>
-              <h4 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1rem' }}>
-                <i className="fas fa-info-circle"></i> Dettagli Slot
+              <h4 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <InformationCircleIcon className="icon-inline icon-no-margin" aria-hidden="true" />
+                Dettagli Slot
               </h4>
               <div style={{ fontSize: '0.9rem', color: '#9ca3af' }}>
                 Orario lavorativo: 09:00 - 21:00 •

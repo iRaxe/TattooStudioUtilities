@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowPathIcon, CheckCircleIcon, LinkIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { ArrowPathIcon, CheckCircleIcon, LinkIcon, ListBulletIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 import { getCookie } from '../utils/cookies';
 import { copyToClipboard, shareLink } from '../utils/clipboard';
@@ -125,7 +125,7 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
 
   return (
     <div>
-      <h3 className="section-title"><i className="fas fa-list"></i> Elenco Gift Card</h3>
+      <h3 className="section-title"><ListBulletIcon className="section-title-icon" aria-hidden="true" /> Elenco Gift Card</h3>
       <p className="section-description">
         Visualizza tutte le gift card create e il loro stato attuale
       </p>

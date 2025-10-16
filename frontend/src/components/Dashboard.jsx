@@ -1,9 +1,10 @@
 import React from 'react';
+import { ChartBarIcon, ChartPieIcon } from '@heroicons/react/24/solid';
 
 function Dashboard({ stats }) {
   return (
     <div>
-      <h3 className="section-title"><i className="fas fa-chart-bar"></i> Dashboard e Statistiche</h3>
+      <h3 className="section-title"><ChartBarIcon className="section-title-icon" aria-hidden="true" /> Dashboard e Statistiche</h3>
       <p className="section-description">
         Visualizza le statistiche aggregate delle gift card e i KPI principali
       </p>
@@ -94,8 +95,9 @@ function Dashboard({ stats }) {
             padding: '2rem',
             marginBottom: '2rem'
           }}>
-            <h4 style={{ color: '#f3f4f6', marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '600' }}>
-              <i className="fas fa-chart-pie"></i> Analisi Fatturato
+            <h4 style={{ color: '#f3f4f6', marginBottom: '1.5rem', fontSize: '1.2rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ChartPieIcon aria-hidden="true" className="icon-inline" />
+              Analisi Fatturato
             </h4>
             <div className="dashboard-revenue-chart">
               {/* Pie Chart */}

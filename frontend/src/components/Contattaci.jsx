@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowTopRightOnSquareIcon, LightBulbIcon, MapPinIcon } from '@heroicons/react/24/solid';
 import Button from './common/Button';
 
 function Container({ children, className = '' }) {
@@ -95,7 +96,7 @@ function Contattaci() {
 
               <div className="contattaci-tip">
                 <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: 0 }}>
-                  <i className="fas fa-lightbulb" /> <strong>Consiglio:</strong> Per prenotazioni e informazioni dettagliate,
+                  <LightBulbIcon className="icon-inline icon-no-margin" aria-hidden="true" /> <strong>Consiglio:</strong> Per prenotazioni e informazioni dettagliate,
                   contattaci via email per una risposta piu rapida e completa.
                 </p>
               </div>
@@ -112,14 +113,14 @@ function Contattaci() {
                 textAlign: 'center'
               }}
             >
-              <i className="fas fa-map-marker-alt" /> Dove Siamo
+              <MapPinIcon className="icon-inline icon-no-margin" aria-hidden="true" /> Dove Siamo
             </h2>
 
             <div style={{ marginBottom: '0rem' }}>
               <div className="contattaci-info-box">
                 <p style={{ color: '#f9fafb', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
                   <strong>
-                    <i className="fas fa-map-marker-alt" /> Indirizzo:
+                    <MapPinIcon className="icon-inline icon-no-margin" aria-hidden="true" /> Indirizzo:
                   </strong>
                 </p>
                 <button
@@ -157,7 +158,7 @@ function Contattaci() {
                   marginBottom: '1.5rem'
                 }}
               >
-                <i className="fas fa-directions" /> Ottieni Indicazioni
+                <ArrowTopRightOnSquareIcon className="icon-inline icon-no-margin" aria-hidden="true" /> Ottieni Indicazioni
               </Button>
             </div>
 

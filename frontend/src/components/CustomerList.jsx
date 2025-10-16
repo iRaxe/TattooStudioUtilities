@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DocumentCheckIcon, EyeIcon, PencilSquareIcon } from '@heroicons/react/24/solid';
+import { DocumentCheckIcon, EyeIcon, PencilSquareIcon, UsersIcon } from '@heroicons/react/24/solid';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -110,7 +110,7 @@ function CustomerList({ customers, onShowCustomerModal, onEditCustomer, generate
 
   return (
     <div>
-      <h3 className="section-title"><i className="fas fa-users"></i> Elenco Clienti</h3>
+      <h3 className="section-title"><UsersIcon className="section-title-icon" aria-hidden="true" /> Elenco Clienti</h3>
       <p className="section-description">
         Visualizza tutti i clienti con le statistiche delle loro gift card
       </p>

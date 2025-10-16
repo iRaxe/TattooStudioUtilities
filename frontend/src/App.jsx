@@ -1,39 +1,46 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 import { slide as Menu } from 'react-burger-menu'
 import './App.css'
-import { useState, useEffect, useRef } from 'react'
-import QRCode from 'qrcode'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import {
+  ArrowPathIcon,
   ArrowRightOnRectangleIcon,
+  ClipboardDocumentListIcon,
+  DocumentDuplicateIcon,
+  ExclamationTriangleIcon,
   GiftIcon,
+  HashtagIcon,
+  HomeIcon,
   MagnifyingGlassIcon,
   PaintBrushIcon,
   PencilSquareIcon,
   PhoneIcon,
   PlusIcon,
+  ShareIcon,
   SparklesIcon,
   Squares2X2Icon,
+  TrophyIcon,
   UsersIcon
 } from '@heroicons/react/24/solid'
 
+let html2canvasPromise
+const loadHtml2Canvas = async () => {
+  if (!html2canvasPromise) {
+    html2canvasPromise = import('html2canvas').then((module) => module.default)
+  }
+  return html2canvasPromise
+}
+
+let jsPDFPromise
+const loadJsPDF = async () => {
+  if (!jsPDFPromise) {
+    jsPDFPromise = import('jspdf').then((module) => module.default)
+  }
+  return jsPDFPromise
+}
+
 
 // Import new components
-import Dashboard from './components/Dashboard'
-import CreateGiftCard from './components/CreateGiftCard'
-import GiftCardList from './components/GiftCardList'
-import CustomerList from './components/CustomerList'
-import GiftCardLanding from './components/GiftCardLanding'
-import Contattaci from './components/Contattaci'
-import TattooAftercare from './components/TattooAftercare'
-import TattooConsentForm from './components/TattooConsentForm'
-import PermanentMakeupConsentForm from './components/PermanentMakeupConsentForm'
-import ConsensoPiercing from './components/ConsensoPiercing'
-import AppointmentList from './components/AppointmentList'
-import AppointmentForm from './components/AppointmentForm'
-import AppointmentCalendar from './components/AppointmentCalendar'
-import AvailabilityChecker from './components/AvailabilityChecker'
 import Input from './components/common/Input'
 import Textarea from './components/common/Textarea'
 import Modal from './components/common/Modal'
@@ -41,6 +48,21 @@ import { getCookie, setCookie, deleteCookie } from './utils/cookies'
 import { copyToClipboard, shareLink } from './utils/clipboard'
 import Button from './components/common/Button'
 import Alert from './components/common/Alert'
+
+const Dashboard = lazy(() => import('./components/Dashboard'))
+const CreateGiftCard = lazy(() => import('./components/CreateGiftCard'))
+const GiftCardList = lazy(() => import('./components/GiftCardList'))
+const CustomerList = lazy(() => import('./components/CustomerList'))
+const GiftCardLanding = lazy(() => import('./components/GiftCardLanding'))
+const Contattaci = lazy(() => import('./components/Contattaci'))
+const TattooAftercare = lazy(() => import('./components/TattooAftercare'))
+const TattooConsentForm = lazy(() => import('./components/TattooConsentForm'))
+const PermanentMakeupConsentForm = lazy(() => import('./components/PermanentMakeupConsentForm'))
+const ConsensoPiercing = lazy(() => import('./components/ConsensoPiercing'))
+const AppointmentList = lazy(() => import('./components/AppointmentList'))
+const AppointmentForm = lazy(() => import('./components/AppointmentForm'))
+const AppointmentCalendar = lazy(() => import('./components/AppointmentCalendar'))
+const AvailabilityChecker = lazy(() => import('./components/AvailabilityChecker'))
 
 const BRAND_NAME = "T'ink Studio"
 const SITE_BASE_URL = 'https://www.tinkstudio.it'
@@ -469,6 +491,7 @@ const generateConsentPDF = async (consentId, customerName) => {
     const type = (data?.type || payload.type || 'consenso').toLowerCase();
     const typeLabel = type.toUpperCase();
 
+    const jsPDF = await loadJsPDF();
     const pdf = new jsPDF();
     const pageHeight = pdf.internal.pageSize.height;
     const margin = 20;
@@ -1507,6 +1530,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
 
   return (
     <Container className="admin-panel">
+      <Suspense fallback={<div className="admin-loading">Caricamento pannello...</div>}>
       <div className="admin-layout">
         {/* Sidebar Navigation */}
         <aside className="admin-sidebar">
@@ -1865,6 +1889,7 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
               </Button>
             </div>
       </Modal>
+      </Suspense>
     </Container>
   )
 }
@@ -1967,12 +1992,14 @@ function ClaimPage() {
     if (!cardRef.current) return
 
     try {
+      const html2canvas = await loadHtml2Canvas()
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: null,
         scale: 2
       })
       
       const imgData = canvas.toDataURL('image/png')
+      const jsPDF = await loadJsPDF()
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',
@@ -1990,13 +2017,13 @@ function ClaimPage() {
     return (
       <Container>
         <Card>
-          <Title level={2} style={{ color: '#ef4444', marginBottom: '1rem' }}><i className="fas fa-exclamation-triangle"></i> Errore</Title>
+          <Title level={2} style={{ color: '#ef4444', marginBottom: '1rem' }}><ExclamationTriangleIcon className="icon-inline" aria-hidden="true" /> Errore</Title>
           <div style={{ color: '#f9fafb', marginBottom: '2rem', fontSize: '1.1rem' }}>
             {error}
           </div>
           <Link to="/" style={{ textDecoration: 'none' }}>
             <Button variant="primary">
-              <i className="fas fa-home"></i> Torna alla Home
+              <HomeIcon className="icon-inline" aria-hidden="true" /> Torna alla Home
             </Button>
           </Link>
         </Card>
@@ -2009,7 +2036,7 @@ function ClaimPage() {
       <Container>
         <Card>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}><i className="fas fa-spinner fa-spin"></i></div>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}><ArrowPathIcon className="icon-spin" aria-hidden="true" /></div>
             <p style={{ color: '#9ca3af', fontSize: '1.1rem' }}>Caricamento della tua Gift Card...</p>
           </div>
         </Card>
@@ -2023,7 +2050,7 @@ function ClaimPage() {
         <Card>
           <div ref={cardRef} style={{ textAlign: 'center' }}>
             <div className="claim-success-header">
-              <h1 className="claim-success-title"><i className="fas fa-trophy"></i> Congratulazioni!</h1>
+              <h1 className="claim-success-title"><TrophyIcon className="icon-inline" aria-hidden="true" /> Congratulazioni!</h1>
               <h2 className="claim-success-subtitle">Gift Card personalizzata con successo!</h2>
             </div>
             
@@ -2070,7 +2097,7 @@ function ClaimPage() {
                   className="claim-pdf-button"
                   aria-label="Copia codice gift card"
                 >
-                  <i className="fas fa-hashtag"></i> Copia Codice
+                  <HashtagIcon className="icon-inline" aria-hidden="true" /> Copia Codice
                 </button>
               )}
               
@@ -2086,7 +2113,7 @@ function ClaimPage() {
                 className="claim-pdf-button"
                 aria-label="Copia link negli appunti"
               >
-                <i className="fas fa-copy"></i> Copia Link
+                <DocumentDuplicateIcon className="icon-inline" aria-hidden="true" /> Copia Link
               </button>
               
               <button 
@@ -2105,7 +2132,7 @@ function ClaimPage() {
                 className="claim-pdf-button"
                 aria-label="Condividi gift card"
               >
-                <i className="fas fa-share-alt"></i> Condividi
+                <ShareIcon className="icon-inline" aria-hidden="true" /> Condividi
               </button>
             </div>
           </div>
@@ -2113,7 +2140,7 @@ function ClaimPage() {
           {/* Disclaimer */}
           <div className="claim-success-disclaimer">
             <div className="claim-disclaimer-header">
-              <span className="claim-disclaimer-icon"><i className="fas fa-clipboard-list"></i></span>
+              <span className="claim-disclaimer-icon"><ClipboardDocumentListIcon className="icon-inline icon-no-margin" aria-hidden="true" /></span>
               <h3 className="claim-disclaimer-title">Condizioni di utilizzo</h3>
             </div>
             <ul className="claim-disclaimer-list">
@@ -2441,7 +2468,8 @@ function AppContent() {
         </Header>
       )}
       <main id="main-content" className="app-main" role="main">
-        <Routes>
+        <Suspense fallback={<div className="page-loading">Caricamento contenuti...</div>}>
+          <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/cura-del-tatuaggio" element={<TattooAftercare />} />
@@ -2453,7 +2481,8 @@ function AppContent() {
           <Route path="/admin" element={<AdminPanel onAuthChange={setIsAdminLoggedIn} activeTab={adminActiveTab} onTabChange={handleAdminTabChange} onLogout={handleLogout} />} />
           <Route path="/gift/claim/:token" element={<ClaimPage />} />
           <Route path="/gift/landing/:token" element={<GiftCardLanding />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </main>
       {showHeader && <Footer />}
     </div>

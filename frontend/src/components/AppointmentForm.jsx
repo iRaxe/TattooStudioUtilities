@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CalendarDaysIcon } from '@heroicons/react/24/solid';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -471,7 +472,8 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
   return (
     <div>
       <h3 className="section-title">
-        <i className="fas fa-calendar-plus"></i>
+        <CalendarDaysIcon className="section-title-icon" aria-hidden="true" />
+        {' '}
         {appointment ? 'Modifica Appuntamento' : 'Nuovo Appuntamento'}
       </h3>
 

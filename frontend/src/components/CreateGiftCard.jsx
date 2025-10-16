@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CheckCircleIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
 
 import { getCookie } from '../utils/cookies';
 import { copyToClipboard, shareLink } from '../utils/clipboard';
@@ -148,7 +149,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
     <div style={{ marginBottom: '2rem' }}>
       {!lastCreatedCard && (
         <>
-          <h3 className="section-title"><i className="fas fa-plus"></i> Crea Gift Card</h3>
+          <h3 className="section-title"><PlusCircleIcon className="section-title-icon" aria-hidden="true" /> Crea Gift Card</h3>
           <p className="section-description">
             <strong>Solo importo:</strong> Genera un link per chi regala la gift card<br/>
             <strong>Tutti i campi:</strong> Crea una gift card completa con landing page personalizzata
@@ -205,7 +206,8 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
       {lastCreatedCard && (
         <div className="created-card-section">
           <h3 className="section-title">
-            <i className="fas fa-check-circle"></i> 
+            <CheckCircleIcon className="section-title-icon" aria-hidden="true" />
+            {' '}
             {lastCreatedCard.isDraft ? 'Link Gift Card Generato!' : 'Gift Card Creata con Successo!'}
           </h3>
           <div style={{
