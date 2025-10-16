@@ -111,10 +111,23 @@ const generateConsentPDF = async (consentId, customerName) => {
       return parsed.toLocaleString('it-IT');
     };
 
+    const statementsSource =
+      payload && typeof payload.statements === 'object' && payload.statements !== null
+        ? payload.statements
+        : null;
+    const booleanSources = [payload];
+    if (statementsSource) {
+      booleanSources.push(statementsSource);
+    }
     const boolFromPayload = (...keys) => {
-      for (const key of keys) {
-        if (Object.prototype.hasOwnProperty.call(payload, key) && typeof payload[key] === 'boolean') {
-          return payload[key];
+      for (const source of booleanSources) {
+        if (!source || typeof source !== 'object') {
+          continue;
+        }
+        for (const key of keys) {
+          if (Object.prototype.hasOwnProperty.call(source, key) && typeof source[key] === 'boolean') {
+            return source[key];
+          }
         }
       }
       return null;
@@ -208,11 +221,19 @@ const generateConsentPDF = async (consentId, customerName) => {
       normalizeString(payload.appointment_date);
     const appointmentDate = parseDate(appointmentDateRaw);
 
-    const acknowledgeInformed = boolFromPayload('acknowledgeInformed', 'consentInformedTreatment');
-    const confirmHealth = boolFromPayload('confirmHealth');
-    const releaseLiability = boolFromPayload('releaseLiability');
-    const consentPublication = boolFromPayload('consentPublication', 'consentPhotos');
-    const acceptPrivacy = boolFromPayload('acceptPrivacy', 'consentDataProcessing');
+    const acknowledgeInformed = boolFromPayload(
+      'acknowledgeInformed',
+      'consentInformedTreatment',
+      'consentInformation'
+    );
+    const consentRisks = boolFromPayload('consentRisks');
+    const consentAftercare = boolFromPayload('consentAftercare');
+    const consentMultipleSessions = boolFromPayload('consentMultipleSessions');
+    const consentColorChanges = boolFromPayload('consentColorChanges');
+    const consentTimeGap = boolFromPayload('consentTimeGap');
+    const releaseLiability = boolFromPayload('releaseLiability', 'consentLiability');
+    const consentPublication = boolFromPayload('consentPublication', 'consentPhotos', 'photoConsent');
+    const acceptPrivacy = boolFromPayload('acceptPrivacy', 'consentDataProcessing', 'privacyConsent');
 
     const isMinorClient =
       typeof payload.isMinorClient === 'boolean'
@@ -361,11 +382,58 @@ const generateConsentPDF = async (consentId, customerName) => {
 
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    writeLine(`Ha letto l'informativa: ${boolLabel(acknowledgeInformed)}`);
-    writeLine(`Dichiara di essere in buono stato di salute: ${boolLabel(confirmHealth)}`);
-    writeLine(`Liberatoria responsabilità artista: ${boolLabel(releaseLiability)}`);
-    writeLine(`Autorizza uso di foto/video: ${boolLabel(consentPublication)}`);
-    writeLine(`Accetta trattamento dati personali: ${boolLabel(acceptPrivacy)}`);
+    const declarationEntries = [];
+    if (type === 'trucco_permanente') {
+      declarationEntries.push({ label: "Ha letto l'informativa", value: acknowledgeInformed });
+      declarationEntries.push({
+        label: 'Consapevole dei rischi del trattamento',
+        value: consentRisks,
+      });
+      declarationEntries.push({
+        label: 'Si impegna a seguire la cura post trattamento',
+        value: consentAftercare,
+      });
+      declarationEntries.push({
+        label: 'Accetta il ciclo di sedute previsto',
+        value: consentMultipleSessions,
+      });
+      declarationEntries.push({
+        label: 'Consapevole di possibili variazioni di colore o forma',
+        value: consentColorChanges,
+      });
+      declarationEntries.push({
+        label: "Rispettera l'intervallo minimo tra le sedute",
+        value: consentTimeGap,
+      });
+      declarationEntries.push({
+        label: 'Liberatoria responsabilita operatore',
+        value: releaseLiability,
+      });
+    } else {
+      const confirmHealth = boolFromPayload('confirmHealth');
+      declarationEntries.push({ label: "Ha letto l'informativa", value: acknowledgeInformed });
+      declarationEntries.push({
+        label: 'Dichiara di essere in buono stato di salute',
+        value: confirmHealth,
+      });
+      declarationEntries.push({
+        label: 'Liberatoria responsabilita artista',
+        value: releaseLiability,
+      });
+    }
+    declarationEntries.push({
+      label: 'Autorizza uso di foto/video',
+      value: consentPublication,
+    });
+    declarationEntries.push({
+      label: 'Accetta trattamento dati personali',
+      value: acceptPrivacy,
+    });
+    declarationEntries.forEach((entry) => {
+      if (entry && entry.label) {
+        writeLine(`${entry.label}: ${boolLabel(entry.value)}`);
+      }
+    });
 
     yPos += 5;
     pdf.setFontSize(14);

@@ -1745,7 +1745,7 @@ app.post(
 app.post(
   '/api/consenso/trucco-permanente',
   asyncHandler(async (req, res) => {
-    const body = req.body || {};
+    const body = { ...(req.body || {}) };
     const sanitizedPhone = typeof body.phone === 'string' ? body.phone.replace(/\D/g, '') : '';
     if (
       !body.firstName?.trim() ||
@@ -1768,6 +1768,22 @@ app.post(
       }
     }
     body.phone = sanitizedPhone;
+    const ipAddress =
+      ((req.headers['x-forwarded-for'] || '')
+        .split(',')
+        .map((ip) => ip.trim())
+        .find((ip) => ip.length > 0) ||
+        req.socket?.remoteAddress ||
+        req.ip ||
+        null) ?? null;
+    const userAgent = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : null;
+    if (!body.ipAddress && ipAddress) {
+      body.ipAddress = ipAddress;
+    }
+    if (!body.userAgent && userAgent) {
+      body.userAgent = userAgent;
+    }
+    body.submittedAt = new Date().toISOString();
     const result = await withTransaction(async (client) => {
       const linkage = await attachConsentToCustomer(client, body);
       const consent = await saveConsent(client, { type: 'trucco_permanente', payload: body, phone: body.phone });
