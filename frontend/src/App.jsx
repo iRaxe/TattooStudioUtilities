@@ -73,22 +73,204 @@ const generateConsentPDF = async (consentId, customerName) => {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     if (!response.ok) {
       throw new Error(`Errore nel recupero del consenso: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
-    // I dati del consenso arrivano direttamente nell'oggetto data
-    const consenso = data;
-    
+    const payload = data?.payload || {};
+
+    const normalizeString = (value) => {
+      if (typeof value !== 'string') {
+        return '';
+      }
+      return value.trim();
+    };
+
+    const parseDate = (value) => {
+      if (!value) return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    };
+
+    const formatDate = (value, fallback = 'N/A') => {
+      const parsed = value instanceof Date ? value : parseDate(value);
+      if (!parsed) {
+        return fallback;
+      }
+      return parsed.toLocaleDateString('it-IT');
+    };
+
+    const formatDateTime = (value, fallback = 'N/A') => {
+      const parsed = value instanceof Date ? value : parseDate(value);
+      if (!parsed) {
+        return fallback;
+      }
+      return parsed.toLocaleString('it-IT');
+    };
+
+    const boolFromPayload = (...keys) => {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(payload, key) && typeof payload[key] === 'boolean') {
+          return payload[key];
+        }
+      }
+      return null;
+    };
+
+    const boolLabel = (value) => {
+      if (value === null || typeof value === 'undefined') {
+        return 'Non indicato';
+      }
+      return value ? 'Sì' : 'No';
+    };
+
+    const buildNameFallback = () => {
+      const candidate =
+        normalizeString(payload.fullName) ||
+        normalizeString(payload.full_name) ||
+        normalizeString(customerName);
+      if (!candidate) {
+        return { first: '', last: '' };
+      }
+      const parts = candidate.split(/\s+/).filter(Boolean);
+      const [first = '', ...rest] = parts;
+      return { first, last: rest.join(' ') };
+    };
+
+    const { first: fallbackFirstName, last: fallbackLastName } = buildNameFallback();
+    const firstName =
+      normalizeString(payload.firstName) ||
+      normalizeString(payload.first_name) ||
+      fallbackFirstName;
+    const lastName =
+      normalizeString(payload.lastName) ||
+      normalizeString(payload.last_name) ||
+      fallbackLastName;
+    const fullName =
+      normalizeString(payload.fullName) ||
+      normalizeString(payload.full_name) ||
+      [firstName, lastName].filter(Boolean).join(' ') ||
+      normalizeString(customerName) ||
+      'N/A';
+
+    const birthDateRaw = normalizeString(payload.birthDate) || normalizeString(payload.birth_date);
+    const birthCity = normalizeString(payload.birthCity) || normalizeString(payload.birth_city);
+    const birthProvince = normalizeString(payload.birthProvince) || normalizeString(payload.birth_province);
+    const birthPlace =
+      normalizeString(payload.birthPlace) ||
+      normalizeString(payload.birth_place) ||
+      [birthCity, birthProvince ? `(${birthProvince})` : ''].filter(Boolean).join(' ');
+
+    const phone =
+      normalizeString(payload.phoneNumber) ||
+      normalizeString(payload.phone) ||
+      normalizeString(data.phone);
+
+    const street =
+      normalizeString(payload.residenceStreet) ||
+      normalizeString(payload.address) ||
+      normalizeString(payload.residence_address);
+    const streetNumber = normalizeString(payload.residenceNumber);
+    const city = normalizeString(payload.residenceCity) || normalizeString(payload.city);
+    const province = normalizeString(payload.residenceProvince) || normalizeString(payload.province);
+    const streetLine = [street, streetNumber].filter(Boolean).join(' ').trim();
+    const cityLine = [city, province ? `(${province})` : ''].filter(Boolean).join(' ').trim();
+    let addressLine =
+      [streetLine, cityLine].filter(Boolean).join(', ') ||
+      normalizeString(payload.residence) ||
+      normalizeString(payload.address);
+    if (!addressLine) {
+      addressLine = 'N/A';
+    }
+
+    const documentType = normalizeString(payload.documentType) || normalizeString(payload.document_type);
+    const documentIssuer =
+      normalizeString(payload.documentIssuer) ||
+      normalizeString(payload.document_issuer) ||
+      normalizeString(payload.documentIssuedBy) ||
+      normalizeString(payload.document_issue_authority);
+    const documentNumber = normalizeString(payload.documentNumber) || normalizeString(payload.document_number);
+
+    const requestedWork =
+      normalizeString(payload.requestedWork) ||
+      normalizeString(payload.tattooDescription) ||
+      normalizeString(payload.treatmentDescription) ||
+      'N/A';
+    const artistName =
+      normalizeString(payload.artistName) ||
+      normalizeString(payload.artist_name) ||
+      'N/A';
+    const appointmentDateRaw =
+      normalizeString(payload.appointmentDate) ||
+      normalizeString(payload.appointment_date);
+    const appointmentDate = parseDate(appointmentDateRaw);
+
+    const acknowledgeInformed = boolFromPayload('acknowledgeInformed', 'consentInformedTreatment');
+    const confirmHealth = boolFromPayload('confirmHealth');
+    const releaseLiability = boolFromPayload('releaseLiability');
+    const consentPublication = boolFromPayload('consentPublication', 'consentPhotos');
+    const acceptPrivacy = boolFromPayload('acceptPrivacy', 'consentDataProcessing');
+
+    const isMinorClient =
+      typeof payload.isMinorClient === 'boolean'
+        ? payload.isMinorClient
+        : typeof payload.is_minor_client === 'boolean'
+          ? payload.is_minor_client
+          : null;
+
+    const minorSource = payload.minor || {};
+    const minor = {
+      name: normalizeString(minorSource.name) || normalizeString(payload.minorName),
+      birthDate: parseDate(normalizeString(minorSource.birthDate) || normalizeString(payload.minorBirthDate)),
+      birthCity: normalizeString(minorSource.birthCity) || normalizeString(payload.minorBirthCity),
+      birthProvince: normalizeString(minorSource.birthProvince) || normalizeString(payload.minorBirthProvince),
+      residenceStreet:
+        normalizeString(minorSource.residenceStreet) ||
+        normalizeString(payload.minorResidenceStreet),
+      residenceNumber:
+        normalizeString(minorSource.residenceNumber) ||
+        normalizeString(payload.minorResidenceNumber),
+      residenceCity:
+        normalizeString(minorSource.residenceCity) ||
+        normalizeString(payload.minorResidenceCity),
+      residenceProvince:
+        normalizeString(minorSource.residenceProvince) ||
+        normalizeString(payload.minorResidenceProvince)
+    };
+    const minorStreet = [minor.residenceStreet, minor.residenceNumber].filter(Boolean).join(' ').trim();
+    const minorCityLine = [minor.residenceCity, minor.residenceProvince ? `(${minor.residenceProvince})` : ''].filter(Boolean).join(' ').trim();
+    const hasMinorDetails =
+      isMinorClient === true &&
+      [
+        minor.name,
+        minor.birthDate,
+        minor.birthCity,
+        minor.birthProvince,
+        minorStreet,
+        minorCityLine
+      ].some((value) => {
+        if (value instanceof Date) return true;
+        return typeof value === 'string' && value.length > 0;
+      });
+
+    const signature =
+      normalizeString(payload.signature) ||
+      normalizeString(payload.signatureImage);
+    const ipAddress = normalizeString(payload.ipAddress) || normalizeString(data.ipAddress);
+    const userAgent = normalizeString(payload.userAgent) || normalizeString(data.userAgent);
+
+    const submittedAt = parseDate(data?.submittedAt || payload.submittedAt) || new Date();
+
+    const type = (data?.type || payload.type || 'consenso').toLowerCase();
+    const typeLabel = type.toUpperCase();
+
     const pdf = new jsPDF();
     const pageHeight = pdf.internal.pageSize.height;
     const margin = 20;
     const maxY = pageHeight - margin;
-    
-    // Funzione per controllare se serve una nuova pagina
+
     const checkNewPage = (currentY, lineHeight = 8) => {
       if (currentY + lineHeight > maxY) {
         pdf.addPage();
@@ -96,212 +278,141 @@ const generateConsentPDF = async (consentId, customerName) => {
       }
       return currentY;
     };
-    
-    // Header
+
     pdf.setFontSize(20);
     pdf.setFont('helvetica', 'bold');
     pdf.text('CONSENSO INFORMATO', 105, 20, { align: 'center' });
-    
+
     pdf.setFontSize(16);
-    pdf.text(`${consenso.type.toUpperCase()}`, 105, 30, { align: 'center' });
-    
-    // Dati anagrafici
+    pdf.text(typeLabel, 105, 30, { align: 'center' });
+
+    let yPos = 50;
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    let yPos = 50;
     yPos = checkNewPage(yPos, 10);
     pdf.text('DATI ANAGRAFICI', 20, yPos);
-    
+
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     yPos += 10;
-    
-    yPos = checkNewPage(yPos);
-    pdf.text(`Nome: ${consenso.firstName}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Cognome: ${consenso.lastName}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Data di nascita: ${consenso.birthDate}`, 20, yPos);
-    yPos += 8;
-    if (consenso.birthPlace) {
-      yPos = checkNewPage(yPos);
-      pdf.text(`Luogo di nascita: ${consenso.birthPlace}`, 20, yPos);
-      yPos += 8;
-    }
-    if (consenso.fiscalCode) {
-      yPos = checkNewPage(yPos);
-      pdf.text(`Codice fiscale: ${consenso.fiscalCode}`, 20, yPos);
-      yPos += 8;
-    }
-    if (consenso.address) {
-      yPos = checkNewPage(yPos);
-      pdf.text(`Indirizzo: ${consenso.address}`, 20, yPos);
-      yPos += 8;
-    }
-    if (consenso.city) {
-      yPos = checkNewPage(yPos);
-      pdf.text(`Città: ${consenso.city}`, 20, yPos);
-      yPos += 8;
-    }
-    yPos = checkNewPage(yPos);
-    pdf.text(`Telefono: ${consenso.phone}`, 20, yPos);
-    yPos += 8;
-    if (consenso.email) {
-      yPos = checkNewPage(yPos);
-      pdf.text(`Email: ${consenso.email}`, 20, yPos);
-      yPos += 8;
-    }
-    
-    yPos += 10;
-    
-    // Dati del trattamento
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    yPos = checkNewPage(yPos, 15);
-    pdf.text('DATI DEL TRATTAMENTO', 20, yPos);
-    yPos += 10;
-    
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    
-    if (consenso.type === 'tatuaggio') {
-      yPos = checkNewPage(yPos);
-      pdf.text(`Descrizione tatuaggio: ${consenso.tattooDescription || 'N/A'}`, 20, yPos);
-      yPos += 8;
-      yPos = checkNewPage(yPos);
-      pdf.text(`Posizione: ${consenso.tattooPosition || 'N/A'}`, 20, yPos);
-      yPos += 8;
-      yPos = checkNewPage(yPos);
-      pdf.text(`Dimensioni: ${consenso.tattooSize || 'N/A'}`, 20, yPos);
-      yPos += 8;
-      yPos = checkNewPage(yPos);
-      pdf.text(`Colori: ${consenso.tattooColors || 'N/A'}`, 20, yPos);
-      yPos += 8;
-    } else if (consenso.type === 'piercing') {
-      yPos = checkNewPage(yPos);
-      pdf.text(`Tipo piercing: ${consenso.piercingType || 'N/A'}`, 20, yPos);
-      yPos += 8;
-      yPos = checkNewPage(yPos);
-      pdf.text(`Posizione: ${consenso.piercingPosition || 'N/A'}`, 20, yPos);
-      yPos += 8;
-      yPos = checkNewPage(yPos);
-      pdf.text(`Tipo gioiello: ${consenso.jewelryType || 'N/A'}`, 20, yPos);
-      yPos += 8;
-      yPos = checkNewPage(yPos);
-      pdf.text(`Materiale: ${consenso.jewelryMaterial || 'N/A'}`, 20, yPos);
-      yPos += 8;
-    }
-    
-    if (consenso.appointmentDate) {
-      yPos = checkNewPage(yPos);
-      pdf.text(`Data appuntamento: ${new Date(consenso.appointmentDate).toLocaleDateString('it-IT')}`, 20, yPos);
-      yPos += 8;
-    }
-    
-    yPos += 10;
-    
-    // Stato di salute
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    yPos = checkNewPage(yPos, 15);
-    pdf.text('STATO DI SALUTE', 20, yPos);
-    yPos += 10;
-    
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    
-    yPos = checkNewPage(yPos);
-    pdf.text(`Maggiorenne: ${consenso.isAdult ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Allergie: ${consenso.hasAllergies ? 'Sì' : 'No'}`, 20, yPos);
-    if (consenso.hasAllergies && consenso.allergiesDescription) {
-      yPos += 8;
-      yPos = checkNewPage(yPos);
-      pdf.text(`Descrizione allergie: ${consenso.allergiesDescription}`, 20, yPos);
-    }
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Epatite: ${consenso.hasHepatitis ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`HIV: ${consenso.hasHiv ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Diabete: ${consenso.hasDiabetes ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Problemi cardiaci: ${consenso.hasHeartProblems ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Disturbi del sangue: ${consenso.hasBloodDisorders ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Gravidanza: ${consenso.isPregnant ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Anticoagulanti: ${consenso.takesAnticoagulants ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Tendenza cheloidi: ${consenso.hasKeloidTendency ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Altre condizioni: ${consenso.hasOtherConditions ? 'Sì' : 'No'}`, 20, yPos);
-    if (consenso.hasOtherConditions && consenso.otherConditionsDescription) {
-      yPos += 8;
-      yPos = checkNewPage(yPos);
-      pdf.text(`Descrizione: ${consenso.otherConditionsDescription}`, 20, yPos);
-    }
-    
-    yPos += 15;
-    
-    // Consensi
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    yPos = checkNewPage(yPos, 15);
-    pdf.text('CONSENSI', 20, yPos);
-    yPos += 10;
-    
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    
-    yPos = checkNewPage(yPos);
-    pdf.text(`Consenso al trattamento: ${consenso.consentInformedTreatment ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Consenso trattamento dati: ${consenso.consentDataProcessing ? 'Sì' : 'No'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`Consenso foto: ${consenso.consentPhotos ? 'Sì' : 'No'}`, 20, yPos);
-    
-    yPos += 15;
-    
-    // Firma digitale
+
+    const writeLine = (text, lineHeight = 8) => {
+      yPos = checkNewPage(yPos, lineHeight);
+      pdf.text(text, 20, yPos);
+      yPos += lineHeight;
+    };
+
+    writeLine(`Nome: ${firstName || 'N/A'}`);
+    writeLine(`Cognome: ${lastName || 'N/A'}`);
+    writeLine(`Nome completo: ${fullName}`);
+    writeLine(`Data di nascita: ${formatDate(birthDateRaw)}`);
+    writeLine(`Luogo di nascita: ${birthPlace || 'N/A'}`);
+    writeLine(`Telefono: ${phone || 'N/A'}`);
+    writeLine(`Residenza: ${addressLine}`);
+    writeLine(`Cliente minorenne: ${boolLabel(isMinorClient)}`);
+
+    yPos += 5;
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'bold');
-    yPos = checkNewPage(yPos, 15);
-    pdf.text('FIRMA DIGITALE', 20, yPos);
-    yPos += 8;
-    
+    writeLine("DOCUMENTO D'IDENTITÀ", 10);
+
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    yPos = checkNewPage(yPos);
-    pdf.text(`Data e ora: ${new Date(consenso.submittedAt).toLocaleString('it-IT')}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos);
-    pdf.text(`IP Address: ${consenso.ipAddress || 'N/A'}`, 20, yPos);
-    yPos += 8;
-    yPos = checkNewPage(yPos, 16); // User Agent può essere lungo
-    pdf.text(`User Agent: ${consenso.userAgent || 'N/A'}`, 20, yPos, { maxWidth: 170 });
-    
-    // Salva il PDF
-    const fileName = `consenso_${consenso.type}_${consenso.firstName}_${consenso.lastName}_${new Date(consenso.submittedAt).toLocaleDateString('it-IT').replace(/\//g, '-')}.pdf`;
+    writeLine(`Tipo: ${documentType || 'N/A'}`);
+    writeLine(`Numero: ${documentNumber || 'N/A'}`);
+    writeLine(`Rilasciato da: ${documentIssuer || 'N/A'}`);
+
+    if (hasMinorDetails) {
+      yPos += 5;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      writeLine('CLIENTE MINORENNE', 10);
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      writeLine(`Nome: ${minor.name || 'N/A'}`);
+      writeLine(`Data di nascita: ${formatDate(minor.birthDate)}`);
+      writeLine(
+        `Luogo di nascita: ${
+          [minor.birthCity, minor.birthProvince ? `(${minor.birthProvince})` : ''].filter(Boolean).join(' ') || 'N/A'
+        }`
+      );
+      writeLine(
+        `Residenza: ${[minorStreet, minorCityLine].filter(Boolean).join(', ') || 'N/A'}`
+      );
+    }
+
+    yPos += 5;
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    writeLine('DATI DEL TRATTAMENTO', 10);
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    writeLine(`Descrizione: ${requestedWork}`);
+    writeLine(`Artista: ${artistName}`);
+    writeLine(`Data appuntamento: ${appointmentDate ? formatDate(appointmentDate) : 'N/A'}`);
+
+    yPos += 5;
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    writeLine('DICHIARAZIONI', 10);
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    writeLine(`Ha letto l'informativa: ${boolLabel(acknowledgeInformed)}`);
+    writeLine(`Dichiara di essere in buono stato di salute: ${boolLabel(confirmHealth)}`);
+    writeLine(`Liberatoria responsabilità artista: ${boolLabel(releaseLiability)}`);
+    writeLine(`Autorizza uso di foto/video: ${boolLabel(consentPublication)}`);
+    writeLine(`Accetta trattamento dati personali: ${boolLabel(acceptPrivacy)}`);
+
+    yPos += 5;
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    writeLine('FIRMA DIGITALE', 10);
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    writeLine(`Data e ora invio: ${formatDateTime(submittedAt)}`);
+    writeLine(`IP Address: ${ipAddress || 'N/A'}`);
+
+    const userAgentLines = pdf.splitTextToSize(`User Agent: ${userAgent || 'N/A'}`, 170);
+    userAgentLines.forEach((line) => {
+      writeLine(line);
+    });
+
+    if (signature) {
+      const signatureData = signature.startsWith('data:image') ? signature : `data:image/png;base64,${signature}`;
+      const signatureHeight = 30;
+      const signatureWidth = 70;
+      yPos = checkNewPage(yPos, signatureHeight + 10);
+      pdf.addImage(signatureData, 'PNG', 20, yPos, signatureWidth, signatureHeight);
+      yPos += signatureHeight + 6;
+      writeLine('Firma del dichiarante', 6);
+    } else {
+      writeLine('Firma: N/A');
+    }
+
+    const sanitizeForFileName = (value) => {
+      const normalized = normalizeString(value).toLowerCase().replace(/\s+/g, '_');
+      return normalized.replace(/[^a-z0-9_-]/g, '');
+    };
+
+    const submissionDateForName = sanitizeForFileName(formatDate(submittedAt, '').replace(/\//g, '-'));
+    const fileNameParts = [
+      'consenso',
+      type,
+      sanitizeForFileName(firstName),
+      sanitizeForFileName(lastName),
+      submissionDateForName
+    ].filter(Boolean);
+
+    const fileName = `${fileNameParts.join('_') || `consenso_${type}`}.pdf`;
+
     pdf.save(fileName);
-    
   } catch (error) {
-    alert('Errore nella generazione del PDF');
+    console.error('Errore generazione PDF consenso:', error);
+    alert('Errore nella generazione del PDF del consenso.');
   }
 };
 
