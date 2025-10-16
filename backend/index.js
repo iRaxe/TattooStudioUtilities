@@ -1572,6 +1572,23 @@ async function saveConsent(client, { type, payload, phone }) {
     coerceToDate(payloadWithNames.birthDate) ||
     new Date();
 
+  const fallbackTattooType =
+    payloadWithNames.tattooType ||
+    payloadWithNames.tattoo_piercing_type ||
+    payloadWithNames.piercingType ||
+    payloadWithNames.treatmentType ||
+    payloadWithNames.requestedWork ||
+    (type === 'piercing' ? 'piercing' : 'tatuaggio');
+  const fallbackTattooDescription =
+    payloadWithNames.tattooDescription || payloadWithNames.treatmentDescription || payloadWithNames.requestedWork || null;
+  const fallbackTattooPosition = payloadWithNames.tattooPosition || payloadWithNames.position || null;
+  const fallbackTattooSize = payloadWithNames.tattooSize || payloadWithNames.size || null;
+  const fallbackTattooColors = payloadWithNames.tattooColors || payloadWithNames.colors || null;
+  const fallbackPiercingType = payloadWithNames.piercingType || fallbackTattooType;
+  const fallbackPiercingPosition = payloadWithNames.piercingPosition || fallbackTattooPosition;
+  const fallbackJewelryType = payloadWithNames.jewelryType || payloadWithNames.jewelType || null;
+  const fallbackJewelryMaterial = payloadWithNames.jewelryMaterial || payloadWithNames.jewelMaterial || null;
+
   const insertColumns = ['id', 'type', 'phone', 'payload', 'submitted_at'];
   const values = [uuidv4(), type, phone || null, payloadWithNames, payloadWithNames.submittedAt ? new Date(payloadWithNames.submittedAt) : now()];
   const placeholders = ['$1', '$2', '$3', '$4', '$5'];
@@ -1619,6 +1636,16 @@ async function saveConsent(client, { type, payload, phone }) {
     minor_residence_address: minorData.address || null,
     minor_residence_city: minorData.residenceCity || null,
     minor_residence_province: minorData.residenceProvince || null,
+    tattoo_piercing_type: fallbackTattooType || null,
+    tattoo_type: fallbackTattooType || null,
+    tattoo_description: fallbackTattooDescription || null,
+    tattoo_position: fallbackTattooPosition || null,
+    tattoo_size: fallbackTattooSize || null,
+    tattoo_colors: fallbackTattooColors || null,
+    piercing_type: fallbackPiercingType || null,
+    piercing_position: fallbackPiercingPosition || null,
+    jewelry_type: fallbackJewelryType || null,
+    jewelry_material: fallbackJewelryMaterial || null,
   };
 
   Object.entries(optionalColumnValues).forEach(([column, value]) => {
