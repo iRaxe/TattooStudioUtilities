@@ -41,6 +41,8 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [calendarPromptVisible, setCalendarPromptVisible] = useState(false);
+  const [calendarEventDetails, setCalendarEventDetails] = useState(null);
   const selectStyles = {
     width: '100%',
     padding: '0.75rem',
@@ -92,6 +94,59 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
       checkDisponibilita();
     }
   }, [formData.tatuatore_id, formData.stanza_id, formData.orario_inizio, formData.durata_minuti]);
+
+  const formatCalendarDate = (date) => {
+    const pad = (value) => value.toString().padStart(2, '0');
+    return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`;
+  };
+
+  const escapeICSText = (value = '') => (
+    value
+      .replace(/\\/g, '\\\\')
+      .replace(/\n/g, '\\n')
+      .replace(/,/g, '\\,')
+      .replace(/;/g, '\\;')
+  );
+
+  const buildCalendarEventDetails = () => {
+    if (!formData.orario_inizio) return null;
+
+    const startDate = new Date(formData.orario_inizio);
+    if (Number.isNaN(startDate.getTime())) return null;
+
+    const durationMinutes = Number(formData.durata_minuti) || 60;
+    const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+
+    const tatuatore = tatuatori.find(t => t.id === formData.tatuatore_id);
+    const stanza = stanze.find(s => s.id === formData.stanza_id);
+    const clienteNome = formData.cliente_nome?.trim();
+    const clienteTelefono = formData.cliente_telefono?.trim();
+
+    const titleParts = ['Appuntamento Tatuaggio'];
+    if (tatuatore?.nome) {
+      titleParts.push(`con ${tatuatore.nome}`);
+    }
+    if (clienteNome) {
+      titleParts.push(`- ${clienteNome}`);
+    }
+
+    const descriptionParts = [
+      tatuatore?.nome ? `Tatuatore: ${tatuatore.nome}` : null,
+      stanza?.nome ? `Stanza: ${stanza.nome}` : null,
+      clienteNome ? `Cliente: ${clienteNome}` : null,
+      clienteTelefono ? `Telefono: ${clienteTelefono}` : null,
+      formData.note ? `Note: ${formData.note}` : null
+    ].filter(Boolean);
+
+    return {
+      title: titleParts.join(' '),
+      description: descriptionParts.join('\n'),
+      location: stanza?.nome || '',
+      start: startDate,
+      end: endDate,
+      clientName: clienteNome || clienteTelefono || 'appuntamento'
+    };
+  };
 
   // Ricerca clienti per telefono
   const searchClienti = async (telefono) => {
@@ -251,6 +306,8 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
     setLoading(true);
     setError('');
     setSuccess('');
+    setCalendarPromptVisible(false);
+    setCalendarEventDetails(null);
 
     try {
       const token = getCookie('adminToken');
@@ -297,13 +354,25 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
         throw new Error(data.error || 'Errore nel salvataggio appuntamento');
       }
 
+      const eventDetails = buildCalendarEventDetails();
+      console.log('[DEBUG] Dettagli evento calendario generati:', eventDetails);
+
       setSuccess(appointment ? 'Appuntamento aggiornato con successo!' : 'Appuntamento creato con successo!');
       console.log('[DEBUG] Appuntamento salvato con successo');
 
-      // Chiudi form dopo breve delay
-      setTimeout(() => {
+      if (appointment) {
+        setTimeout(() => {
+          onSave?.();
+        }, 1500);
+      } else if (eventDetails) {
+        setCalendarEventDetails({
+          ...eventDetails,
+          uid: `tinkstudio-${Date.now()}`
+        });
+        setCalendarPromptVisible(true);
+      } else {
         onSave?.();
-      }, 1500);
+      }
 
     } catch (error) {
       console.error('[DEBUG] Errore salvataggio:', error);
@@ -312,6 +381,71 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddToGoogleCalendar = () => {
+    if (!calendarEventDetails) return;
+
+    const url = new URL('https://calendar.google.com/calendar/render');
+    url.searchParams.set('action', 'TEMPLATE');
+    url.searchParams.set('text', calendarEventDetails.title || 'Appuntamento Tatuaggio');
+    url.searchParams.set('dates', `${formatCalendarDate(calendarEventDetails.start)}/${formatCalendarDate(calendarEventDetails.end)}`);
+
+    if (calendarEventDetails.description) {
+      url.searchParams.set('details', calendarEventDetails.description);
+    }
+
+    if (calendarEventDetails.location) {
+      url.searchParams.set('location', calendarEventDetails.location);
+    }
+
+    window.open(url.toString(), '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDownloadICS = () => {
+    if (!calendarEventDetails) return;
+
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//TinkStudio//Appointments//IT',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      `UID:${calendarEventDetails.uid}`,
+      `DTSTAMP:${formatCalendarDate(new Date())}`,
+      `DTSTART:${formatCalendarDate(calendarEventDetails.start)}`,
+      `DTEND:${formatCalendarDate(calendarEventDetails.end)}`,
+      `SUMMARY:${escapeICSText(calendarEventDetails.title)}`
+    ];
+
+    if (calendarEventDetails.description) {
+      lines.push(`DESCRIPTION:${escapeICSText(calendarEventDetails.description)}`);
+    }
+
+    if (calendarEventDetails.location) {
+      lines.push(`LOCATION:${escapeICSText(calendarEventDetails.location)}`);
+    }
+
+    lines.push('END:VEVENT', 'END:VCALENDAR');
+
+    const icsContent = lines.join('\r\n');
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const safeName = (calendarEventDetails.clientName || 'appuntamento').replace(/[\\/:*?"<>|]/g, '-');
+
+    link.href = url;
+    link.download = `${safeName}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCalendarPromptDismiss = () => {
+    setCalendarPromptVisible(false);
+    setCalendarEventDetails(null);
+    onSave?.();
   };
 
   // Gestione cambiamenti input
@@ -611,6 +745,51 @@ function AppointmentForm({ appointment, onSave, onCancel, tatuatori, stanze }) {
           <Alert type="success" style={{ marginTop: '1rem' }}>
             {success}
           </Alert>
+        )}
+
+        {calendarPromptVisible && calendarEventDetails && (
+          <div style={{
+            marginTop: '1rem',
+            padding: '1.25rem',
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: '6px'
+          }}>
+            <div style={{ color: '#34d399', fontWeight: '600', marginBottom: '0.75rem' }}>
+              Aggiungere l'appuntamento al tuo calendario?
+            </div>
+            <div style={{ color: '#e5e7eb', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.4' }}>
+              Puoi salvarlo su Google Calendar oppure scaricare un promemoria (.ics) compatibile con Apple Calendar, Outlook e la maggior parte dei calendari moderni.
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.75rem' }}>
+              <Button
+                type="button"
+                onClick={handleAddToGoogleCalendar}
+                disabled={loading}
+                style={{ width: 'auto', minWidth: 'auto', flex: '0 0 auto', maxWidth: 'none' }}
+              >
+                Aggiungi su Google Calendar
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleDownloadICS}
+                disabled={loading}
+                style={{ width: 'auto', minWidth: 'auto', flex: '0 0 auto', maxWidth: 'none' }}
+              >
+                Scarica promemoria (.ics)
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCalendarPromptDismiss}
+                disabled={loading}
+                style={{ width: 'auto', minWidth: 'auto', flex: '0 0 auto', maxWidth: 'none' }}
+              >
+                Fatto
+              </Button>
+            </div>
+          </div>
         )}
 
         {/* Pulsanti */}

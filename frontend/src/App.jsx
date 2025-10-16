@@ -27,6 +27,7 @@ import CustomerList from './components/CustomerList'
 import GiftCardLanding from './components/GiftCardLanding'
 import Contattaci from './components/Contattaci'
 import TattooConsentForm from './components/TattooConsentForm'
+import PermanentMakeupConsentForm from './components/PermanentMakeupConsentForm'
 import ConsensoPiercing from './components/ConsensoPiercing'
 import AppointmentList from './components/AppointmentList'
 import AppointmentForm from './components/AppointmentForm'
@@ -1674,15 +1675,28 @@ function ClaimPage() {
       if (response.ok) {
         console.log('Gift card finalized successfully:', data);
         // Mostra il link condivisibile invece di generare PDF
-        setClaimData({
-          ...claimData,
-          status: 'active',
-          first_name: form.first_name,
-          last_name: form.last_name,
-          phone: form.phone,
-          email: form.email,
-          dedication: form.dedication,
-          landing_url: data.qr_code_data || data.landing_url
+        setClaimData((previous) => {
+          const next = {
+            ...previous,
+            status: 'active',
+            first_name: form.first_name,
+            last_name: form.last_name,
+            phone: form.phone,
+            email: form.email,
+            dedication: form.dedication,
+            landing_url: data.qr_code_data || data.landing_url
+          };
+
+          const returnedCode = data?.code || data?.gift_card?.code;
+          if (returnedCode) {
+            next.code = returnedCode;
+          }
+
+          if (!next.code && previous?.code) {
+            next.code = previous.code;
+          }
+
+          return next;
         })
         console.log('Updated claimData with landing_url:', data.qr_code_data || data.landing_url);
       } else {
@@ -1770,6 +1784,13 @@ function ClaimPage() {
               <div className="claim-success-value">{claimData.first_name} {claimData.last_name}</div>
             </div>
             
+            {claimData.code && (
+              <div className="claim-success-details">
+                <div className="claim-success-label">Codice gift card:</div>
+                <div className="claim-success-code">{claimData.code}</div>
+              </div>
+            )}
+            
             {claimData.dedication && (
               <div className="claim-success-dedication">
                 "{claimData.dedication}"
@@ -1783,7 +1804,24 @@ function ClaimPage() {
               </div>
             </div>
             
-            <div className="claim-success-actions" style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+            <div className="claim-success-actions" style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {claimData.code && (
+                <button 
+                  onClick={async () => {
+                    const copied = await copyToClipboard(claimData.code)
+                    if (copied) {
+                      alert('Codice copiato negli appunti!')
+                    } else {
+                      alert(`Impossibile copiare automaticamente il codice.\nCodice: ${claimData.code}`)
+                    }
+                  }}
+                  className="claim-pdf-button"
+                  aria-label="Copia codice gift card"
+                >
+                  <i className="fas fa-hashtag"></i> Copia Codice
+                </button>
+              )}
+              
               <button 
                 onClick={async () => {
                   const copied = await copyToClipboard(claimData.landing_url)
@@ -1966,16 +2004,16 @@ function ConsensoOnline() {
                 <PaintBrushIcon />
               </div>
               <h3 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
-                Consenso per Tatuaggio
+                Consenso per Tatuaggio & Piercing
               </h3>
               <p style={{ color: '#9ca3af', margin: 0, fontSize: '1rem' }}>
-                Compila il modulo di consenso informato per il trattamento di tatuaggio
+                Compila il modulo di consenso informato per tatuaggi e piercing
               </p>
             </div>
           </Link>
           
           <Link 
-            to="/consenso/piercing"
+            to="/consenso/trucco-permanente"
             style={{
               textDecoration: 'none',
               display: 'block'
@@ -2000,13 +2038,13 @@ function ConsensoOnline() {
             }}
             >
               <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}>
-                <SparklesIcon />
+                <PencilSquareIcon />
               </div>
               <h3 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
-                Consenso per Piercing
+                Consenso Trucco Permanente
               </h3>
               <p style={{ color: '#9ca3af', margin: 0, fontSize: '1rem' }}>
-                Compila il modulo di consenso informato per il trattamento di piercing
+                Compila il modulo di consenso informato dedicato al trucco permanente
               </p>
             </div>
           </Link>
@@ -2078,7 +2116,9 @@ function AppContent() {
       case '/verify':
         return 'Verifica Gift Card'
       case '/consenso':
-        return 'Consenso Online per Tatuaggi e Piercing'
+        return 'Consenso Online - Trucco Permanente, Tatuaggi e Piercing'
+      case '/consenso/trucco-permanente':
+        return 'Consenso Trucco Permanente'
       case '/contattaci':
         return 'Contattaci - T\'ink Tattoo Studio'
       case '/admin':
@@ -2141,6 +2181,7 @@ function AppContent() {
 <Route path="/contattaci" element={<Contattaci />} />
 <Route path="/consenso" element={<ConsensoOnline />} />
 <Route path="/consenso/tatuaggio" element={<TattooConsentForm />} />
+<Route path="/consenso/trucco-permanente" element={<PermanentMakeupConsentForm />} />
 <Route path="/consenso/piercing" element={<ConsensoPiercing />} />
 <Route path="/admin" element={<AdminPanel onAuthChange={setIsAdminLoggedIn} activeTab={adminActiveTab} onTabChange={handleAdminTabChange} onLogout={handleLogout} />} />
 <Route path="/gift/claim/:token" element={<ClaimPage />} />

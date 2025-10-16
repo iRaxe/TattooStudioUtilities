@@ -124,8 +124,74 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.tattoo-consent-grid--three {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.tattoo-consent-grid--four {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.tattoo-consent-grid--one {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 .tattoo-consent-grid--minor {
   margin-top: 1.4rem;
+}
+
+.tattoo-consent-grid--responsive-four {
+  grid-template-columns: repeat(1, minmax(220px, 1fr));
+}
+
+@media (min-width: 640px) {
+  .tattoo-consent-grid--responsive-four {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .tattoo-consent-grid--responsive-four {
+    grid-template-columns: repeat(4, minmax(220px, 1fr));
+  }
+}
+
+.tattoo-consent-session {
+  background: rgba(17, 17, 20, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 12px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tattoo-consent-session__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tattoo-consent-session__remove {
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+}
+
+.tattoo-consent-session-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.tattoo-consent-session h3 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.72);
 }
 
 .tattoo-consent-field {
@@ -142,7 +208,8 @@
   font-weight: 600;
 }
 
-.tattoo-consent-field input {
+.tattoo-consent-field input,
+.tattoo-consent-field select {
   background: rgba(17, 17, 20, 0.8);
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 11px;
@@ -158,7 +225,8 @@
   box-shadow: 0 0 0 3px rgba(229, 231, 235, 0.18);
 }
 
-.tattoo-consent-field input::placeholder {
+.tattoo-consent-field input::placeholder,
+.tattoo-consent-field select::placeholder {
   color: rgba(148, 163, 184, 0.5);
 }
 
@@ -199,6 +267,34 @@
   flex-shrink: 0;
 }
 
+.tattoo-consent-checkbox--inline {
+  margin-top: 0;
+  align-items: center;
+}
+
+.tattoo-consent-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  background: rgba(20, 20, 24, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: rgba(229, 231, 235, 0.92);
+  line-height: 1.5;
+}
+
+.tattoo-consent-radio + .tattoo-consent-radio {
+  margin-top: 0.7rem;
+}
+
+.tattoo-consent-radio input {
+  margin-top: 0.2rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+}
+
 .tattoo-consent-checkbox span {
   font-size: 0.95rem;
   color: rgba(229, 231, 235, 0.92);
@@ -211,6 +307,86 @@
 
 .tattoo-consent-checkbox--toggle span {
   color: rgba(226, 232, 240, 0.9);
+}
+
+.tattoo-consent-health {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.tattoo-consent-health--questionnaire {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+@media (min-width: 640px) {
+  .tattoo-consent-health--questionnaire {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .tattoo-consent-health--questionnaire {
+    grid-template-columns: repeat(4, minmax(220px, 1fr));
+  }
+}
+
+.tattoo-consent-health-question {
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(17, 17, 20, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: rgba(229, 231, 235, 0.9);
+}
+
+.tattoo-consent-health-question > span {
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: inherit;
+}
+
+.tattoo-consent-health-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+}
+
+.tattoo-consent-health-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  color: rgba(209, 213, 219, 0.9);
+}
+
+.tattoo-consent-health-options input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tattoo-consent-health-notes textarea,
+.tattoo-consent-health-notes input {
+  background: rgba(17, 17, 20, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 11px;
+  padding: 0.85rem 1rem;
+  color: #f5f5f5;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+.tattoo-consent-health-notes textarea::placeholder,
+.tattoo-consent-health-notes input::placeholder {
+  color: rgba(148, 163, 184, 0.5);
 }
 
 .tattoo-consent-text {

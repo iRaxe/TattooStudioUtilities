@@ -345,6 +345,75 @@
   animation: amountPulse 2s ease-in-out infinite;
 }
 
+.code-section {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.code-label {
+  display: block;
+  color: #fbbf24;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.code-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+  flex-wrap: wrap;
+}
+
+.code-value {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  color: #f9fafb;
+}
+
+.copy-code-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(217, 119, 6, 0.9));
+  color: #1f2937;
+  border: none;
+  border-radius: 999px;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 14px rgba(251, 191, 36, 0.3);
+}
+
+.copy-code-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(251, 191, 36, 0.4);
+}
+
+.copy-code-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(251, 191, 36, 0.25);
+}
+
+.copy-feedback {
+  display: block;
+  margin-top: 0.5rem;
+  color: #fbbf24;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
 @keyframes amountPulse {
   0%, 100% {
     transform: scale(1);
@@ -429,5 +498,20 @@
   
   .gift-card-message {
     padding: 2rem 1.5rem;
+  }
+
+  .code-row {
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .code-value {
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+  }
+
+  .copy-code-button {
+    width: 100%;
+    justify-content: center;
   }
 }

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import FontLoader from './FontLoader';
 import './GiftCardLanding.css';
+import { copyToClipboard } from '../utils/clipboard';
 
 const GiftCardLanding = () => {
   const { token } = useParams();
@@ -12,6 +13,7 @@ const GiftCardLanding = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [animationStage, setAnimationStage] = useState('logo'); // logo, golden-border, message
+  const [copyStatus, setCopyStatus] = useState(null);
 
   useEffect(() => {
     const fetchGiftCard = async () => {
@@ -53,6 +55,20 @@ const GiftCardLanding = () => {
       };
     }
   }, [loading, error]);
+
+  const handleCopyCode = async () => {
+    if (!giftCard?.code) {
+      return;
+    }
+
+    const copied = await copyToClipboard(giftCard.code);
+    if (copied) {
+      setCopyStatus('success');
+      setTimeout(() => setCopyStatus(null), 2500);
+    } else {
+      alert(`Impossibile copiare automaticamente il codice.\nCodice: ${giftCard.code}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -139,16 +155,34 @@ const GiftCardLanding = () => {
             </div>
             <div className="amount-section">
               <span className="from-text">da </span>
-              <span className="amount">{giftCard?.amount}€</span>
+              <span className="amount">€{giftCard?.amount}</span>
             </div>
             <div className="separator"></div>
             <div className="terms">
               <ol>
                 <li>L'appuntamento può essere spostato 1 volta senza perdere la caparra se avvisati entro 48 ore lavorative</li>
                 <li>Se non vi presentaste all'appuntamento o decideste di non tatuarvi più, lo studio tratterrà la caparra</li>
-                <li>La caparra verrà defalcata dal costo totale del lavoro (Al termine dell'ultima seduta)</li>
+                <li>La caparra verrà defalcata dal costo totale del lavoro (al termine dell'ultima seduta)</li>
                 <li>Questo coupon scade il {giftCard?.expires_at ? new Date(giftCard.expires_at).toLocaleDateString('it-IT') : 'N/A'}</li>
               </ol>
+            </div>
+            <div className="separator"></div>
+            <div className="code-section">
+              <span className="code-label">Codice gift card</span>
+              <div className="code-row">
+                <span className="code-value">{giftCard?.code}</span>
+                <button
+                  type="button"
+                  className="copy-code-button"
+                  onClick={handleCopyCode}
+                  aria-label="Copia codice gift card"
+                >
+                  Copia
+                </button>
+              </div>
+              {copyStatus === 'success' && (
+                <span className="copy-feedback">Codice copiato!</span>
+              )}
             </div>
           </div>
         </div>

@@ -1743,6 +1743,52 @@ app.post(
 );
 
 app.post(
+  '/api/consenso/trucco-permanente',
+  asyncHandler(async (req, res) => {
+    const body = req.body || {};
+    const sanitizedPhone = typeof body.phone === 'string' ? body.phone.replace(/\D/g, '') : '';
+    if (
+      !body.firstName?.trim() ||
+      !body.lastName?.trim() ||
+      !body.birthDate ||
+      !sanitizedPhone ||
+      !body.signature
+    ) {
+      return res.status(400).json({ error: 'Campi obbligatori mancanti' });
+    }
+    if (body.isMinorClient) {
+      const guardian = body.guardian || {};
+      if (
+        !guardian.firstName?.trim() ||
+        !guardian.lastName?.trim() ||
+        !guardian.documentType?.trim() ||
+        !guardian.documentNumber?.trim()
+      ) {
+        return res.status(400).json({ error: 'Dati del tutore mancanti' });
+      }
+    }
+    body.phone = sanitizedPhone;
+    const result = await withTransaction(async (client) => {
+      const linkage = await attachConsentToCustomer(client, body);
+      const consent = await saveConsent(client, { type: 'trucco_permanente', payload: body, phone: body.phone });
+      await client.query(
+        `UPDATE consensi SET customer_id = $1, gift_card_id = $2 WHERE id = $3`,
+        [linkage.customerId, linkage.giftCardId, consent.id]
+      );
+      return { consent, linkage };
+    });
+    res.status(201).json({
+      success: true,
+      message: 'Consenso trucco permanente salvato con successo',
+      id: result.consent.id,
+      customerId: result.linkage.customerId,
+      linkedToExistingCustomer: !!result.linkage.customerId,
+      createdNewCustomer: !!result.linkage.customerId,
+    });
+  })
+);
+
+app.post(
   '/api/consenso/piercing',
   asyncHandler(async (req, res) => {
     const body = req.body || {};
@@ -1802,6 +1848,7 @@ app.get(
       total: consents.length,
       tatuaggi: consents.filter((row) => row.type === 'tatuaggio').length,
       piercing: consents.filter((row) => row.type === 'piercing').length,
+      truccoPermanente: consents.filter((row) => row.type === 'trucco_permanente').length,
     });
   })
 );

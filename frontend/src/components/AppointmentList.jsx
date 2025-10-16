@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
-import { EyeIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { CalendarDaysIcon, EyeIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/solid';
 import { getCookie } from '../utils/cookies';
 import Input from './common/Input';
 import Button from './common/Button';
@@ -280,6 +280,125 @@ function AppointmentList() {
     } finally {
       setUpdatingTatuatoreId(null);
     }
+  };
+
+  const formatCalendarDate = (date) => {
+    const pad = (value) => value.toString().padStart(2, '0');
+    return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`;
+  };
+
+  const escapeICSText = (value = '') => (
+    value
+      .replace(/\\/g, '\\\\')
+      .replace(/\n/g, '\\n')
+      .replace(/,/g, '\\,')
+      .replace(/;/g, '\\;')
+  );
+
+  const buildCalendarEventDetailsFromAppointment = (appointment) => {
+    if (!appointment?.orario_inizio) return null;
+
+    const startDate = new Date(appointment.orario_inizio);
+    if (Number.isNaN(startDate.getTime())) return null;
+
+    const durationMinutes = Number(appointment.durata_minuti || 60) || 60;
+    const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+
+    const titleParts = ['Appuntamento Tatuaggio'];
+    if (appointment.tatuatore_nome) {
+      titleParts.push(`con ${appointment.tatuatore_nome}`);
+    }
+    if (appointment.cliente_nome) {
+      titleParts.push(`- ${appointment.cliente_nome}`);
+    }
+
+    const descriptionParts = [
+      appointment.tatuatore_nome ? `Tatuatore: ${appointment.tatuatore_nome}` : null,
+      appointment.stanza_nome ? `Stanza: ${appointment.stanza_nome}` : null,
+      appointment.cliente_nome ? `Cliente: ${appointment.cliente_nome}` : null,
+      appointment.cliente_telefono ? `Telefono: ${appointment.cliente_telefono}` : null,
+      appointment.note ? `Note: ${appointment.note}` : null
+    ].filter(Boolean);
+
+    return {
+      uid: `tinkstudio-${appointment.id || 'evento'}-${Date.now()}`,
+      title: titleParts.join(' '),
+      description: descriptionParts.join('\n'),
+      location: appointment.stanza_nome || '',
+      start: startDate,
+      end: endDate,
+      clientName: appointment.cliente_nome || appointment.cliente_telefono || `appuntamento-${appointment.id || 'tink'}`
+    };
+  };
+
+  const handleOpenCalendarExport = (appointment) => {
+    const details = buildCalendarEventDetailsFromAppointment(appointment);
+    setCalendarExportAppointment(appointment);
+    setCalendarEventDetails(details);
+  };
+
+  const handleCalendarModalClose = () => {
+    setCalendarExportAppointment(null);
+    setCalendarEventDetails(null);
+  };
+
+  const handleGoogleCalendarExport = () => {
+    if (!calendarEventDetails) return;
+
+    const url = new URL('https://calendar.google.com/calendar/render');
+    url.searchParams.set('action', 'TEMPLATE');
+    url.searchParams.set('text', calendarEventDetails.title || 'Appuntamento Tatuaggio');
+    url.searchParams.set('dates', `${formatCalendarDate(calendarEventDetails.start)}/${formatCalendarDate(calendarEventDetails.end)}`);
+
+    if (calendarEventDetails.description) {
+      url.searchParams.set('details', calendarEventDetails.description);
+    }
+
+    if (calendarEventDetails.location) {
+      url.searchParams.set('location', calendarEventDetails.location);
+    }
+
+    window.open(url.toString(), '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDownloadICS = () => {
+    if (!calendarEventDetails) return;
+
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//TinkStudio//Appointments//IT',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      `UID:${calendarEventDetails.uid}`,
+      `DTSTAMP:${formatCalendarDate(new Date())}`,
+      `DTSTART:${formatCalendarDate(calendarEventDetails.start)}`,
+      `DTEND:${formatCalendarDate(calendarEventDetails.end)}`,
+      `SUMMARY:${escapeICSText(calendarEventDetails.title)}`
+    ];
+
+    if (calendarEventDetails.description) {
+      lines.push(`DESCRIPTION:${escapeICSText(calendarEventDetails.description)}`);
+    }
+
+    if (calendarEventDetails.location) {
+      lines.push(`LOCATION:${escapeICSText(calendarEventDetails.location)}`);
+    }
+
+    lines.push('END:VEVENT', 'END:VCALENDAR');
+
+    const icsContent = lines.join('\r\n');
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const safeName = (calendarEventDetails.clientName || 'appuntamento').replace(/[\\/:*?"<>|]/g, '-');
+
+    link.href = url;
+    link.download = `${safeName}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleDeleteTatuatore = async (id) => {
@@ -575,6 +694,8 @@ function AppointmentList() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
+  const [calendarExportAppointment, setCalendarExportAppointment] = useState(null);
+  const [calendarEventDetails, setCalendarEventDetails] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [settingsTab, setSettingsTab] = useState('tatuatori');
   const [newTatuatoreNome, setNewTatuatoreNome] = useState('');
@@ -933,6 +1054,14 @@ function AppointmentList() {
                               <div className="appointments-row-actions">
                                 <button
                                   type="button"
+                                  className="row-action row-action--calendar"
+                                  aria-label="Esporta appuntamento su calendario"
+                                  onClick={() => handleOpenCalendarExport(appointment)}
+                                >
+                                  <CalendarDaysIcon aria-hidden="true" className="row-action__icon" />
+                                </button>
+                                <button
+                                  type="button"
                                   className="row-action row-action--view"
                                   aria-label="Dettagli appuntamento"
                                   onClick={() => {
@@ -1070,6 +1199,92 @@ function AppointmentList() {
             />
           );
         })()}
+      </Modal>
+
+      {/* Modale Esporta Calendario */}
+      <Modal
+        isOpen={!!calendarExportAppointment}
+        onClose={handleCalendarModalClose}
+        title="Salva promemoria calendario"
+        maxWidth="520px"
+      >
+        {calendarEventDetails ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{ color: '#e5e7eb', fontSize: '0.9rem', lineHeight: 1.5 }}>
+              <div style={{ marginBottom: '0.35rem' }}>
+                <strong>Data:</strong>{' '}
+                {calendarEventDetails.start.toLocaleDateString('it-IT', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </div>
+              <div style={{ marginBottom: '0.35rem' }}>
+                <strong>Orario:</strong>{' '}
+                {calendarEventDetails.start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                {' - '}
+                {calendarEventDetails.end.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+              {calendarExportAppointment?.tatuatore_nome && (
+                <div style={{ marginBottom: '0.35rem' }}>
+                  <strong>Tatuatore:</strong> {calendarExportAppointment.tatuatore_nome}
+                </div>
+              )}
+              {calendarExportAppointment?.stanza_nome && (
+                <div style={{ marginBottom: '0.35rem' }}>
+                  <strong>Stanza:</strong> {calendarExportAppointment.stanza_nome}
+                </div>
+              )}
+              {calendarExportAppointment?.cliente_nome && (
+                <div style={{ marginBottom: '0.35rem' }}>
+                  <strong>Cliente:</strong> {calendarExportAppointment.cliente_nome}
+                </div>
+              )}
+              {calendarExportAppointment?.cliente_telefono && (
+                <div>
+                  <strong>Telefono:</strong> {calendarExportAppointment.cliente_telefono}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+                Scegli come salvare l'appuntamento: puoi aprirlo direttamente su Google Calendar oppure scaricare un file
+                .ics compatibile con Apple Calendar, Outlook e la maggior parte dei calendari.
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.75rem' }}>
+                <Button
+                  type="button"
+                  onClick={handleGoogleCalendarExport}
+                  style={{ width: 'auto', minWidth: 'auto', flex: '0 0 auto', maxWidth: 'none' }}
+                >
+                  Aggiungi su Google Calendar
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleDownloadICS}
+                  style={{ width: 'auto', minWidth: 'auto', flex: '0 0 auto', maxWidth: 'none' }}
+                >
+                  Scarica promemoria (.ics)
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleCalendarModalClose}
+                  style={{ width: 'auto', minWidth: 'auto', flex: '0 0 auto', maxWidth: 'none' }}
+                >
+                  Chiudi
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Alert type="error">
+            Dettagli calendario non disponibili per questo appuntamento. Riprova più tardi.
+          </Alert>
+        )}
       </Modal>
 
       {/* Modale Impostazioni Risorse */}
