@@ -1588,6 +1588,21 @@ async function saveConsent(client, { type, payload, phone }) {
   const fallbackPiercingPosition = payloadWithNames.piercingPosition || fallbackTattooPosition;
   const fallbackJewelryType = payloadWithNames.jewelryType || payloadWithNames.jewelType || null;
   const fallbackJewelryMaterial = payloadWithNames.jewelryMaterial || payloadWithNames.jewelMaterial || null;
+  const fallbackBodyArea =
+    payloadWithNames.bodyArea ||
+    payloadWithNames.body_area ||
+    payloadWithNames.bodyLocation ||
+    payloadWithNames.bodyPart ||
+    payloadWithNames.area ||
+    fallbackTattooPosition ||
+    fallbackTattooDescription ||
+    fallbackTattooType;
+  const fallbackBodyPart =
+    payloadWithNames.bodyPart ||
+    payloadWithNames.body_part ||
+    payloadWithNames.bodylocation ||
+    payloadWithNames.location ||
+    fallbackBodyArea;
 
   const insertColumns = ['id', 'type', 'phone', 'payload', 'submitted_at'];
   const values = [uuidv4(), type, phone || null, payloadWithNames, payloadWithNames.submittedAt ? new Date(payloadWithNames.submittedAt) : now()];
@@ -1642,6 +1657,9 @@ async function saveConsent(client, { type, payload, phone }) {
     tattoo_position: fallbackTattooPosition || null,
     tattoo_size: fallbackTattooSize || null,
     tattoo_colors: fallbackTattooColors || null,
+    body_area: fallbackBodyArea || null,
+    body_part: fallbackBodyPart || null,
+    area: fallbackBodyArea || null,
     piercing_type: fallbackPiercingType || null,
     piercing_position: fallbackPiercingPosition || null,
     jewelry_type: fallbackJewelryType || null,
