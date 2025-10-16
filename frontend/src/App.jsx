@@ -2279,8 +2279,8 @@ function ConsensoOnline() {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
             }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}>
-                <PaintBrushIcon />
+              <div className="consenso-card-icon-wrapper">
+                <PaintBrushIcon className="consenso-card-icon" aria-hidden="true" />
               </div>
               <h3 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
                 Consenso per Tatuaggio & Piercing
@@ -2316,8 +2316,8 @@ function ConsensoOnline() {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
             }}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '1rem', color: '#fbbf24' }}>
-                <PencilSquareIcon />
+              <div className="consenso-card-icon-wrapper">
+                <PencilSquareIcon className="consenso-card-icon" aria-hidden="true" />
               </div>
               <h3 style={{ color: '#fbbf24', marginBottom: '0.5rem', fontSize: '1.5rem' }}>
                 Consenso Trucco Permanente

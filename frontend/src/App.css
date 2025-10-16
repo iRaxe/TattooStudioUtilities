@@ -61,6 +61,9 @@ select::-ms-expand {
   color: inherit;
 }
 
+main#main-content {
+    width: 98vw;
+}
 
 /* App Container */
 .app-container {
@@ -1313,7 +1316,8 @@ select::-ms-expand {
 
 .bm-item,
 button.menu-item {
-  display: block;
+  display: flex;
+  align-items: center;
   color: #f9fafb;
   margin-bottom: 15px;
   text-align: left;
@@ -1341,6 +1345,14 @@ button.menu-item-admin {
   color: #ef4444 !important;
   background: transparent !important;
   border: none !important;
+}
+
+.bm-item svg,
+button.menu-item svg {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
 }
 
 .menu-item-admin:hover,
@@ -2365,6 +2377,22 @@ html {
   max-width: 800px;
   margin: 0 auto;
   grid-template-columns: repeat(2, 1fr);
+}
+
+.consenso-card-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.consenso-card-icon {
+  width: 60px;
+  height: 60px;
+  color: #fbbf24;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {

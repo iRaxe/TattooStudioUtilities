@@ -1051,7 +1051,18 @@ app.delete(
     if (!['draft', 'active', 'used'].includes(gc.status)) {
       return res.status(400).json({ error: 'Can only delete draft, active, or used gift cards', currentStatus: gc.status });
     }
-    await query('DELETE FROM gift_cards WHERE id = $1', [id]);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('UPDATE consensi SET gift_card_id = NULL WHERE gift_card_id = $1', [id]);
+      await client.query('DELETE FROM gift_cards WHERE id = $1', [id]);
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
     res.json({
       success: true,
       message: 'Gift card deleted successfully',
