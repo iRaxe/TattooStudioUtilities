@@ -1514,6 +1514,13 @@ async function saveConsent(client, { type, payload, phone }) {
     placeholders.push(`$${placeholderIndex}`);
   }
 
+  if (columns.includes('birth_place')) {
+    insertColumns.push('birth_place');
+    placeholderIndex += 1;
+    values.push(payloadWithNames.birthPlace || null);
+    placeholders.push(`$${placeholderIndex}`);
+  }
+
   const { rows } = await client.query(
     `INSERT INTO consensi (${insertColumns.join(', ')}, created_at, updated_at)
      VALUES (${placeholders.join(', ')}, NOW(), NOW())
