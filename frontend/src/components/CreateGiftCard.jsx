@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import { getCookie } from '../utils/cookies';
+import { copyToClipboard, shareLink } from '../utils/clipboard';
 import Input from './common/Input';
 import Button from './common/Button';
 import Alert from './common/Alert';
@@ -76,8 +77,8 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
 
           // Copy link to clipboard automatically
           if (data.claim_url) {
-            navigator.clipboard.writeText(data.claim_url);
-            console.log('Link copied to clipboard:', data.claim_url);
+            const copied = await copyToClipboard(data.claim_url);
+            console.log('Link copied to clipboard:', data.claim_url, copied ? 'success' : 'failed');
           }
         } else {
           console.error('Draft creation failed:', data);
@@ -127,8 +128,8 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
 
           // Copy link to clipboard automatically
           if (data.redeem_url) {
-            navigator.clipboard.writeText(data.redeem_url);
-            console.log('Redeem URL copied to clipboard:', data.redeem_url);
+            const copied = await copyToClipboard(data.redeem_url);
+            console.log('Redeem URL copied to clipboard:', data.redeem_url, copied ? 'success' : 'failed');
           }
         } else {
           console.error('Complete gift card creation failed:', data);
@@ -267,34 +268,41 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
 
             <div className="flex gap-md flex-wrap">
               <Button
-                onClick={() => {
+                onClick={async () => {
                   const linkToCopy = lastCreatedCard.isDraft ? lastCreatedCard.claimUrl : lastCreatedCard.redeemUrl;
-                  navigator.clipboard.writeText(linkToCopy);
-                  alert('Link copiato negli appunti!');
+                  const copied = await copyToClipboard(linkToCopy);
+                  if (copied) {
+                    alert('Link copiato negli appunti!');
+                  } else {
+                    alert(`Impossibile copiare automaticamente il link.\nCopialo manualmente:\n\n${linkToCopy}`);
+                  }
                 }}
                 variant="secondary"
               >
                 Copia link
               </Button>
 
-              {navigator.share && (
-                <Button
-                  onClick={() => {
-                    const linkToShare = lastCreatedCard.isDraft ? lastCreatedCard.claimUrl : lastCreatedCard.redeemUrl;
-                    const shareText = lastCreatedCard.isDraft ? 
-                      `Compila i dati per la gift card di €${lastCreatedCard.amount}!` :
-                      `Hai ricevuto una gift card di €${lastCreatedCard.amount}!`;
-                    navigator.share({
-                      title: 'Gift Card Tink Studio',
-                      text: shareText,
-                      url: linkToShare
-                    });
-                  }}
-                  variant="secondary"
-                >
-                  Condividi
-                </Button>
-              )}
+              <Button
+                onClick={async () => {
+                  const linkToShare = lastCreatedCard.isDraft ? lastCreatedCard.claimUrl : lastCreatedCard.redeemUrl;
+                  const shareText = lastCreatedCard.isDraft ? 
+                    `Compila i dati per la gift card di €${lastCreatedCard.amount}!` :
+                    `Hai ricevuto una gift card di €${lastCreatedCard.amount}!`;
+                  const result = await shareLink({
+                    title: 'Gift Card Tink Studio',
+                    text: shareText,
+                    url: linkToShare
+                  });
+                  if (result === 'copied') {
+                    alert('Condivisione non disponibile su questo dispositivo.\nLink copiato negli appunti!');
+                  } else if (result === 'failed') {
+                    alert(`Impossibile condividere automaticamente il link.\nCopialo manualmente:\n\n${linkToShare}`);
+                  }
+                }}
+                variant="secondary"
+              >
+                Condividi
+              </Button>
 
               <Button
                 onClick={() => setLastCreatedCard(null)}

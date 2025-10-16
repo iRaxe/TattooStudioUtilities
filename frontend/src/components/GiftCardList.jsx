@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowPathIcon, CheckCircleIcon, LinkIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { ArrowPathIcon, CheckCircleIcon, LinkIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 import { getCookie } from '../utils/cookies';
+import { copyToClipboard, shareLink } from '../utils/clipboard';
 import Input from './common/Input';
 import Button from './common/Button';
 
@@ -529,10 +530,14 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                         {card.status === 'draft' && card.claim_token && (
                           <button
                             className="icon-only-button"
-                            onClick={() => {
+                            onClick={async () => {
                               const claimUrl = `${window.location.origin}/gift/claim/${card.claim_token}`;
-                              navigator.clipboard.writeText(claimUrl);
-                              alert(`Link copiato negli appunti!\n\n${claimUrl}`);
+                              const copied = await copyToClipboard(claimUrl);
+                              if (copied) {
+                                alert(`Link copiato negli appunti!\n\n${claimUrl}`);
+                              } else {
+                                alert(`Impossibile copiare automaticamente il link.\nCopialo manualmente:\n\n${claimUrl}`);
+                              }
                             }}
                             title="Copia link gift card"
                             aria-label="Copia link gift card"
@@ -554,6 +559,44 @@ function GiftCardList({ onStatsUpdate, customers, onShowCustomerModal, onMarkAsU
                             }}
                           >
                             <LinkIcon aria-hidden="true" className="icon-only-button__icon" />
+                          </button>
+                        )}
+                        {card.status === 'draft' && card.claim_token && (
+                          <button
+                            className="icon-only-button"
+                            onClick={async () => {
+                              const claimUrl = `${window.location.origin}/gift/claim/${card.claim_token}`;
+                              const result = await shareLink({
+                                title: 'Gift Card Tink Studio',
+                                text: `Completa i dati per la gift card di €${card.amount}!`,
+                                url: claimUrl
+                              });
+                              if (result === 'copied') {
+                                alert('Condivisione non disponibile su questo dispositivo.\nLink copiato negli appunti!');
+                              } else if (result === 'failed') {
+                                alert(`Impossibile condividere automaticamente il link.\nCopialo manualmente:\n\n${claimUrl}`);
+                              }
+                            }}
+                            title="Condividi link gift card"
+                            aria-label="Condividi link gift card"
+                            style={{
+                              background: 'rgba(59, 130, 246, 0.2)',
+                              border: '1px solid rgba(59, 130, 246, 0.5)',
+                              color: '#60a5fa',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              width: '2.5rem',
+                              height: '2.5rem',
+                              transition: 'background 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+                            }}
+                          >
+                            <ShareIcon aria-hidden="true" className="icon-only-button__icon" />
                           </button>
                         )}
                         {card.status === 'active' && card.code && (

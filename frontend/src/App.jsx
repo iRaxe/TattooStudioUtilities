@@ -34,6 +34,7 @@ import Input from './components/common/Input'
 import Textarea from './components/common/Textarea'
 import Modal from './components/common/Modal'
 import { getCookie, setCookie, deleteCookie } from './utils/cookies'
+import { copyToClipboard, shareLink } from './utils/clipboard'
 import Button from './components/common/Button'
 import Alert from './components/common/Alert'
 
@@ -934,7 +935,10 @@ function AdminPanel({ onAuthChange, activeTab: externalActiveTab, onTabChange: e
         fetchStats()
         
         // Copia automaticamente il link negli appunti
-        navigator.clipboard.writeText(data.claim_url)
+        const copied = await copyToClipboard(data.claim_url)
+        if (!copied) {
+          console.warn('Automatic clipboard copy failed for draft link.')
+        }
       } else {
         setError(data.message || 'Errore durante la creazione')
       }
@@ -1668,9 +1672,13 @@ function ClaimPage() {
             
             <div className="claim-success-actions" style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
               <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(claimData.landing_url)
-                  alert('Link copiato negli appunti!')
+                onClick={async () => {
+                  const copied = await copyToClipboard(claimData.landing_url)
+                  if (copied) {
+                    alert('Link copiato negli appunti!')
+                  } else {
+                    alert(`Impossibile copiare automaticamente il link.\nCopialo manualmente:\n\n${claimData.landing_url}`)
+                  }
                 }}
                 className="claim-pdf-button"
                 aria-label="Copia link negli appunti"
@@ -1678,21 +1686,24 @@ function ClaimPage() {
                 <i className="fas fa-copy"></i> Copia Link
               </button>
               
-              {navigator.share && (
-                <button 
-                  onClick={() => {
-                    navigator.share({
-                      title: 'Gift Card Tink Studio',
-                      text: `Hai ricevuto una gift card di €${claimData.amount}!`,
-                      url: claimData.landing_url
-                    })
-                  }}
-                  className="claim-pdf-button"
-                  aria-label="Condividi gift card"
-                >
-                  <i className="fas fa-share-alt"></i> Condividi
-                </button>
-              )}
+              <button 
+                onClick={async () => {
+                  const result = await shareLink({
+                    title: 'Gift Card Tink Studio',
+                    text: `Hai ricevuto una gift card di €${claimData.amount}!`,
+                    url: claimData.landing_url
+                  })
+                  if (result === 'copied') {
+                    alert('Condivisione non disponibile su questo dispositivo.\nLink copiato negli appunti!')
+                  } else if (result === 'failed') {
+                    alert(`Impossibile condividere automaticamente il link.\nCopialo manualmente:\n\n${claimData.landing_url}`)
+                  }
+                }}
+                className="claim-pdf-button"
+                aria-label="Condividi gift card"
+              >
+                <i className="fas fa-share-alt"></i> Condividi
+              </button>
             </div>
           </div>
           

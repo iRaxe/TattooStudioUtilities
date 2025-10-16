@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import Button from './common/Button';
 
 // Container component
@@ -61,7 +61,7 @@ function Contattaci() {
                   fontSize: '1.1rem',
                   fontWeight: '500'
                 }}>
-                  Lunedì - Sabato: <span style={{ color: '#22c55e', fontWeight: '600' }}>08:30 - 21:00</span><br/>
+                  Lunedì - Sabato: <span style={{ color: '#22c55e', fontWeight: '600' }}>11:00 - 20:00</span><br/>
                   Domenica: <span style={{ color: '#ef4444', fontWeight: '600' }}>Chiuso</span>
                 </p>
             </div>
@@ -86,7 +86,7 @@ function Contattaci() {
 
               <div className="contattaci-tip">
                 <p style={{ color: '#9ca3af', fontSize: '0.9rem', margin: 0 }}>                  <i className="fas fa-lightbulb"></i> <strong>Consiglio:</strong> Per prenotazioni e informazioni dettagliate, 
-                  contattaci via email per una risposta più rapida e completa.
+                  contattaci via email per una risposta piÃ¹ rapida e completa.
                 </p>
               </div>
             </div>
@@ -105,10 +105,26 @@ function Contattaci() {
             <div style={{ marginBottom: '0rem' }}>
               <div className="contattaci-info-box">
                 <p style={{ color: '#f9fafb', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>                  <strong><i className="fas fa-map-marker-alt"></i> Indirizzo:</strong>                </p>
-                <p style={{ color: '#fbbf24', margin: 0, fontSize: '1.1rem', fontWeight: '500' }}>
+                <button
+                  type="button"
+                  onClick={handleDirectionsClick}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: '#fbbf24',
+                    margin: 12,
+                    fontSize: '1.1rem',
+                    fontWeight: '500',
+                    textAlign: 'center',
+                    display: 'block',
+                    width: '100%',
+                    cursor: 'pointer'
+                  }}
+                >
                   Via Kennedy, 39<br/>
                   80028 Grumo Nevano (NA)
-                </p>
+                </button>
               </div>
 
               <Button 
