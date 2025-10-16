@@ -26,6 +26,7 @@ import GiftCardList from './components/GiftCardList'
 import CustomerList from './components/CustomerList'
 import GiftCardLanding from './components/GiftCardLanding'
 import Contattaci from './components/Contattaci'
+import TattooAftercare from './components/TattooAftercare'
 import TattooConsentForm from './components/TattooConsentForm'
 import PermanentMakeupConsentForm from './components/PermanentMakeupConsentForm'
 import ConsensoPiercing from './components/ConsensoPiercing'
@@ -563,6 +564,9 @@ function Header({ children, pageTitle, isAdminPanel = false, onAdminTabChange, a
             </Link>
             <Link to="/consenso" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
               <PencilSquareIcon style={{ marginRight: '0.5rem' }} /> Consenso Online
+            </Link>
+            <Link to="/cura-del-tatuaggio" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
+              <SparklesIcon style={{ marginRight: '0.5rem' }} /> Cura del Tatuaggio
             </Link>
             <Link to="/contattaci" className="bm-item menu-item" onClick={() => setIsMobileMenuOpen(false)}>
               <PhoneIcon style={{ marginRight: '0.5rem' }} /> Contattaci
@@ -2187,6 +2191,8 @@ function AppContent() {
         return 'Consenso Online - Trucco Permanente, Tatuaggi e Piercing'
       case '/consenso/trucco-permanente':
         return 'Consenso Trucco Permanente'
+      case '/cura-del-tatuaggio':
+        return 'Cura del Tatuaggio'
       case '/contattaci':
         return 'Contattaci - T\'ink Tattoo Studio'
       case '/admin':
@@ -2225,6 +2231,9 @@ function AppContent() {
             <Link to="/consenso" className="nav-link">
               Consenso Online
             </Link>
+            <Link to="/cura-del-tatuaggio" className="nav-link">
+              Cura del Tatuaggio
+            </Link>
             <Link to="/contattaci" className="nav-link">
               Contattaci
             </Link>
@@ -2246,6 +2255,7 @@ function AppContent() {
       <Routes>
 <Route path="/" element={<Home />} />
 <Route path="/verify" element={<Verify />} />
+<Route path="/cura-del-tatuaggio" element={<TattooAftercare />} />
 <Route path="/contattaci" element={<Contattaci />} />
 <Route path="/consenso" element={<ConsensoOnline />} />
 <Route path="/consenso/tatuaggio" element={<TattooConsentForm />} />
