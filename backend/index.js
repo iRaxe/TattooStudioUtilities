@@ -1571,6 +1571,8 @@ async function saveConsent(client, { type, payload, phone }) {
     document_type: payloadWithNames.documentType || null,
     document_number: payloadWithNames.documentNumber || null,
     document_issuer: payloadWithNames.documentIssuer || null,
+    document_issued_by: payloadWithNames.documentIssuedBy || payloadWithNames.documentIssuer || payloadWithNames.document_issued_by || null,
+    document_issue_authority: payloadWithNames.documentIssuer || payloadWithNames.documentIssuedBy || null,
     requested_work: payloadWithNames.requestedWork || null,
     artist_name: payloadWithNames.artistName || null,
     appointment_date: payloadWithNames.appointmentDate || null,
