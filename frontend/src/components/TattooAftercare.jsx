@@ -36,7 +36,7 @@ const aftercareSteps = [
 const donts = [
   'Non grattare e non strofinare: anche in presenza di prurito, resisti alla tentazione di toccare o tirare le crosticine.',
   'Non utilizzare spugne abrasive, asciugamani ruvidi o movimenti aggressivi durante il lavaggio.',
-  'Evita tessuti sporchi o stretti, attivita\' che causano attrito e ambienti insalubri finche\' la pelle non e\' sigillata.',
+  'Evita tessuti sporchi o stretti, attivita\' che causano attrito e ambienti insalubri finchè la pelle non è sigillata.',
   'Sospendi saune, piscine, mare e esposizione diretta al sole fino al completamento della guarigione.'
 ];
 
@@ -68,7 +68,7 @@ function TattooAftercare() {
             La procedura di cura dura una settimana, ma la pelle completa il proprio ciclo di rigenerazione in circa 30 giorni. In questa fase sono normali un aspetto leggermente opaco, piccole pellicine o una sensazione di secchezza: sono segnali fisiologici del processo di guarigione.
           </p>
           <p>
-            Continua a idratare con moderazione e proteggi il tatuaggio dai raggi UV con una protezione specifica non appena la pelle e\' chiusa. Evita di immergerti in acqua stagnante o di esporre l\'area a sudore eccessivo finche\' non scompare ogni segno di irritazione.
+            Continua a idratare con moderazione e proteggi il tatuaggio dai raggi UV con una protezione specifica non appena la pelle è chiusa. Evita di immergerti in acqua stagnante o di esporre l\'area a sudore eccessivo finche\' non scompare ogni segno di irritazione.
           </p>
         </section>
 

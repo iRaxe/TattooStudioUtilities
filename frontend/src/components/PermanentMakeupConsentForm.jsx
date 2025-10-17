@@ -737,7 +737,7 @@ function PermanentMakeupConsentForm() {
                   checked={formData.isMinorClient}
                   onChange={handleInputChange}
                 />
-                <span>Il cliente che si sottopone al trattamento e minorenne</span>
+                <span>Il cliente che si sottopone al trattamento è minorenne</span>
               </label>
             </div>
             {formData.isMinorClient && (
@@ -1102,7 +1102,7 @@ function PermanentMakeupConsentForm() {
                   checked={formData.hasCoverUp}
                   onChange={handleInputChange}
                 />
-                <span>Il lavoro richiesto e un cover-up di un trucco permanente gia eseguito da terzi</span>
+                <span>il lavoro richiesto è un cover-up di un trucco permanente gia eseguito da terzi</span>
               </label>
               {formData.hasCoverUp && (
                 <label className="tattoo-consent-checkbox">
