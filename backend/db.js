@@ -55,6 +55,7 @@ async function initSchema() {
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         status text NOT NULL CHECK (status IN ('draft','active','used','expired')),
         amount numeric(12,2) NOT NULL,
+        hide_amount boolean NOT NULL DEFAULT false,
         currency text NOT NULL DEFAULT 'EUR',
         expires_at timestamptz,
         notes text,
@@ -89,6 +90,7 @@ async function initSchema() {
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS dedication text');
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS consents jsonb');
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS used_at timestamptz');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS hide_amount boolean NOT NULL DEFAULT false');
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS tatuatori (

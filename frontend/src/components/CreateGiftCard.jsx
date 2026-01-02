@@ -12,9 +12,11 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('');
+  const [hideAmount, setHideAmount] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [lastCreatedCard, setLastCreatedCard] = useState(null);
+  const hiddenGiftMessage = 'Ti è stata regalata una seduta tattoo';
 
   const handleCreateGiftCard = async () => {
     // Validazione importo (sempre obbligatorio)
@@ -53,7 +55,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ amount: parseFloat(amount) })
+          body: JSON.stringify({ amount: parseFloat(amount), hideAmount })
         });
 
         const data = await response.json();
@@ -65,12 +67,14 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             claimUrl: data.claim_url,
             draftId: data.draft_id,
             claimToken: data.claim_token,
+            hideAmount,
             isDraft: true
           };
 
           console.log('Setting lastCreatedCard:', newCard);
           setLastCreatedCard(newCard);
           setAmount('');
+          setHideAmount(false);
 
           // Notify parent components
           if (onGiftCardCreated) onGiftCardCreated();
@@ -97,7 +101,8 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             firstName: firstName.trim(),
             lastName: lastName.trim(),
             phone: phone.trim(),
-            amount: parseFloat(amount) 
+            amount: parseFloat(amount),
+            hideAmount
           })
         });
 
@@ -113,6 +118,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             redeemUrl: data.redeem_url,
             giftCardId: data.gift_card_id,
             code: data.code,
+            hideAmount,
             isDraft: false
           };
 
@@ -122,6 +128,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
           setLastName('');
           setPhone('');
           setAmount('');
+          setHideAmount(false);
 
           // Notify parent components
           if (onGiftCardCreated) onGiftCardCreated();
@@ -177,15 +184,27 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                placeholder="Inserisci il numero di telefono"
                disabled={loading}
              />
-             <Input
-               type="number"
-               step="0.01"
-               min="0"
-               value={amount}
-               onChange={(e) => setAmount(e.target.value)}
-               placeholder="0.00"
-               disabled={loading}
-             />
+             <div className="gift-card-amount-row">
+               <Input
+                 type="number"
+                 step="0.01"
+                 min="0"
+                 value={amount}
+                 onChange={(e) => setAmount(e.target.value)}
+                 placeholder="0.00"
+                 disabled={loading}
+                 className="gift-card-amount-input"
+               />
+               <label className="gift-card-hide-toggle">
+                 <input
+                   type="checkbox"
+                   checked={hideAmount}
+                   onChange={(e) => setHideAmount(e.target.checked)}
+                   disabled={loading}
+                 />
+                 <span>Nascondi valore</span>
+               </label>
+             </div>
             <Button
               onClick={handleCreateGiftCard}
               disabled={loading || !amount}
@@ -287,9 +306,11 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
               <Button
                 onClick={async () => {
                   const linkToShare = lastCreatedCard.isDraft ? lastCreatedCard.claimUrl : lastCreatedCard.redeemUrl;
-                  const shareText = lastCreatedCard.isDraft ? 
-                    `Compila i dati per la gift card di €${lastCreatedCard.amount}!` :
-                    `Hai ricevuto una gift card di €${lastCreatedCard.amount}!`;
+                  const shareText = lastCreatedCard.hideAmount
+                    ? (lastCreatedCard.isDraft ? 'Compila i dati per la gift card.' : hiddenGiftMessage)
+                    : (lastCreatedCard.isDraft
+                      ? `Compila i dati per la gift card di €${lastCreatedCard.amount}!`
+                      : `Hai ricevuto una gift card di €${lastCreatedCard.amount}!`);
                   const result = await shareLink({
                     title: 'Gift Card Tink Studio',
                     text: shareText,

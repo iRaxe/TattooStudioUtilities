@@ -267,6 +267,20 @@
   width: 100%;
 }
 
+.amount-section--hidden {
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+.amount-hidden-text {
+  font-family: 'OldLondon', serif;
+  color: white;
+  font-size: 2.6rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  text-align: center;
+  line-height: 1.1;
+}
+
 .from-text {
   font-family: 'OldLondon', serif;
   color: white;
@@ -494,6 +508,10 @@
   
   .amount {
     font-size: 3rem;
+  }
+
+  .amount-hidden-text {
+    font-size: 2.1rem;
   }
   
   .gift-card-message {

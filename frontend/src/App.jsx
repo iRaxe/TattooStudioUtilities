@@ -2118,9 +2118,12 @@ function ClaimPage() {
               
               <button 
                 onClick={async () => {
+                  const shareText = claimData?.hide_amount
+                    ? 'Ti è stata regalata una seduta tattoo'
+                    : `Hai ricevuto una gift card di €${claimData.amount}!`;
                   const result = await shareLink({
                     title: 'Gift Card Tink Studio',
-                    text: `Hai ricevuto una gift card di €${claimData.amount}!`,
+                    text: shareText,
                     url: claimData.landing_url
                   })
                   if (result === 'copied') {

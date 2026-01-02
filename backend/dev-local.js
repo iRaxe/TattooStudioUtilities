@@ -109,7 +109,8 @@ app.post('/api/admin/login', async (req, res) => {
 // Create draft gift card
 app.post('/api/admin/gift-cards/drafts', authenticateToken, async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, hideAmount } = req.body;
+    const hide_amount = typeof hideAmount === 'boolean' ? hideAmount : req.body?.hide_amount === true || req.body?.hide_amount === 'true';
 
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Importo valido richiesto' });
@@ -120,9 +121,9 @@ app.post('/api/admin/gift-cards/drafts', authenticateToken, async (req, res) => 
     const baseUrl = process.env.PUBLIC_BASE_URL || 'http://localhost:3000';
 
     const result = await db.query(
-      `INSERT INTO gift_cards (amount, claim_token, landing_token, status) 
-       VALUES (?, ?, ?, 'draft')`,
-      [amount, claimToken, landingToken]
+      `INSERT INTO gift_cards (amount, hide_amount, claim_token, landing_token, status) 
+       VALUES (?, ?, ?, ?, 'draft')`,
+      [amount, hide_amount ? 1 : 0, claimToken, landingToken]
     );
 
     const claimUrl = `${baseUrl}/gift/claim/${claimToken}`;
@@ -135,7 +136,8 @@ app.post('/api/admin/gift-cards/drafts', authenticateToken, async (req, res) => 
       landing_token: landingToken,
       claim_url: claimUrl,
       landing_url: landingUrl,
-      amount: parseFloat(amount)
+      amount: parseFloat(amount),
+      hide_amount
     });
   } catch (error) {
     console.error('Create draft error:', error);
@@ -161,6 +163,7 @@ app.get('/api/gift-cards/landing/:token', async (req, res) => {
     res.json({
       id: giftCard.id,
       amount: giftCard.amount,
+      hide_amount: !!giftCard.hide_amount,
       status: giftCard.status,
       first_name: giftCard.first_name,
       last_name: giftCard.last_name,
@@ -192,6 +195,7 @@ app.get('/api/gift-cards/claim/:token', async (req, res) => {
     res.json({
       id: giftCard.id,
       amount: giftCard.amount,
+      hide_amount: !!giftCard.hide_amount,
       status: giftCard.status
     });
   } catch (error) {

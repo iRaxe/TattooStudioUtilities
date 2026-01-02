@@ -14,6 +14,7 @@ const GiftCardLanding = () => {
   const [error, setError] = useState(null);
   const [animationStage, setAnimationStage] = useState('logo'); // logo, golden-border, message
   const [copyStatus, setCopyStatus] = useState(null);
+  const hideAmount = giftCard?.hide_amount;
 
   useEffect(() => {
     const fetchGiftCard = async () => {
@@ -153,10 +154,16 @@ const GiftCardLanding = () => {
               <span className="first-name">{giftCard?.first_name}</span>
               <span className="last-name">{giftCard?.last_name}</span>
             </div>
-            <div className="amount-section">
-              <span className="from-text">da </span>
-              <span className="amount">€{giftCard?.amount}</span>
-            </div>
+            {hideAmount ? (
+              <div className="amount-section amount-section--hidden">
+                <span className="amount-hidden-text">Ti è stata regalata una seduta tattoo</span>
+              </div>
+            ) : (
+              <div className="amount-section">
+                <span className="from-text">da </span>
+                <span className="amount">€{giftCard?.amount}</span>
+              </div>
+            )}
             <div className="separator"></div>
             <div className="terms">
               <ol>

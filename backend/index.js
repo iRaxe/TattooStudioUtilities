@@ -824,7 +824,8 @@ app.post(
   '/api/admin/gift-cards/drafts',
   requireAdmin,
   asyncHandler(async (req, res) => {
-    const { amount, currency = 'EUR', expires_at = null, notes = null } = req.body || {};
+    const { amount, currency = 'EUR', expires_at = null, notes = null, hideAmount } = req.body || {};
+    const hide_amount = typeof hideAmount === 'boolean' ? hideAmount : req.body?.hide_amount === true || req.body?.hide_amount === 'true';
     if (!amount || typeof amount !== 'number' || amount <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
     }
@@ -835,12 +836,13 @@ app.post(
     const calculatedExpiresAt = monthsFromDate(createdAt, GIFT_CARD_VALIDITY_MONTHS);
     const claim_token_expires_at = minutesFromNow(CLAIM_TOKEN_TTL_MINUTES);
     const { rows } = await query(
-      `INSERT INTO gift_cards (id, status, amount, currency, expires_at, notes, code, claim_token, claim_token_expires_at, created_at, updated_at)
-       VALUES ($1, 'draft', $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-       RETURNING id, amount, code, claim_token, expires_at, claim_token_expires_at`,
+      `INSERT INTO gift_cards (id, status, amount, hide_amount, currency, expires_at, notes, code, claim_token, claim_token_expires_at, created_at, updated_at)
+       VALUES ($1, 'draft', $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+       RETURNING id, amount, hide_amount, code, claim_token, expires_at, claim_token_expires_at`,
       [
         id,
         amount,
+        hide_amount,
         currency,
         expires_at ? new Date(expires_at) : calculatedExpiresAt,
         notes,
@@ -854,6 +856,7 @@ app.post(
     res.status(201).json({
       draft_id: draft.id,
       amount: Number(draft.amount),
+      hide_amount: draft.hide_amount,
       code: draft.code,
       claim_token: draft.claim_token,
       expires_at: toISO(draft.expires_at),
@@ -867,7 +870,8 @@ app.post(
   '/api/admin/gift-cards/complete',
   requireAdmin,
   asyncHandler(async (req, res) => {
-    const { firstName, lastName, phone, amount, currency = 'EUR', expires_at = null, notes = null } = req.body || {};
+    const { firstName, lastName, phone, amount, currency = 'EUR', expires_at = null, notes = null, hideAmount } = req.body || {};
+    const hide_amount = typeof hideAmount === 'boolean' ? hideAmount : req.body?.hide_amount === true || req.body?.hide_amount === 'true';
     if (!firstName || !firstName.trim()) {
       return res.status(400).json({ error: 'First name is required' });
     }
@@ -890,16 +894,16 @@ app.post(
       const expiresAt = expires_at ? new Date(expires_at) : monthsFromDate(now(), GIFT_CARD_VALIDITY_MONTHS);
       const { rows } = await client.query(
         `INSERT INTO gift_cards (
-          id, status, amount, currency, expires_at, notes,
+          id, status, amount, hide_amount, currency, expires_at, notes,
           claim_token, claim_token_expires_at, claimed_at, claimed_by_customer_id,
           code, first_name, last_name, email, phone, birth_date, dedication, consents, created_at, updated_at
         ) VALUES (
-          $1, 'active', $2, $3, $4, $5,
-          NULL, NULL, NOW(), $6,
-          $7, $8, $9, NULL, $10, NULL, NULL, NULL, NOW(), NOW()
+          $1, 'active', $2, $3, $4, $5, $6,
+          NULL, NULL, NOW(), $7,
+          $8, $9, $10, NULL, $11, NULL, NULL, NULL, NOW(), NOW()
         )
-        RETURNING id, amount, code, expires_at, first_name, last_name, phone`,
-        [uuidv4(), amount, currency, expiresAt, notes, customerId, code, firstName.trim(), lastName.trim(), phone.trim()]
+        RETURNING id, amount, hide_amount, code, expires_at, first_name, last_name, phone`,
+        [uuidv4(), amount, hide_amount, currency, expiresAt, notes, customerId, code, firstName.trim(), lastName.trim(), phone.trim()]
       );
       return rows[0];
     });
@@ -907,6 +911,7 @@ app.post(
     res.status(201).json({
       gift_card_id: giftCard.id,
       amount: Number(giftCard.amount),
+      hide_amount: giftCard.hide_amount,
       code: giftCard.code,
       expires_at: toISO(giftCard.expires_at),
       redeem_url,
@@ -924,6 +929,7 @@ function mapGiftCard(row) {
     id: row.id,
     status: row.status,
     amount: Number(row.amount),
+    hide_amount: row.hide_amount,
     currency: row.currency,
     code: row.code,
     claim_token: row.claim_token,
@@ -954,7 +960,7 @@ app.get(
   requireAdmin,
   asyncHandler(async (req, res) => {
     const { rows } = await query(
-      `SELECT id, status, amount, currency, claim_token, created_at, expires_at, claim_token_expires_at
+      `SELECT id, status, amount, hide_amount, currency, claim_token, created_at, expires_at, claim_token_expires_at
        FROM gift_cards
        WHERE status = 'draft'
        ORDER BY created_at DESC`
@@ -964,6 +970,7 @@ app.get(
         id: row.id,
         status: row.status,
         amount: Number(row.amount),
+        hide_amount: row.hide_amount,
         currency: row.currency,
         claim_token: row.claim_token,
         created_at: toISO(row.created_at),
@@ -980,7 +987,7 @@ app.get(
   asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { rows } = await query(
-      `SELECT id, status, amount, currency, expires_at, claim_token_expires_at, claim_token, claimed_at
+      `SELECT id, status, amount, hide_amount, currency, expires_at, claim_token_expires_at, claim_token, claimed_at
        FROM gift_cards
        WHERE id = $1`,
       [id]
@@ -993,6 +1000,7 @@ app.get(
       id: draft.id,
       status: draft.status,
       amount: Number(draft.amount),
+      hide_amount: draft.hide_amount,
       currency: draft.currency,
       expires_at: toISO(draft.expires_at),
       claim_token_expires_at: toISO(draft.claim_token_expires_at),
@@ -1276,7 +1284,7 @@ app.get(
   asyncHandler(async (req, res) => {
     const { token } = req.params;
     const { rows } = await query(
-      `SELECT id, amount, currency, expires_at, claim_token_expires_at, status
+      `SELECT id, amount, hide_amount, currency, expires_at, claim_token_expires_at, status
        FROM gift_cards
        WHERE claim_token = $1`,
       [token]
@@ -1288,7 +1296,12 @@ app.get(
     if (gc.claim_token_expires_at && now() > gc.claim_token_expires_at) {
       return res.status(410).json({ error: 'Token expired' });
     }
-    res.json({ amount: Number(gc.amount), currency: gc.currency, expires_at: toISO(gc.expires_at) });
+    res.json({
+      amount: Number(gc.amount),
+      hide_amount: gc.hide_amount,
+      currency: gc.currency,
+      expires_at: toISO(gc.expires_at),
+    });
   })
 );
 
@@ -1365,6 +1378,7 @@ app.post(
       id: gc.id,
       status: gc.status,
       amount: Number(gc.amount),
+      hide_amount: gc.hide_amount,
       currency: gc.currency,
       expires_at: toISO(gc.expires_at),
       code: result.code,
@@ -1414,7 +1428,7 @@ app.get(
   asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { rows } = await query(
-      `SELECT id, amount, currency, code, status, first_name, last_name, email, phone, expires_at, created_at
+      `SELECT id, amount, hide_amount, currency, code, status, first_name, last_name, email, phone, expires_at, created_at
        FROM gift_cards WHERE id = $1`,
       [id]
     );
@@ -1425,6 +1439,7 @@ app.get(
     res.json({
       id: gc.id,
       amount: Number(gc.amount),
+      hide_amount: gc.hide_amount,
       currency: gc.currency,
       code: gc.code,
       status: gc.status,

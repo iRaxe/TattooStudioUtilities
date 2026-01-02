@@ -13,6 +13,7 @@ const initSchema = async () => {
       db.run(`CREATE TABLE IF NOT EXISTS gift_cards (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         amount DECIMAL(10,2) NOT NULL,
+        hide_amount INTEGER DEFAULT 0,
         claim_token VARCHAR(255) UNIQUE NOT NULL,
         landing_token VARCHAR(255) UNIQUE NOT NULL,
         status VARCHAR(50) DEFAULT 'draft',
