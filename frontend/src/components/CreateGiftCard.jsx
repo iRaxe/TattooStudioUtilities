@@ -16,27 +16,57 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [lastCreatedCard, setLastCreatedCard] = useState(null);
+  const hiddenDepositMessage = 'Acconto tatuaggio registrato.';
+
+  const resolveCardKind = (kind) => (kind === 'deposit' ? 'deposit' : 'gift');
+
+  const buildCardLabels = (kind) => {
+    const isDeposit = resolveCardKind(kind) === 'deposit';
+    return {
+      cardName: isDeposit ? 'Acconto' : 'Gift Card',
+      draftTitle: isDeposit ? 'Link Acconto Generato!' : 'Link Gift Card Generato!',
+      completeTitle: isDeposit ? 'Acconto Creato con Successo!' : 'Gift Card Creata con Successo!',
+      draftLinkLabel: isDeposit ? "Link per completare l'acconto:" : 'Link per chi regala:',
+      completeLinkLabel: isDeposit ? 'Riepilogo Acconto:' : 'Landing Page Personalizzata:',
+      draftSuggestion: isDeposit
+        ? "Suggerimento: condividi questo link con il cliente per completare i dati dell'acconto"
+        : 'Suggerimento: condividi questo link con chi regala la gift card. Dovra compilare i dati del festeggiato',
+      completeSuggestion: isDeposit
+        ? "Suggerimento: condividi questo link con il cliente come ricevuta dell'acconto"
+        : 'Suggerimento: condividi questo link con il cliente per una esperienza gift card personalizzata e animata',
+      shareTitle: isDeposit ? 'Acconto Tink Studio' : 'Gift Card Tink Studio',
+      draftIdLabel: isDeposit ? 'ID Bozza Acconto' : 'ID Bozza',
+      completeIdLabel: isDeposit ? 'ID Acconto' : 'ID Gift Card'
+    };
+  };
   const hiddenGiftMessage = 'Ti è stata regalata una seduta tattoo';
 
-  const handleCreateGiftCard = async () => {
+  const handleCreateGiftCard = async (kind = 'gift') => {
     // Validazione importo (sempre obbligatorio)
     if (!amount || parseFloat(amount) <= 0) {
       setError('Inserisci un importo valido');
       return;
     }
 
+    const cardKind = resolveCardKind(kind);
+    const cardLabelMessage = cardKind === 'deposit' ? 'un acconto completo' : 'una gift card completa';
+    const notes = cardKind === 'deposit' ? 'acconto' : null;
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+    const trimmedPhone = phone.trim();
+
     // Determina se creare una bozza o una gift card completa
-    const hasAllFields = firstName.trim() && lastName.trim() && phone.trim();
-    const hasOnlyAmount = !firstName.trim() && !lastName.trim() && !phone.trim();
+    const hasRequiredFields = trimmedFirstName && trimmedLastName;
+    const hasOnlyAmount = !trimmedFirstName && !trimmedLastName && !trimmedPhone;
 
     // Se ci sono alcuni campi ma non tutti, mostra errore
-    if (!hasAllFields && !hasOnlyAmount) {
-      setError('Compila tutti i campi per creare una gift card completa, oppure lascia vuoti nome, cognome e telefono per generare solo un link');
+    if (!hasRequiredFields && !hasOnlyAmount) {
+      setError(`Compila nome e cognome (telefono opzionale) per creare ${cardLabelMessage}, oppure lascia vuoti tutti i campi per generare solo un link`);
       return;
     }
 
     // Validazione telefono se presente
-    if (phone.trim() && !/^\d+$/.test(phone.trim())) {
+    if (trimmedPhone && !/^\d+$/.test(trimmedPhone)) {
       setError('Il telefono deve contenere solo numeri');
       return;
     }
@@ -55,7 +85,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ amount: parseFloat(amount), hideAmount })
+          body: JSON.stringify({ amount: parseFloat(amount), hideAmount, notes })
         });
 
         const data = await response.json();
@@ -68,7 +98,8 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             draftId: data.draft_id,
             claimToken: data.claim_token,
             hideAmount,
-            isDraft: true
+            isDraft: true,
+            kind: cardKind
           };
 
           console.log('Setting lastCreatedCard:', newCard);
@@ -98,11 +129,12 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({ 
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            phone: phone.trim(),
+            firstName: trimmedFirstName,
+            lastName: trimmedLastName,
+            phone: trimmedPhone || null,
             amount: parseFloat(amount),
-            hideAmount
+            hideAmount,
+            notes
           })
         });
 
@@ -111,15 +143,16 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
         if (response.ok) {
           console.log('Complete gift card creation successful:', data);
           const newCard = {
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            phone: phone.trim(),
+            firstName: trimmedFirstName,
+            lastName: trimmedLastName,
+            phone: trimmedPhone || null,
             amount: parseFloat(amount),
             redeemUrl: data.redeem_url,
             giftCardId: data.gift_card_id,
             code: data.code,
             hideAmount,
-            isDraft: false
+            isDraft: false,
+            kind: cardKind
           };
 
           console.log('Setting lastCreatedCard for complete card:', newCard);
@@ -152,6 +185,9 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
     }
   };
 
+  const activeCardLabels = buildCardLabels(lastCreatedCard?.kind);
+  const isDepositCard = resolveCardKind(lastCreatedCard?.kind) === 'deposit';
+
   return (
     <div style={{ marginBottom: '2rem' }}>
       {!lastCreatedCard && (
@@ -159,7 +195,8 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
           <h3 className="section-title"><PlusCircleIcon className="section-title-icon" aria-hidden="true" /> Crea Gift Card</h3>
           <p className="section-description">
             <strong>Solo importo:</strong> Genera un link per chi regala la gift card<br/>
-            <strong>Tutti i campi:</strong> Crea una gift card completa con landing page personalizzata
+            <strong>Nome e cognome:</strong> Crea una gift card completa con landing page personalizzata (telefono opzionale)<br/>
+            <strong>Acconto:</strong> Registra un pagamento anticipato del tatuaggio (non e un regalo)
           </p>
         
           <div className="input-section">
@@ -181,7 +218,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                type="tel"
                value={phone}
                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-               placeholder="Inserisci il numero di telefono"
+               placeholder="Inserisci il numero di telefono (opzionale)"
                disabled={loading}
              />
              <div className="gift-card-amount-row">
@@ -205,13 +242,23 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                  <span>Nascondi valore</span>
                </label>
              </div>
-            <Button
-              onClick={handleCreateGiftCard}
-              disabled={loading || !amount}
-              className="full-width-button"
-            >
-              {loading ? 'Creazione in corso...' : 'Crea Gift Card'}
-            </Button>
+            <div className="flex gap-md flex-wrap">
+              <Button
+                onClick={() => handleCreateGiftCard('gift')}
+                disabled={loading || !amount}
+                className="flex-1 w-full"
+              >
+                {loading ? 'Creazione in corso...' : 'Crea Gift Card'}
+              </Button>
+              <Button
+                onClick={() => handleCreateGiftCard('deposit')}
+                disabled={loading || !amount}
+                className="flex-1 w-full"
+                variant="secondary"
+              >
+                {loading ? 'Creazione in corso...' : 'Crea Acconto'}
+              </Button>
+            </div>
           </div>
 
           {error && (
@@ -227,7 +274,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
           <h3 className="section-title">
             <CheckCircleIcon className="section-title-icon" aria-hidden="true" />
             {' '}
-            {lastCreatedCard.isDraft ? 'Link Gift Card Generato!' : 'Gift Card Creata con Successo!'}
+            {lastCreatedCard.isDraft ? activeCardLabels.draftTitle : activeCardLabels.completeTitle}
           </h3>
           <div style={{
             background: 'rgba(34, 197, 94, 0.1)',
@@ -243,7 +290,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                     Importo: €{lastCreatedCard.amount}
                   </div>
                   <div style={{ fontSize: '0.9rem', color: '#9ca3af', marginBottom: '1rem' }}>
-                    ID Bozza: {lastCreatedCard.draftId}
+                    {activeCardLabels.draftIdLabel}: {lastCreatedCard.draftId}
                   </div>
                 </>
               ) : (
@@ -251,14 +298,16 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                   <div style={{ fontSize: '1.2rem', fontWeight: '600', color: '#86efac', marginBottom: '0.5rem' }}>
                     Cliente: {lastCreatedCard.firstName} {lastCreatedCard.lastName}
                   </div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: '600', color: '#86efac', marginBottom: '0.5rem' }}>
-                    Telefono: {lastCreatedCard.phone}
-                  </div>
+                  {lastCreatedCard.phone && (
+                    <div style={{ fontSize: '1.2rem', fontWeight: '600', color: '#86efac', marginBottom: '0.5rem' }}>
+                      Telefono: {lastCreatedCard.phone}
+                    </div>
+                  )}
                   <div style={{ fontSize: '1.2rem', fontWeight: '600', color: '#86efac', marginBottom: '0.5rem' }}>
                     Importo: €{lastCreatedCard.amount}
                   </div>
                   <div style={{ fontSize: '0.9rem', color: '#9ca3af', marginBottom: '1rem' }}>
-                    ID Gift Card: {lastCreatedCard.giftCardId}
+                    {activeCardLabels.completeIdLabel}: {lastCreatedCard.giftCardId}
                   </div>
                 </>
               )}
@@ -266,7 +315,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             
             <div style={{ marginBottom: '1rem' }}>
               <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: '#f9fafb' }}>
-                {lastCreatedCard.isDraft ? 'Link per chi regala:' : 'Landing Page Personalizzata:'}
+                {lastCreatedCard.isDraft ? activeCardLabels.draftLinkLabel : activeCardLabels.completeLinkLabel}
               </div>
               <div style={{
                 background: 'rgba(0, 0, 0, 0.3)',
@@ -280,10 +329,9 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                 {lastCreatedCard.isDraft ? lastCreatedCard.claimUrl : lastCreatedCard.redeemUrl}
               </div>
               <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                {lastCreatedCard.isDraft ?
-                  'Suggerimento: condividi questo link con chi regala la gift card. Dovrà compilare i dati del festeggiato' :
-                  'Suggerimento: condividi questo link con il cliente per una esperienza gift card personalizzata e animata'
-                }
+                {lastCreatedCard.isDraft
+                  ? activeCardLabels.draftSuggestion
+                  : activeCardLabels.completeSuggestion}
               </div>
             </div>
 
@@ -306,13 +354,19 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
               <Button
                 onClick={async () => {
                   const linkToShare = lastCreatedCard.isDraft ? lastCreatedCard.claimUrl : lastCreatedCard.redeemUrl;
-                  const shareText = lastCreatedCard.hideAmount
-                    ? (lastCreatedCard.isDraft ? 'Compila i dati per la gift card.' : hiddenGiftMessage)
-                    : (lastCreatedCard.isDraft
-                      ? `Compila i dati per la gift card di €${lastCreatedCard.amount}!`
-                      : `Hai ricevuto una gift card di €${lastCreatedCard.amount}!`);
+                  const shareText = isDepositCard
+                    ? (lastCreatedCard.hideAmount
+                      ? (lastCreatedCard.isDraft ? 'Compila i dati per l\'acconto.' : hiddenDepositMessage)
+                      : (lastCreatedCard.isDraft
+                        ? `Compila i dati per l'acconto di €${lastCreatedCard.amount}!`
+                        : `Acconto tatuaggio di €${lastCreatedCard.amount} registrato.`))
+                    : (lastCreatedCard.hideAmount
+                      ? (lastCreatedCard.isDraft ? 'Compila i dati per la gift card.' : hiddenGiftMessage)
+                      : (lastCreatedCard.isDraft
+                        ? `Compila i dati per la gift card di €${lastCreatedCard.amount}!`
+                        : `Hai ricevuto una gift card di €${lastCreatedCard.amount}!`));
                   const result = await shareLink({
-                    title: 'Gift Card Tink Studio',
+                    title: activeCardLabels.shareTitle,
                     text: shareText,
                     url: linkToShare
                   });

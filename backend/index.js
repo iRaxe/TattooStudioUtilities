@@ -872,24 +872,27 @@ app.post(
   asyncHandler(async (req, res) => {
     const { firstName, lastName, phone, amount, currency = 'EUR', expires_at = null, notes = null, hideAmount } = req.body || {};
     const hide_amount = typeof hideAmount === 'boolean' ? hideAmount : req.body?.hide_amount === true || req.body?.hide_amount === 'true';
-    if (!firstName || !firstName.trim()) {
+    const normalizedFirstName = typeof firstName === 'string' ? firstName.trim() : '';
+    const normalizedLastName = typeof lastName === 'string' ? lastName.trim() : '';
+    const normalizedPhone = typeof phone === 'string' ? phone.trim() : '';
+
+    if (!normalizedFirstName) {
       return res.status(400).json({ error: 'First name is required' });
     }
-    if (!lastName || !lastName.trim()) {
+    if (!normalizedLastName) {
       return res.status(400).json({ error: 'Last name is required' });
-    }
-    if (!phone || !phone.trim()) {
-      return res.status(400).json({ error: 'Phone is required' });
     }
     if (!amount || typeof amount !== 'number' || amount <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
     }
     const giftCard = await withTransaction(async (client) => {
-      const customerId = await upsertCustomerByPhone(client, {
-        firstName,
-        lastName,
-        phone,
-      });
+      const customerId = normalizedPhone
+        ? await upsertCustomerByPhone(client, {
+            firstName: normalizedFirstName,
+            lastName: normalizedLastName,
+            phone: normalizedPhone,
+          })
+        : null;
       const code = await generateUniqueCode(client);
       const expiresAt = expires_at ? new Date(expires_at) : monthsFromDate(now(), GIFT_CARD_VALIDITY_MONTHS);
       const { rows } = await client.query(
@@ -903,7 +906,7 @@ app.post(
           $8, $9, $10, NULL, $11, NULL, NULL, NULL, NOW(), NOW()
         )
         RETURNING id, amount, hide_amount, code, expires_at, first_name, last_name, phone`,
-        [uuidv4(), amount, hide_amount, currency, expiresAt, notes, customerId, code, firstName.trim(), lastName.trim(), phone.trim()]
+        [uuidv4(), amount, hide_amount, currency, expiresAt, notes, customerId, code, normalizedFirstName, normalizedLastName, normalizedPhone || null]
       );
       return rows[0];
     });
