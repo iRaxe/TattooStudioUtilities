@@ -133,6 +133,31 @@
   gap: 1rem;
 }
 
+.landing-image-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.landing-image-frame {
+  width: min(360px, 82vw);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.landing-image-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 26vh;
+  object-fit: cover;
+}
+
 .logo-svg-1 {
   display: flex;
   align-items: center;

@@ -1892,17 +1892,22 @@ button.nav-link-admin:hover {
 .glass-input {
   width: 100%;
   background: rgba(255, 255, 255, 0.06);
+  background-color: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 4px;
   padding: 1.2rem 1.5rem;
   color: #f9fafb;
+  color-scheme: dark;
   font-size: 1rem;
   margin-bottom: 1.2rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(251, 191, 36, 0);
   box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-text-fill-color: #f9fafb;
 }
 
 .glass-input.gift-card-amount-input {
@@ -1930,6 +1935,16 @@ button.nav-link-admin:hover {
 
 .glass-input::placeholder {
   color: #9ca3af;
+}
+
+.glass-input:-webkit-autofill,
+.glass-input:-webkit-autofill:hover,
+.glass-input:-webkit-autofill:focus,
+.glass-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #f9fafb;
+  -webkit-box-shadow: 0 0 0 1000px rgba(17, 24, 39, 0.85) inset;
+  box-shadow: 0 0 0 1000px rgba(17, 24, 39, 0.85) inset;
+  caret-color: #f9fafb;
 }
 
 /* Title Component */

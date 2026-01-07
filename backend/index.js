@@ -1431,7 +1431,7 @@ app.get(
   asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { rows } = await query(
-      `SELECT id, amount, hide_amount, currency, code, status, first_name, last_name, email, phone, expires_at, created_at
+      `SELECT id, amount, hide_amount, currency, code, status, first_name, last_name, email, phone, notes, expires_at, created_at
        FROM gift_cards WHERE id = $1`,
       [id]
     );
@@ -1450,6 +1450,7 @@ app.get(
       last_name: gc.last_name,
       email: gc.email,
       phone: gc.phone,
+      notes: gc.notes,
       expires_at: toISO(gc.expires_at),
       created_at: toISO(gc.created_at),
     });

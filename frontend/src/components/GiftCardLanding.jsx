@@ -15,6 +15,15 @@ const GiftCardLanding = () => {
   const [animationStage, setAnimationStage] = useState('logo'); // logo, golden-border, message
   const [copyStatus, setCopyStatus] = useState(null);
   const hideAmount = giftCard?.hide_amount;
+  const isDeposit = typeof giftCard?.notes === 'string' && giftCard.notes.toLowerCase().includes('acconto');
+  const landingTitle = isDeposit ? 'Acconto' : 'Gift Card';
+  const codeLabel = isDeposit ? 'Codice acconto' : 'Codice gift card';
+  const copyLabel = isDeposit ? 'Copia codice acconto' : 'Copia codice gift card';
+  const landingImages = [
+    { src: '/landing-01.jpg', alt: 'Immagine tatuaggio 1' },
+    { src: '/landing-02.jpg', alt: 'Immagine tatuaggio 2' }
+  ];
+  const stagedImages = isDeposit ? landingImages.slice(0, 1) : landingImages;
 
   useEffect(() => {
     const fetchGiftCard = async () => {
@@ -135,8 +144,26 @@ const GiftCardLanding = () => {
                         ease: "easeOut" 
                       }}
                     >
-                      <h2>Gift Card</h2>
+                      <h2>{landingTitle}</h2>
                     </motion.div>
+                    <div className="landing-image-stack">
+                      {stagedImages.map((image, index) => (
+                        <motion.div
+                          key={image.src}
+                          className="landing-image-frame"
+                          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                          transition={{
+                            duration: 0.7,
+                            delay: 2.1 + index * 0.6,
+                            ease: 'easeOut'
+                          }}
+                        >
+                          <img src={image.src} alt={image.alt} />
+                        </motion.div>
+                      ))}
+                    </div>
                   </>
                 )}
               </AnimatePresence>
@@ -175,14 +202,14 @@ const GiftCardLanding = () => {
             </div>
             <div className="separator"></div>
             <div className="code-section">
-              <span className="code-label">Codice gift card</span>
+              <span className="code-label">{codeLabel}</span>
               <div className="code-row">
                 <span className="code-value">{giftCard?.code}</span>
                 <button
                   type="button"
                   className="copy-code-button"
                   onClick={handleCopyCode}
-                  aria-label="Copia codice gift card"
+                  aria-label={copyLabel}
                 >
                   Copia
                 </button>
