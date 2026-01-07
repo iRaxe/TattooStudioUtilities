@@ -19,11 +19,7 @@ const GiftCardLanding = () => {
   const landingTitle = isDeposit ? 'Acconto' : 'Gift Card';
   const codeLabel = isDeposit ? 'Codice acconto' : 'Codice gift card';
   const copyLabel = isDeposit ? 'Copia codice acconto' : 'Copia codice gift card';
-  const landingImages = [
-    { src: '/landing-01.jpg', alt: 'Immagine tatuaggio 1' },
-    { src: '/landing-02.jpg', alt: 'Immagine tatuaggio 2' }
-  ];
-  const stagedImages = isDeposit ? landingImages.slice(0, 1) : landingImages;
+  const expiresLabel = isDeposit ? 'Questo acconto scade il' : 'Questo coupon scade il';
 
   useEffect(() => {
     const fetchGiftCard = async () => {
@@ -146,24 +142,6 @@ const GiftCardLanding = () => {
                     >
                       <h2>{landingTitle}</h2>
                     </motion.div>
-                    <div className="landing-image-stack">
-                      {stagedImages.map((image, index) => (
-                        <motion.div
-                          key={image.src}
-                          className="landing-image-frame"
-                          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                          transition={{
-                            duration: 0.7,
-                            delay: 2.1 + index * 0.6,
-                            ease: 'easeOut'
-                          }}
-                        >
-                          <img src={image.src} alt={image.alt} />
-                        </motion.div>
-                      ))}
-                    </div>
                   </>
                 )}
               </AnimatePresence>
@@ -197,7 +175,7 @@ const GiftCardLanding = () => {
                 <li>L'appuntamento può essere spostato 1 volta senza perdere la caparra se avvisati entro 48 ore lavorative</li>
                 <li>Se non vi presentaste all'appuntamento o decideste di non tatuarvi più, lo studio tratterrà la caparra</li>
                 <li>La caparra verrà defalcata dal costo totale del lavoro (al termine dell'ultima seduta)</li>
-                <li>Questo coupon scade il {giftCard?.expires_at ? new Date(giftCard.expires_at).toLocaleDateString('it-IT') : 'N/A'}</li>
+                <li>{expiresLabel} {giftCard?.expires_at ? new Date(giftCard.expires_at).toLocaleDateString('it-IT') : 'N/A'}</li>
               </ol>
             </div>
             <div className="separator"></div>
