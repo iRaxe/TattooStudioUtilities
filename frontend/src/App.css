@@ -1947,6 +1947,18 @@ button.nav-link-admin:hover {
   caret-color: #f9fafb;
 }
 
+/* iOS Safari can ignore translucent input backgrounds; force a dark fill. */
+@supports (-webkit-overflow-scrolling: touch) {
+  .glass-input {
+    background-color: rgba(17, 24, 39, 0.9);
+    box-shadow: 0 0 0 1000px rgba(17, 24, 39, 0.9) inset;
+  }
+
+  .glass-input:focus {
+    box-shadow: 0 0 0 1000px rgba(17, 24, 39, 0.92) inset, 0 0 0 3px rgba(251, 191, 36, 0.3);
+  }
+}
+
 /* Title Component */
 .title {
   font-family: 'Cinzel', serif;
