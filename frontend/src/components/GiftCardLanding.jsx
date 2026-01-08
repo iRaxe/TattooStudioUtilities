@@ -16,6 +16,8 @@ const GiftCardLanding = () => {
   const [copyStatus, setCopyStatus] = useState(null);
   const hideAmount = giftCard?.hide_amount;
   const isDeposit = typeof giftCard?.notes === 'string' && giftCard.notes.toLowerCase().includes('acconto');
+  const senderName = typeof giftCard?.sender_name === 'string' ? giftCard.sender_name.trim() : '';
+  const showSender = Boolean(senderName) && !isDeposit;
   const landingTitle = isDeposit ? 'Acconto' : 'Gift Card';
   const codeLabel = isDeposit ? 'Codice acconto' : 'Codice gift card';
   const copyLabel = isDeposit ? 'Copia codice acconto' : 'Copia codice gift card';
@@ -160,13 +162,18 @@ const GiftCardLanding = () => {
               <span className="last-name">{giftCard?.last_name}</span>
             </div>
             {hideAmount ? (
-              <div className="amount-section amount-section--hidden">
+              <div className={`amount-section amount-section--hidden ${showSender ? 'amount-section--with-sender' : ''}`}>
                 <span className="amount-hidden-text">Ti è stata regalata una seduta tattoo</span>
               </div>
             ) : (
-              <div className="amount-section">
+              <div className={`amount-section ${showSender ? 'amount-section--with-sender' : ''}`}>
                 <span className="from-text">da </span>
                 <span className="amount">€{giftCard?.amount}</span>
+              </div>
+            )}
+            {showSender && (
+              <div className="sender-line">
+                <span className="sender-text">regalata da {senderName}</span>
               </div>
             )}
             <div className="separator"></div>

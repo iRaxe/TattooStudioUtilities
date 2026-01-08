@@ -167,6 +167,7 @@ app.get('/api/gift-cards/landing/:token', async (req, res) => {
       status: giftCard.status,
       first_name: giftCard.first_name,
       last_name: giftCard.last_name,
+      sender_name: giftCard.sender_name,
       dedication: giftCard.dedication,
       expires_at: giftCard.expires_at,
       created_at: giftCard.created_at

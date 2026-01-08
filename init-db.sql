@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS gift_cards (
     code TEXT UNIQUE,
     first_name TEXT,
     last_name TEXT,
+    sender_name TEXT,
     email TEXT,
     phone TEXT,
     birth_date DATE,

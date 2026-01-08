@@ -66,6 +66,7 @@ async function initSchema() {
         code text UNIQUE,
         first_name text,
         last_name text,
+        sender_name text,
         email text,
         phone text,
         birth_date date,
@@ -84,6 +85,7 @@ async function initSchema() {
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS code text UNIQUE');
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS first_name text');
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS last_name text');
+    await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS sender_name text');
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS email text');
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS phone text');
     await client.query('ALTER TABLE gift_cards ADD COLUMN IF NOT EXISTS birth_date date');

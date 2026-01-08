@@ -19,6 +19,7 @@ const initSchema = async () => {
         status VARCHAR(50) DEFAULT 'draft',
         first_name VARCHAR(255),
         last_name VARCHAR(255),
+        sender_name VARCHAR(255),
         email VARCHAR(255),
         phone VARCHAR(20),
         dedication TEXT,

@@ -272,6 +272,10 @@
   margin-bottom: 0;
 }
 
+.amount-section--with-sender {
+  margin-bottom: 0;
+}
+
 .amount-hidden-text {
   font-family: 'OldLondon', serif;
   color: white;
@@ -279,6 +283,21 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
   text-align: center;
   line-height: 1.1;
+}
+
+.sender-line {
+  margin-top: 0.35rem;
+  margin-bottom: -0.5rem;
+  text-align: center;
+}
+
+.sender-text {
+  font-family: 'OldLondon', serif;
+  color: white;
+  font-size: 2.6rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  display: inline-block;
+  line-height: 1;
 }
 
 .from-text {
@@ -512,6 +531,10 @@
 
   .amount-hidden-text {
     font-size: 2.1rem;
+  }
+
+  .sender-text {
+    font-size: 2rem;
   }
   
   .gift-card-message {

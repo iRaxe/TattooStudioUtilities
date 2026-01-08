@@ -11,6 +11,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [senderName, setSenderName] = useState('');
   const [amount, setAmount] = useState('');
   const [hideAmount, setHideAmount] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -54,14 +55,15 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
     const trimmedFirstName = firstName.trim();
     const trimmedLastName = lastName.trim();
     const trimmedPhone = phone.trim();
+    const trimmedSenderName = senderName.trim();
 
     // Determina se creare una bozza o una gift card completa
     const hasRequiredFields = trimmedFirstName && trimmedLastName;
-    const hasOnlyAmount = !trimmedFirstName && !trimmedLastName && !trimmedPhone;
+    const hasOnlyAmount = !trimmedFirstName && !trimmedLastName && !trimmedPhone && !trimmedSenderName;
 
     // Se ci sono alcuni campi ma non tutti, mostra errore
     if (!hasRequiredFields && !hasOnlyAmount) {
-      setError(`Compila nome e cognome (telefono opzionale) per creare ${cardLabelMessage}, oppure lascia vuoti tutti i campi per generare solo un link`);
+      setError(`Compila nome e cognome (telefono e mittente opzionali) per creare ${cardLabelMessage}, oppure lascia vuoti tutti i campi per generare solo un link`);
       return;
     }
 
@@ -132,6 +134,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             firstName: trimmedFirstName,
             lastName: trimmedLastName,
             phone: trimmedPhone || null,
+            senderName: cardKind === 'gift' ? (trimmedSenderName || null) : null,
             amount: parseFloat(amount),
             hideAmount,
             notes
@@ -146,6 +149,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
             firstName: trimmedFirstName,
             lastName: trimmedLastName,
             phone: trimmedPhone || null,
+            senderName: cardKind === 'gift' ? (trimmedSenderName || null) : null,
             amount: parseFloat(amount),
             redeemUrl: data.redeem_url,
             giftCardId: data.gift_card_id,
@@ -160,6 +164,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
           setFirstName('');
           setLastName('');
           setPhone('');
+          setSenderName('');
           setAmount('');
           setHideAmount(false);
 
@@ -195,7 +200,7 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
           <h3 className="section-title"><PlusCircleIcon className="section-title-icon" aria-hidden="true" /> Crea Gift Card</h3>
           <p className="section-description">
             <strong>Solo importo:</strong> Genera un link per chi regala la gift card<br/>
-            <strong>Nome e cognome:</strong> Crea una gift card completa con landing page personalizzata (telefono opzionale)<br/>
+            <strong>Nome e cognome:</strong> Crea una gift card completa con landing page personalizzata (telefono e mittente opzionali)<br/>
             <strong>Acconto:</strong> Registra un pagamento anticipato del tatuaggio (non e un regalo)
           </p>
         
@@ -219,6 +224,13 @@ function CreateGiftCard({ onGiftCardCreated, onStatsUpdate }) {
                value={phone}
                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                placeholder="Inserisci il numero di telefono (opzionale)"
+               disabled={loading}
+             />
+             <Input
+               type="text"
+               value={senderName}
+               onChange={(e) => setSenderName(e.target.value)}
+               placeholder="Inserisci il mittente (opzionale)"
                disabled={loading}
              />
              <div className="gift-card-amount-row">

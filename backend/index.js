@@ -871,10 +871,12 @@ app.post(
   requireAdmin,
   asyncHandler(async (req, res) => {
     const { firstName, lastName, phone, amount, currency = 'EUR', expires_at = null, notes = null, hideAmount } = req.body || {};
+    const rawSenderName = req.body?.senderName ?? req.body?.sender_name ?? null;
     const hide_amount = typeof hideAmount === 'boolean' ? hideAmount : req.body?.hide_amount === true || req.body?.hide_amount === 'true';
     const normalizedFirstName = typeof firstName === 'string' ? firstName.trim() : '';
     const normalizedLastName = typeof lastName === 'string' ? lastName.trim() : '';
     const normalizedPhone = typeof phone === 'string' ? phone.trim() : '';
+    const normalizedSenderName = typeof rawSenderName === 'string' ? rawSenderName.trim() : '';
 
     if (!normalizedFirstName) {
       return res.status(400).json({ error: 'First name is required' });
@@ -899,14 +901,27 @@ app.post(
         `INSERT INTO gift_cards (
           id, status, amount, hide_amount, currency, expires_at, notes,
           claim_token, claim_token_expires_at, claimed_at, claimed_by_customer_id,
-          code, first_name, last_name, email, phone, birth_date, dedication, consents, created_at, updated_at
+          code, first_name, last_name, sender_name, email, phone, birth_date, dedication, consents, created_at, updated_at
         ) VALUES (
           $1, 'active', $2, $3, $4, $5, $6,
           NULL, NULL, NOW(), $7,
-          $8, $9, $10, NULL, $11, NULL, NULL, NULL, NOW(), NOW()
+          $8, $9, $10, $11, NULL, $12, NULL, NULL, NULL, NOW(), NOW()
         )
-        RETURNING id, amount, hide_amount, code, expires_at, first_name, last_name, phone`,
-        [uuidv4(), amount, hide_amount, currency, expiresAt, notes, customerId, code, normalizedFirstName, normalizedLastName, normalizedPhone || null]
+        RETURNING id, amount, hide_amount, code, expires_at, first_name, last_name, sender_name, phone`,
+        [
+          uuidv4(),
+          amount,
+          hide_amount,
+          currency,
+          expiresAt,
+          notes,
+          customerId,
+          code,
+          normalizedFirstName,
+          normalizedLastName,
+          normalizedSenderName || null,
+          normalizedPhone || null,
+        ]
       );
       return rows[0];
     });
@@ -917,6 +932,7 @@ app.post(
       hide_amount: giftCard.hide_amount,
       code: giftCard.code,
       expires_at: toISO(giftCard.expires_at),
+      sender_name: giftCard.sender_name,
       redeem_url,
       customer: {
         first_name: giftCard.first_name,
@@ -939,6 +955,7 @@ function mapGiftCard(row) {
     customer_name: row.first_name && row.last_name ? `${row.first_name} ${row.last_name}` : null,
     first_name: row.first_name,
     last_name: row.last_name,
+    sender_name: row.sender_name,
     email: row.email,
     phone: row.phone,
     birth_date: row.birth_date ? row.birth_date.toISOString().split('T')[0] : null,
@@ -1431,7 +1448,7 @@ app.get(
   asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { rows } = await query(
-      `SELECT id, amount, hide_amount, currency, code, status, first_name, last_name, email, phone, notes, expires_at, created_at
+      `SELECT id, amount, hide_amount, currency, code, status, first_name, last_name, sender_name, email, phone, notes, expires_at, created_at
        FROM gift_cards WHERE id = $1`,
       [id]
     );
@@ -1448,6 +1465,7 @@ app.get(
       status: gc.status,
       first_name: gc.first_name,
       last_name: gc.last_name,
+      sender_name: gc.sender_name,
       email: gc.email,
       phone: gc.phone,
       notes: gc.notes,
