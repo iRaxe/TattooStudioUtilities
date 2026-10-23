@@ -1,5 +1,9 @@
 # Backend Dockerfile
-FROM node:18-alpine
+FROM node:22.23.4-alpine3.23@sha256:6abbcf5dd6b231da109bcde1181db1d92bf78015ae1a9514d9807c1f857869db AS wavo_node_security
+FROM node:18.20.8-alpine3.21@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+COPY --from=wavo_node_security --chmod=0755 /usr/local/bin/node /usr/local/bin/node
+ENV NODE_VERSION=22.23.4
+RUN test "$(node --version)" = "v22.23.4"
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
